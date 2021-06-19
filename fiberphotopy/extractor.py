@@ -66,8 +66,8 @@ class History:
     
 class NewFile:
 ''''''
-    def __init__(self,path,name,exp_date,columns='std',comment=None):
-        self.path = path
+    def __init__(self,path,name,exp_date,comment=None):
+        self.path = pathindex=False
         self.filename = os.path.split(self.path)[-1]
         self.importdate = datetime.datetime.now()
         self.exp_date = exp_date
