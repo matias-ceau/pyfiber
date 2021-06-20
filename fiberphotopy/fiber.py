@@ -70,7 +70,7 @@ class Recording:
         start, end = ttl_linefinder(self.raw,ttl_name)
         start_times = [self.time[i] for i in start] # list of all even starting times for channel
         end_times = [self.time[i] for i in end]
-        return {'start lines' start,
+        return {'start lines': start,
                 'start times':start_times,
                 'end lines': end,
                 'end times': end_times)
