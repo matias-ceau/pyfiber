@@ -1,0 +1,10 @@
+Time(s): Time
+"AIn-1 - Demodulated(Lock-In)": Calcium-dependant
+AOut-1: AOut-1
+"AIn-2 - Demodulated(Lock-In)": Isosbestic
+AOut-2: AOut-2
+TTL:
+  DI/0-1: On/Off
+  DI/0-2: Nose Pokes
+  DI/0-3: Injection
+  DI/0-4: Period
