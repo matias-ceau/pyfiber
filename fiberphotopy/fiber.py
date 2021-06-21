@@ -39,7 +39,7 @@ class Recording:
             self.time = _get_arrays(self.raw)[0] #time of the whole recording
             self.cad = _get_arrays(self.raw)[1] # calcium dependant signal
             self.iso = _get_arrays(self.raw)[2] # isosbestic signal
-            self.ttl_info = {k:self.ttl_descriptor(k) for k in self.ttl_channels}
+            self.ttl_info = {k:self.ttl_descriptor(k) for k in self.ttl_channels} #model {'DI/O-1' : {'start time':(1,2)}}
     
     def __repr__(self):
         '''Gives general info on the recording object'''
@@ -49,12 +49,7 @@ class Recording:
             for i in self.ttl_channels: # list of TTL channels
                 l = self.ttl_descriptor(i) # info about the specific channel 
                 rpr += '_'*20+'\n   '+i+': ' +nom['TTL'][i] +'\n'
-                #rpr += 'Event number(s):'+','.join([str(j+1) for j in range(len(l['start lines'])) ])+'\n'
-                #rpr += 'Start time(s):'+','.join([str(i) for i in l['start times']])+'\n'
-                #rpr += 'End time(s):'+','.join([str(i) for i in l['end times']])+'\n'
                 rpr += '\n'.join([f"({n}): {str(round(a))} -> {str(round(b))} ({_round_ut(a,b)})" for n,a,b in zip([str(j+1) for j in range(len(l['start lines']))], l['start times'], l['end times']) ]) +'\n'
-                #rpr += 'Start line(s):'+','.join([str(i) for i in l['start lines']])+'\n'
-                #rpr += 'End line(s):'+','.join([str(i) for i in l['end lines']])+'\n'
             rpr += 20*'_'+'\n'
             rpr += f'* Recording length: {round(_recording_length(self.raw))} s'+'\n'
             info = self.recording_info()

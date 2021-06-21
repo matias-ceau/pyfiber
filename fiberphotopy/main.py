@@ -18,18 +18,25 @@ all_recordings = list(recordings['Recording'])
 TTL_nice_list=[f'{v} ({k})' for k, v in fiber.channel_definition.items()]
 
 class RecSel:
+
     def __init__(self):
-        self.recs = {}
-    def get(self,rec_name):
-        if rec_name in self.recs.keys():
-            return self.recs[rec_name]
+        global all_recordings
+        self.rec_list = all_recordings
+        self.rec_data = {}
+        for i in self.rec_list:
+            self.obtain(i)           
+
+    def obtain(self,rec_name):
+        if rec_name in self.rec_data.keys():
+            return self.rec_data[rec_name]
         else:
             try:
                 rec = fiber.Recording(rec_name)
-                self.recs[rec_name] = rec
+                self.rec_data[rec_name] = rec
                 return rec
             except: return None
 
+recsel = RecSel()
 #--------------------------------------------------------------------------------------------------------
 def plotter():
     plt.plot([1, 2, 3, 4, 5, 6])
@@ -42,18 +49,24 @@ tab1_importer =  [[sg.Input(key='-filename-'), sg.FileBrowse()],
                    [sg.Text('Experiment Date',s=(15,1)), sg.Input(key='-exp_date-')], 
                    [sg.Text('Optional Comment',s=(15,1)), sg.Input(key='-comment-')], 
                    [sg.Text(key='-file_info-')], 
-                   [sg.Button('Import')]] 
+                   [sg.Button('Import')]
+                  ] 
 
 #--------------------------------------------------------------------------------------------------------
-col_browser = [[sg.Text('Recording informations')],
-               [sg.Listbox(values=all_recordings, size=(40, 6), key='-selected_recording-')],
-               [sg.Button('Show Details', key='-select_recording-')]] 
+col_info = [[sg.Text('Recording Infos')],
+            [sg.Listbox(values=all_recordings, size=(40, 15), key='-selected_recording-',enable_events=True)],
+            [sg.Multiline('',size=(40,15),key='-details-')]] 
 
-col_details = [[sg.Multiline('',size=(40,10),key='-details-')]]
+col_selection = [[sg.Image('foo.png')],
+                 [sg.Text('Selection for analysis')], 
+                 [sg.Listbox(values=TTL_nice_list, s=(20, 4)),
+                     sg.Column([[sg.Text('Event Number')],
+                                [sg.Spin([i for i in range(1,15)],initial_value=1,k='-event_num-',size=(4,4))]]),
+                     sg.Column([[sg.Button('Select')],
+                                [sg.Input('Ready',size=(10,1),readonly=True,key='-message-')]])]
+                 ]
 
-tab2_browser = [[sg.Column(col_browser),sg.Column(col_details)],
-                [sg.Listbox(values=TTL_nice_list, s=(20, 4)),sg.Text('Event Number'),sg.Input('',s=(1,2))]
-                   ]
+tab2_browser = [[sg.Column(col_info),sg.Column(col_selection)]]
 
 #--------------------------------------------------------------------------------------------------------
 col_norm = [[sg.Text('Normalisation')],
@@ -68,17 +81,15 @@ col_std = [[sg.Text('Standardization')],
 col_options = [[sg.Text('Time selection')],
                [sg.Text('Baseline',size=(15,1)),sg.Input('5',key='-base-',size=(4,1))],
                [sg.Text('Post-event',size=(15,1)),sg.Input('10',key='-post-',size=(4,1))],
-               [sg.Text('Graph limits',size=(15,1)),sg.Input('5',key='-limit1-',size=(2,1)),
-                                                          sg.Input('5',key='-limit2-',size=(2,1))]]
+               [sg.Text('Pre-event (graph)',size=(15,1)),sg.Input('5',key='-pre-',size=(4,1))]]
 
-tab3_analyser =  [[sg.Column(col_std),sg.Column(col_options),sg.Column(col_norm)],
-                  [sg.Text('Recording',size=(15,1)),
-                      sg.Input('Selected recording',k='-plotted_rec-',readonly=True)],
-                  [sg.Text('Channel',size=(15,1)),
-                      sg.Input('Selected TTL channel',k='-plotted_ttl-',readonly=True)],
-                  [sg.Text('Event',size=(15,1)),
-                      sg.Input('Selected event',k='-plotted_event-',readonly=True)],
-                    [sg.Button('Plot')]]
+col_analysis = [[sg.Input('Selected recording',k='-plotted_rec-',readonly=True,s=(10,1))],
+                [sg.Input('Selected TTL channel',k='-plotted_ttl-',readonly=True,s=(10,1))],
+                [sg.Input('Selected event',k='-plotted_event-',readonly=True,s=(10,1))],
+                [sg.Button('Plot'),sg.Button('Open Graph Editor',key='-pltplot-')]]
+
+tab3_analyser =  [[sg.Column(col_std),sg.Column(col_options),sg.Column(col_norm),sg.Column(col_analysis)],
+                   [sg.Image('foo.png')]]
 
 #--------------------------------------------------------------------------------------------------------
 layout = [[sg.TabGroup([[sg.Tab('Importer', tab1_importer), 
@@ -88,11 +99,24 @@ layout = [[sg.TabGroup([[sg.Tab('Importer', tab1_importer),
 window = sg.Window('Fiberphotopy', layout)    
 #--------------------------------------------------------------------------------------------------------
 
-while True:    
-    event, values = window.read()
-    print(values['-exp_date-'])
-    if event == '-select_recording-':
-        print(values['-selected_recording-'])
-    if event == 'Plot': plotter()
-    if event == sg.WIN_CLOSED:
-        break 
+def main():
+    while True:    
+        event, values = window.read()
+        # import
+
+        # click on recordings
+
+        # select (for analysis)
+
+        # plot
+
+        # open editor
+        print(values['-exp_date-'])
+        if event == '-select_recording-':
+            print(values['-selected_recording-'])
+        if event == '-pltplot-': plotter()
+        if event == sg.WIN_CLOSED:
+            break 
+
+if __name__ == '__main__':
+    main()
