@@ -13,6 +13,7 @@ def path_f():
             'IN': os.path.join(data,'IN'),
             'OUT': os.path.join(data,'OUT'),
             'history' : history,
+            'figures' : os.path.join(data,'figures'),
             'imported' : os.path.join(history,'imported_files.csv'),
             'recordings' : os.path.join(history,'recordings.csv'),
             'config': os.path.join(os.pardir,'config.yaml')}
@@ -22,6 +23,7 @@ def file_and_folder_creator():
     # create folder infrastructure if non existent
     if 'IN' not in os.listdir(path_f()['data']): os.mkdir(path_f()['IN'])
     if 'OUT' not in os.listdir(path_f()['data']): os.mkdir(path_f()['OUT'])
+    if 'figures' not in os.listdir(path_f()['data']): os.mkdir(path_f()['figures'])
     if 'history' not in os.listdir(path_f()['data']): os.mkdir(path_f()['history'])
     # create files if non existent
     if 'imported_files.csv' not in os.listdir(path_f()['history']):

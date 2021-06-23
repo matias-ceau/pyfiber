@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 import os
 from scipy import stats
 import extractor
@@ -32,7 +33,7 @@ class Recording:
         self.name = name
         self.raw = _call_raw(name,2000) #removes first 2000 lines
         if len(self.raw)>0:
-            self.ttl_channels = _find_ttl_channel(self.raw) # list of names of the TTL channels
+            self.ttl_channels = find_ttl_channel(self.raw) # list of names of the TTL channels
             self.Z = _normZ(self.raw)
             self.F = _normF(self.raw)
             self.L = _normL(self.raw)
@@ -49,7 +50,8 @@ class Recording:
             for i in self.ttl_channels: # list of TTL channels
                 l = self.ttl_descriptor(i) # info about the specific channel 
                 rpr += '_'*20+'\n   '+i+': ' +nom['TTL'][i] +'\n'
-                rpr += '\n'.join([f"({n}): {str(round(a))} -> {str(round(b))} ({_round_ut(a,b)})" for n,a,b in zip([str(j+1) for j in range(len(l['start lines']))], l['start times'], l['end times']) ]) +'\n'
+                
+                rpr += '\n'.join([f"({n}): {str(round(a))} -> {str(round(b))} ({_round_ut(a,b)})" for n,a,b in zip([str(j+1) for j in range(len(l['start lines']))], l['start times'], l['end times'])]) +'\n'
             rpr += 20*'_'+'\n'
             rpr += f'* Recording length: {round(_recording_length(self.raw))} s'+'\n'
             info = self.recording_info()
@@ -61,14 +63,14 @@ class Recording:
 
     def recording_info(self):
         df = extractor.History().recordings
-        data = df[df['Recording'] == self.name]
-        return {'import date':list(data['Import Date'])[0],
-                'exp date':list(data['Experiment Date'])[0],
-                'comment':list(data['Comment'])[0]}
+        di = df[df['Recording'] == self.name]
+        return {'import date':list(di['Import Date'])[0],
+                'exp date':list(di['Experiment Date'])[0],
+                'comment':list(di['Comment'])[0]}
     
     def ttl_descriptor(self,ttl_name):
         if len(self.raw)>0:
-            '''Finds start,end lines and times and duration of events for a particular TTL channel [0]/[2] = start/end lines & [1]/[3] are start/end times [4] is duration of event'''
+            '''Finds start,end lines and times and duration of events for a particular TTL channel'''
             start, end = _ttl_linefinder(self.raw,ttl_name)
             start_times = [self.time[i] for i in start] # list of all even starting times for channel
             end_times = [self.time[i] for i in end]
@@ -77,16 +79,16 @@ class Recording:
                     'end lines': end,
                     'end times': end_times}
         
-    def analyze_perievent(self,base,pre,post,std='F',ttl_num=2,event_number=1):
+    def analyze_perievent(self,base,pre,post,norm,ttl_num,event_number):
         '''Output = (sample_time,robust_Zscores,TTLstart_time,Z_scores)
-        Can also be used to analyse calcium-dependant and isosbestic (std=cad,std=iso)'''
+        Can also be used to analyse calcium-dependant and isosbestic (norm=cad,norm=iso)'''
         global possible_ttl
         if len(self.raw)>0:
-            if std=='Z': data = self.Z
-            if std=='F': data = self.F
-            if std=='L': data = self.L
-            if std=='cad': data = self.cad
-            if std=='iso': data = self.iso
+            if norm=='Z': dat = self.Z
+            if norm=='F': dat = self.F
+            if norm=='L': dat = self.L
+            if norm=='cad': dat = self.cad
+            if norm=='iso': dat = self.iso
             # retrieve time and line number of ttl of interest
             ttl_ch = possible_ttl[ttl_num-1]
             ttl_time = self.ttl_descriptor(ttl_ch)['start times'][event_number-1] #select ttl channel and event
@@ -94,11 +96,15 @@ class Recording:
             # cut data into sample, with the help of the _sampler function to get the indices
             i = _sampler(self.time,base,post,ttl_time,pre)
             sample_time = self.time[i['pre']:i['post']]
-            sample_signal = data[i['pre']:i['post']]
+            sample_signal = dat[i['pre']:i['post']]
             sample_cad = self.cad[i['pre']:i['post']]
             sample_iso = self.iso[i['pre']:i['post']]
+            sample_ttl1 = self.raw['DI/O-1'][i['pre']:i['post']]
+            sample_ttl2 = self.raw['DI/O-2'][i['pre']:i['post']]
+            sample_ttl3 = self.raw['DI/O-3'][i['pre']:i['post']]
+            sample_ttl4 = self.raw['DI/O-4'][i['pre']:i['post']]
             # get baseline
-            baseline = data[i['base'] : ttl_index]
+            baseline = dat[i['base'] : ttl_index]
             #calculate the z-scores
             zscores = (sample_signal-baseline.mean())/baseline.std()
             # robust zscores ((signal - median(baseline))/mad(baseline))
@@ -109,12 +115,15 @@ class Recording:
                     'Z-scores':zscores,
                     'sample signal':sample_signal,
                     'sample cad':sample_cad,
-                    'sample iso':sample_iso}
-
+                    'sample iso':sample_iso,
+                    'ttl1': sample_ttl1,
+                    'ttl2': sample_ttl2,
+                    'ttl3': sample_ttl3,
+                    'ttl4': sample_ttl4}
 
 ## FUNCTIONS USED BY OBJECTS
 
-def _find_ttl_channel(data):
+def find_ttl_channel(data):
     '''Returns the list of TTL channels for events that actually happen during the recording'''
     global possible_ttl
     ttl_channel = []
@@ -170,11 +179,11 @@ def _ttl_linefinder(data,ttl_name):
     '''Finds the starting and ending lines of a particular ttl channel'''
     global possible_ttl
     time = _get_arrays(data)[0]
-    ttl = np.array(data[ttl_name])
-    start = [i-1 for i in range(1,len(ttl)) if ttl[i-1]-ttl[i] < 0]
+    ttl = np.array([math.ceil(t) for t in data[ttl_name]]) #the ceil function converts all the artefacts (ie ttl not equal to 0 or 1, into binaries, for the method to work)
+    start = [i for i in range(1,len(ttl)) if ttl[i-1]-ttl[i] < 0]
     end = [i-1 for i in range(1,len(ttl)) if ttl[i-1]-ttl[i] > 0]
-    if ttl[0] == 1: start.insert(0,1)
-    if ttl[-1] == 1: end.append(len(ttl)-1)
+    if ttl[0] >0 : start.insert(0,1)
+    if ttl[-1] >0 : end.append(len(ttl)-1)
     return (start,end)
 
 def _recording_length(data):

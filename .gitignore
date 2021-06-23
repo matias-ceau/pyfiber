@@ -1,2 +1,4 @@
 data/*
+fiberphotopy/__pycache__/
+fiberphotopy/__pycache__/**.pyc
 **.swp
