@@ -78,7 +78,7 @@ var = Var()
 #--------------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------------
-sg.theme('Dark Green 5')
+sg.theme('Dark')
 tab1_importer =  [[sg.Input(key='-filename-'), sg.FileBrowse()], 
                    [sg.Text('Session Name',s=(17,1)), sg.Input(key='-name-')], 
                    [sg.Text('Experiment Date',s=(17,1)), sg.Input(key='-exp_date-')], 
