@@ -1,10 +1,60 @@
-Time(s): Time
-"AIn-1 - Demodulated(Lock-In)": Calcium-dependant
-AOut-1: AOut-1
-"AIn-2 - Demodulated(Lock-In)": Isosbestic
-AOut-2: AOut-2
-TTL:
-  DI/O-1: On/Off
-  DI/O-2: Nose Pokes
-  DI/O-3: Injection
-  DI/O-4: Period
+USER:
+    GENERAL:
+        rat_ID: 'Not specified'
+        file_unit: No
+        user_unit: s            #seconds
+        experiment_duration: {min: 29, max: 28999} #used to automatically determine time units ; minimum and maximum experiment duration, max must be no greater than 1000 times min ; can be overidden by specifying file_unit in the object
+    BEHAVIOR:
+        fixed_ratio:    5
+        close_interval: 5 #maximal time between an interval and an event to  consider them close (unit is the same as user unit)
+        elements:
+            HLED_OFF:     [True, 'Drug Period'                ,            '#069AF3']
+            HLED_ON:      [True, 'No Drug Period'             ,                 gold]
+            TTL1_ON:      [True, 'Fiber Photometry Recordings',                    g]
+            np1:          [True, 'Active Nosepokes'           ,                    r]
+            np2:          [True, 'Inactive Nosepokes'         ,                    b]
+            inj1:         [True, 'Injections'                 ,                    k]
+            LED1_ON:      [True, 'Conditioned Stimulus'       ,            goldenrod]
+            LED1_OFF:     [False, LED1_OFF                    , [darkgray, darkgrey]]
+            LED2_OFF:     [False, LED2_OFF                    ,            slategrey]
+            LED2_ON:      [True,' Drug Light On'              ,            slategrey]
+            DARK:         [False, DARK                        ,                    k]
+            TO_DARK:      [False, TO_DARK                     ,            olivedrab]
+            NOTO_DARK:    [False, NOTO_DARK                   ,                black]
+            TIMEOUT:      [True,  'Time outs'                 ,                    k]
+            switch_d_nd:  [False, 'Switch from D to ND'       ,                    r]
+            switch_to_nd: [False, 'Switch from TO to ND'      ,                    r]
+            switch_nd_d:  [False, 'Switch from ND to D'       ,                    b]
+    FIBERPHOTOMETRY:
+        split_recordings:  True
+        split_treshold:    10       #ie 10 times the mean intersample space
+        trim_recording:    2.0      # seconds trimmed from recording start
+        default_window:    [10.0,10.0]  # perievent window
+        self.default_norm: F     # normalization method
+
+# IMETRONIC NOMENCLATURE FOR DAT FILES, CAN BE CHANGED IF NOMENCLATURE ITSELF CHANGES
+IMETRONIC:
+    LIGHTS             : {HLED : [1,1],  LED1 : [1,2], LED2  : [1,3],  LED3 : [1,4], LED4 : [1,5], LED5 : [1,6], LED6 : [1,7], LED7 : [1,8]}
+    LEVERS             : {L1   : [2,1],  L2   : [2,2], L3    : [2,3],  L4   : [2,4], L5   : [2,5], L6   : [2,6]}
+    NOSEPOKE           : {NP1  : [3,1],  NP2  : [3,2], NP3   : [3,3],  NP4  : [3,4], NP5  : [3,5]}
+    DISTRIBUTEUR       : {D1   : [4,1],  D2   : [4,2], D3    : [4,3],  D4   : [4,4], D5   : [4,5], D6   : [4,6], D7   : [4,7], D8   : [4,8], D9    : [4,9], D10 : [4,10], D11 : [4,11], D12 : [4,12]}
+    LICKMETER          : {LK1  : [5,1],  LK2  : [5,2], LK3   : [5,3],  LK4  : [5,4], LK5  : [5,5]}
+    DIVERS_CA          : {INJ1 : [6,1],  SND  : [6,2], WN    : [6,3],  SHK  : [6,4], PUSH : [6,5], TOP  : [6,6], INJ2 : [6,7], ADC  : [6,8], SNDpP : [6,9], FL  : [6,10], RD  : [6,11], OD  : [6,12], BUL : [6,13], WH : [6,14] }
+    PORTE              : {G1   : [7,1],  G2   : [7,2], G3    : [7,3],  G4   : [7,4], G5   : [7,5], G6   : [7,6], G7   : [7,7], G8   : [7,8], G9    : [7,9], G10 : [7,10], G11 : [7,11], G12 : [7,12]}
+    ZONE               : {Z1   : [9,1],  Z2   : [9,2], Z3    : [9,3],  Z4   : [9,4], Z5   : [9,5], Z6   : [9,6], Z7   : [9,7], Z8   : [9,8], Z9    : [9,9], Z10 : [9,10], Z11 : [9,11], Z12 : [9,12], Z13 : [9,13]}
+    DIVERS             : {'ON' : [10,1], EVT  : [10,5]}
+    RFID               : {I1   : [12,1], I2   : [12,2], I3   : [12,3], I4   : [12,4]}
+    MESSAGE            : {STR1 : [13,1], STR2 : [13,2], STR3 : [13,3], STR4 : [13,4]}
+    DIVERS_NON_STOCKES : {I    : [11,4]}
+
+# DORIC NOMENCLATURE AND CORRESPONDING USER NAMES, NAMES CAN BE CHANGED, NOMENCLATURE IF UPDATED
+DORIC:
+    Time(s): time
+    "AIn-1 - Demodulated(Lock-In)": signal
+    "AIn-2 - Demodulated(Lock-In)": control
+    DI/O-1: TTL1
+    DI/O-2: TTL2
+    DI/O-3: TTL3
+    DI/O-4: TTL4
+
+        
