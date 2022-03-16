@@ -1,189 +1,205 @@
-import matplotlib.pyplot as plt
-import pandas as pd
+import behavioral_data
+import fiber_data
+from fp_utils import FiberPhotopy
+
 import numpy as np
-from scipy import stats
-import os
-import PySimpleGUI as sg    
-import datetime
-import extractor
-import fiber
+import pandas as pd
+from math import ceil
+import matplotlib.pyplot as plt
+from scipy import integrate,stats,signal
+#from scipy.stats import sem
 
-######### VARIABLES ###############################
-class Var:
+class RatSession(FiberPhotopy):
+    """Create object containing both fiber recordings and behavioral files from a single session."""
 
-    def __init__(self):
-        self.TTL_nice_list=[f'{v} ({k})' for k, v in fiber.channel_definition.items()]
-        # updates with the self.ipdate() function (based on files)
-        self.files = extractor.History().files
-        self.recordings = extractor.History().recordings
-        self.rec_list = list(self.recordings['Recording'])
-        # different update methods
-        self.rec_data = {}
-        for i in self.rec_list:
-            self.obtain(i)
+    def __init__(self,behavior,fiber,rat_ID=None,folder=None,**kwargs):
+        super().__init__('all',**kwargs)
+        self.rat_ID = rat_ID
+        if type(behavior) == behavioral_data.BehavioralData:
+            self.behavior = behavior
+        else:
+            self.behavior = behavioral_data.BehavioralData(behavior)
+        if type(fiber) == fiber_data.FiberData:
+            if fiber.alignement == self.behavior.rec_start:
+                self.fiber = fiber
+            else:
+                self.fiber = fiber_data.FiberData(fiber.filepath,alignement=self.behavior.rec_start)
+        else:
+            self.fiber = fiber_data.FiberData(fiber,alignement=self.behavior.rec_start)
         self.analyses = {}
-        self.descriptions = {}
-        self.csel = {}
-        self.pars = {}
-    
-    def describe(self,rec):
-        if rec in self.descriptions.keys():
-            return self.descriptions[rec]
+        self.analyzable_events = self.behavior.events(recorded=True,window=self.default_window)
+        self.recorded_intervals = self.behavior.intervals(recorded=True,window=self.default_window)
+
+    def _sample(self,time_array,event_time,window):
+        """Take a sample of the recording, based on one event and desired preevent and postevent duration."""
+        start  = event_time - window[0]
+        end    = event_time + window[1]
+        start_idx = np.where(abs(time_array -      start) == min(abs(time_array -      start)))[0][0]
+        event_idx = np.where(abs(time_array - event_time) == min(abs(time_array - event_time)))[0][0]
+        end_idx   = np.where(abs(time_array -        end) == min(abs(time_array -        end)))[0][-1]
+        return (start_idx , event_idx, end_idx)        
+        
+        
+    def analyze_perievent(self,
+                          event_time,
+                          window     = 'default',
+                          norm       = 'F'):
+        """Return Analysis object, related to defined perievent window."""
+        res = Analysis(self.rat_ID)
+        res.event_time     = event_time
+        res.fiberfile      = self.fiber.filepath
+        res.behaviorfile   = self.behavior.filepath
+        if norm == 'default':
+            res.normalisation = self.default_norm
         else:
-            descr = str(self.rec_data[rec])
-            self.descriptions[rec] = descr
-            return descr
-
-    def obtain(self,rec_name):
-        if rec_name in self.rec_data.keys():
-            return self.rec_data[rec_name]
+            try:
+                res.normalisation   = {'F' : 'delta F/F', 'Z' : 'Z-scores'}[norm]
+            except KeyError:
+                print("Invalid choice for signal normalisation !\nZ-score differences: norm='Z'\ndelta F/f: stand='F'")
+                return None
+        res.event_time = event_time
+        try:
+            res.rec_number = self.fiber._find_rec(event_time)[0] # locates recording containing the timestamp
+        except IndexError:
+            print('No fiber recording at this timestamp')
+            return None
+        if window == 'default':
+            res.window    = self.default_window
         else:
-            try:
-                rec = fiber.Recording(rec_name)
-                self.rec_data[rec_name] = rec
-                return rec
-            except: return None
+            res.window    = window
+        res.recordingdata = self.fiber.norm(rec=res.rec_number,method=norm)
+        res.rawdata       = self.fiber.norm(rec=res.rec_number,method='raw')
+        start_idx,event_idx,end_idx = self._sample(res.recordingdata[:,0],event_time,res.window)
+        res.data          = res.recordingdata[start_idx:end_idx+1]
+        res.raw_signal    = res.rawdata[start_idx:end_idx+1][:,1]
+        res.raw_control   = res.rawdata[start_idx:end_idx+1][:,2]
+        res.signal        = res.data[:,1]
+        res.time          = res.data[:,0]
+        res.sampling_rate = 1/np.diff(res.time).mean()
+        res.postevent     = res.data[end_idx-event_idx:][:,1]
+        res.pre_raw_sig   = res.raw_signal[:end_idx-event_idx]
+        res.post_raw_sig  = res.raw_signal[end_idx-event_idx:]
+        res.post_raw_ctrl = res.raw_control[end_idx-event_idx:]
+        res.post_time     = res.data[end_idx-event_idx:][:,0]
+        res.preevent      = res.data[:end_idx-event_idx][:,1]
+        res.pre_time      = res.data[:end_idx-event_idx][:,0]
+        res.zscores       = (res.signal - res.preevent.mean()) / res.preevent.std()
+        res.pre_zscores   = res.zscores[:end_idx-event_idx]
+        res.post_zscores  = res.zscores[end_idx-event_idx:]
+        res.rob_zscores   = (res.signal - np.median(res.preevent))/stats.median_abs_deviation(res.preevent)
+        res.pre_Rzscores  = res.rob_zscores[:end_idx-event_idx]
+        res.post_Rzscores = res.rob_zscores[end_idx-event_idx:]
+        res.preAVG_Z      = res.pre_zscores.mean()
+        res.postAVG_Z     = res.post_zscores.mean()
+        res.preAVG_RZ     = res.pre_Rzscores.mean()
+        res.postAVG_RZ    = res.post_Rzscores.mean()
+        res.pre_raw_AUC   = integrate.simpson(res.pre_raw_sig, res.pre_time)
+        res.post_raw_AUC  = integrate.simpson(res.post_raw_sig, res.post_time)
+        res.preAUC        = integrate.simpson(res.preevent, res.pre_time)
+        res.postAUC       = integrate.simpson(res.postevent, res.post_time)
+        res.preZ_AUC      = integrate.simpson(res.pre_zscores, res.pre_time)
+        res.postZ_AUC     = integrate.simpson(res.post_zscores, res.post_time)
+        res.preRZ_AUC     = integrate.simpson(res.pre_Rzscores, res.pre_time)
+        res.postRZ_AUC    = integrate.simpson(res.post_Rzscores, res.post_time)
+        self.analyses.update({f'rec{res.rec_number}_{res.event_time}_{res.window}' : res})
+        return res
 
-    def analyze(self,name,base,pre,post,norm='F',ttl_num=2,event_number=1,z='robust'):
-        saved = f'{name}_{norm}-{ttl_num}-{event_number}'
-        if saved in self.analyses.keys():
-            dw = self.analyses[saved]
-        else: 
-            dw =  self.rec_data[name].analyze_perievent(base,pre,post,norm,ttl_num,event_number)
-            self.analyses[saved] = dw
-        x = dw['sample time']
-        if z == 'robust': y = dw['robust Z-scores']
-        if z == 'standard': y = dw['Z-scores']
-        vert = dw['event time']
-        plt.plot(x,y)
-        plt.axvline(vert,color='r')
-        plt.title(saved)
-        plt.show()
+    def update_window(self,new_window):
+        """Change perievent window."""
+        self.default_window     = new_window
+        self.analyzable_events  = self.behavior.events(recorded=True,window=self.default_window)
+        self.recorded_intervals = self.behavior.intervals(recorded=True,window=self.default_window)
+            
+    def plot(self,what='events'):
+        """Plot either events or intervals that happen within recording timeframe."""
+        if what == 'events':
+            data = {k:v for k,v in self.analyzable_events.items() if v.size>0}
+        elif what == 'intervals':
+            data = {k:v for k,v in self.recorded_intervals.items() if v.size>0}
+        else:
+            print("Choose either 'intervals' or 'events'")
+        self.behavior.figure(obj=list(data.values()),label_list=list(data.keys()))
 
-    def plotter(self,name):
-        pass
+class Analysis:
+    """Give results of perievent analysis relative to one event from a session."""
 
-    def to_csv(self,rec):
-        pass 
-    
-    def update(self):
-        self.recordings = extractor.History().recordings
-        self.files = extractor.History().files
-        self.rec_list = list(self.recordings['Recording'])
-        for i in self.rec_list:
-            self.obtain(i)
-            self.describe(i)
+    def __init__(self,rat_ID):
+        """Initialize Analysis object."""
+        super().__init__()
 
-var = Var()
-#--------------------------------------------------------------------------------------------------------
+    def __repr__(self):
+        """Represent Analysis. Show attributes."""
+        return '\n'.join(['<obj>.'+i for i in self.__dict__.keys()])
 
-#--------------------------------------------------------------------------------------------------------
-sg.theme('Dark2')
-tab1_importer =  [[sg.Input(key='-filename-'), sg.FileBrowse()], 
-                   [sg.Text('Session Name',s=(17,1)), sg.Input(key='-name-')], 
-                   [sg.Text('Experiment Date',s=(17,1)), sg.Input(key='-exp_date-')], 
-                   [sg.Text('Optional Comment',s=(17,1)), sg.Input(key='-comment-')], 
-                   [sg.Text(key='-file_info-')], 
-                   [sg.Button('Import')]
-                  ] 
+    def plot(self,
+             data,
+             ylabel      = None,
+             xlabel      = 'time',
+             plot_title  = None,
+             figsize     = (20,10),
+             event       = True,
+             event_label = 'event',
+             linewidth   = 2,
+             smooth      = 'savgol',
+             smth_window = 'default'):
+        """Visualize data, by default smoothes data with Savitski Golay filter (window size 250ms)."""
+        try:
+            data = self.__dict__[data]
+        except KeyError:
+            print(f'Input type should be a string, possible inputs:\n{self._possible_data()}')
+        time = self.time
+        if smooth:
+            time_and_data = self.smooth(data,method=smooth,window=smth_window)
+            time = time_and_data[:,0]
+            data = time_and_data[:,1]
+        if len(data) == len(time):
+            fig = plt.figure(figsize=figsize)
+            plt.plot(time,data,c='r')
+            plt.xlabel = xlabel
+            plt.ylabel = ylabel
+            plt.suptitle(plot_title)
+            if event:
+                plt.axvline(self.event_time,c='k',label=event_label,lw=linewidth)
 
-#--------------------------------------------------------------------------------------------------------
-col_info = [[sg.Text('Recording Infos')],
-            [sg.Listbox(values=var.rec_list, size=(40, 15), key='-recordings-',enable_events=True)],
-            [sg.Multiline('',size=(40,15),key='-details-')]] 
+    def _possible_data(self):
+        d = {k:v for k,v in self.__dict__.items() if type(v) == np.ndarray}
+        l = [f"'{k}'" for k in d.keys() if len(d[k]) == len(self.time)]
+        return '\n'.join(l)
 
-col_selection = [[sg.Text('Selection for analysis')], 
-                 [sg.Listbox(values=var.TTL_nice_list, s=(20, 4),key='-ttl_descr-')],
-                 [sg.Text('Event Number')],
-                 [sg.Spin([i for i in range(1,15)],initial_value=1,k='-event_num-',size=(4,4))],
-                 [sg.Button('Select')],
-                 [sg.Input('',size=(50,1),readonly=True,key='-message-')]
-                 ]
+    def smooth(self,
+               data,
+               method    = 'savgol',
+               window    = 'default',
+               polyorder = 3,
+               add_time  = True):
+        """Return smoothed data, possible methods: Savitsky-Golay filter, rolling average."""
+        if type(data) == str:
+            data = self.__dict__[data]
+        if type(window) == str:
+            if window[-2:] == 'ms':
+                window = ceil(float(window[:-2])/1000 * self.sampling_rate)
+            if window == 'default':
+                window = ceil(self.sampling_rate/4) #250 ms
+        if method == 'savgol':
+            if window%2 ==0: window += 1
+            smoothed = signal.savgol_filter(data,window,polyorder)
+            if add_time:
+                return np.vstack((self.time,
+                                  smoothed)).T
+        if method == 'rolling':
+            smoothed = pd.Series(data).rolling(window=window).mean().iloc[window-1:].values
+            if add_time:
+                return np.vstack((pd.Series(self.time).rolling(window=window).mean().iloc[window-1:].values,
+                                  smoothed)).T
+        return smoothed
 
-tab2_browser = [[sg.Column(col_info),sg.Column(col_selection)]]
 
-#--------------------------------------------------------------------------------------------------------
-col_norm = [[sg.Text('Normalisation')],
-            [sg.Radio('Robust Z-scores', 'STD', default=True, enable_events=True, key='-sR-')], 
-            [sg.Radio('Z-scores', 'STD', enable_events=True, key='-sZ-')]]
+class MultiAnalysis(FiberPhotopy):
+    """Group analyses or multiple events for single subject."""
 
-col_std = [[sg.Text('Standardization')],
-           [sg.Radio('Standard delta F/F0', 'NORM', default=True, enable_events=True, key='-nF-')],
-           [sg.Radio('Z-score Substraction', 'NORM', enable_events=True, key='-nZ-')],
-           [sg.Radio('Alternative Linear', 'NORM', enable_events=True, key='-nL-')]]
+    def __init__(self,rat_session_list):
+        super().__init__(self)
 
-col_options = [[sg.Text('Time selection')],
-               [sg.Text('Baseline',size=(15,1)),sg.Input('5',key='-base-',size=(4,1))],
-               [sg.Text('Post-event',size=(15,1)),sg.Input('10',key='-post-',size=(4,1))],
-               [sg.Text('Pre-event (graph)',size=(15,1)),sg.Input('5',key='-pre-',size=(4,1))]]
+# find similar timestamps
 
-col_analysis = [[sg.Input('Selected recording',k='-plotted_rec-',readonly=True,s=(30,1))],
-                [sg.Input('Selected TTL channel',k='-plotted_ttl-',readonly=True,s=(30,1))],
-                [sg.Input('Selected event',k='-plotted_event-',readonly=True,s=(30,1))],
-                [sg.Button('Plot'),sg.Button('Open Graph Editor',key='-pltplot-')]]
-
-tab3_analyser =  [[sg.Column(col_std),sg.Column(col_options),sg.Column(col_norm),sg.Column(col_analysis)]]
-#--------------------------------------------------------------------------------------------------------
-layout = [[sg.TabGroup([[sg.Tab('Importer', tab1_importer), 
-                         sg.Tab('Recording Browser', tab2_browser), 
-                         sg.Tab('Analyser', tab3_analyser)]])
-                         ]]    
-window = sg.Window('Fiberphotopy', layout)    
-#--------------------------------------------------------------------------------------------------------
-
-def main():
-    while True:    
-        event, values = window.read()
-        # import------------------------------------------------------
-        if event == 'Import':
-            try: extractor.NewFile(values['-filename-'],
-                        values['-name-'],
-                        values['-exp_date-'],values['-comment-'])
-            except: pass
-            var.update()
-            window.Element('-recordings-').Update(values=var.rec_list)
-        # click on recordings------------------------------------------
-        if event == '-recordings-':
-            #print info
-            rc = values['-recordings-'][0]
-            description = var.describe(rc)
-            window.Element('-details-').Update(description)
-        if event == 'Select':
-            try:
-                var.csel['recording'] = values['-recordings-'][0]
-                var.csel['ttl'] = [int(i) for i in [str(n) for n in range(1,5)] if i in values['-ttl_descr-'][0]][0] 
-                var.csel['event'] = int(values['-event_num-'])
-                window['-message-'].update(str(var.csel))
-                window['-plotted_rec-'].update(var.csel['recording'])
-                window['-plotted_ttl-'].update('TTL: '+str(var.csel['ttl']))
-                window['-plotted_event-'].update('Event: '+str(var.csel['event']))
-            except: pass
-            # to add (plot ttl)
-        # select (for analysis)----------------------------------------
-    #analyze(self,name,base,pre,post,norm='F',ttl_num=2,event_number=1,z='robust'):
-        # open editor--------------------------------------------------
-        if event == '-pltplot-': 
-            try:
-                var.pars['baseline'] = float(values['-base-'])
-                var.pars['pre'] = float(values['-pre-'])
-                var.pars['post'] = float(values['-post-'])
-                if values['-sR-'] == True: var.pars['std'] = 'robust'
-                if values['-sZ-'] == True: var.pars['std'] = 'standard'
-                if values['-nF-'] == True: var.pars['norm'] = 'F'
-                if values['-nZ-'] == True: var.pars['norm'] = 'Z'
-                if values['-nL-'] == True: var.pars['norm'] = 'L'
-                d = var.analyze(name=var.csel['recording'],
-                            ttl_num=var.csel['ttl'],
-                            event_number=var.csel['event'],
-                            norm=var.pars['norm'],
-                            z=var.pars['std'],
-                            base=var.pars['baseline'],
-                            pre=var.pars['pre'],
-                            post=var.pars['post'])
-            except: pass
-        # quit -------------------------------------------------------
-        if event == sg.WIN_CLOSED:
-            break 
-
-if __name__ == '__main__':
-    main()
+#

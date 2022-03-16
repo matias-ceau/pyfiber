@@ -1,213 +1,182 @@
-import pandas as pd
 import numpy as np
-import math
-import os
-from scipy import stats
-import extractor
-import yaml
+import pandas as pd
+from fp_utils import FiberPhotopy
 
-# CSV NOMENCLATURE
-path = extractor.path_f()
-with open(path['config'],'r') as y:
-    nom = yaml.safe_load(y)
-for n in nom.keys():
-    if nom[n] == 'Time': time_nom = n
-    if nom[n] == 'Calcium-dependant': sign_nom = n
-    if nom[n] == 'Isosbestic': control_nom = n
-possible_ttl = list(nom['TTL'].keys()) 
-channel_definition = nom['TTL']
+class FiberData(FiberPhotopy):
+    """Extract fiberphotometry data from Doric system."""
 
+    def __init__(self,
+                 filepath,
+                 name      = 'default',
+                 rat_ID    = None,
+                 alignement=0,
+                 **kwargs):
+        super().__init__('fiber',**kwargs)
+        self.alignement = alignement
+        self.filepath = filepath
+        self.rat_ID = rat_ID
+        if name == 'default':
+            self.name = self.filepath.split('/')[-1].split('.csv')[0]
+            if self.rat_ID:
+                self.name += rat_ID
+        self.number_of_recording = 0
+        self.df = self._read_file(filepath,alignement=alignement)
+        self.full_time = np.array(self.df['Time(s)'])
+        self.raw_columns = list(self.df.columns)
+        self.ncl = self.config['DORIC']
+        self.data = self._extract_data()
+        self.columns = list(self.data.columns)
+        self.cut_time = np.array(self.data[self.ncl['Time(s)']])
+        self.sampling_rate = 1/np.median(np.diff(self.cut_time))
+        if self.split_recordings:
+            self.recordings = self._split_recordings()
+        else:
+            self.recordings = {1: self.data}
+        self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording)]
 
-class Recording:
-    '''self.name
-        self.raw     #removes first 2000 lines
-        self.ttl_channels # list of names of the TTL channels
-        self.time    #time of the whole recording
-        self.cad     # calcium dependant signal
-        self.iso     # isosbestic signal
-        self.Z       # normalized channel (original deltaZ)
-        self.F       # normalized channel ()
-        self.L       # normalized channel (alt method)
-        '''
-    def __init__(self, name):
-        self.name = name
-        self.raw = _call_raw(name,2000) #removes first 2000 lines
-        if len(self.raw)>0:
-            self.ttl_channels = find_ttl_channel(self.raw) # list of names of the TTL channels
-            self.Z = _normZ(self.raw)
-            self.F = _normF(self.raw)
-            self.L = _normL(self.raw)
-            self.time = _get_arrays(self.raw)[0] #time of the whole recording
-            self.cad = _get_arrays(self.raw)[1] # calcium dependant signal
-            self.iso = _get_arrays(self.raw)[2] # isosbestic signal
-            self.ttl_info = {k:self.ttl_descriptor(k) for k in self.ttl_channels} #model {'DI/O-1' : {'start time':(1,2)}}
-    
     def __repr__(self):
-        '''Gives general info on the recording object'''
-        if len(self.raw)>0:
-            global nom
-            rpr = '* Recording name:\n' + self.name+'\n* Number of TTL: '+str(len(self.ttl_channels))+'\n'+'TTL channel(s):'+','.join(self.ttl_channels)+'\n'
-            for i in self.ttl_channels: # list of TTL channels
-                l = self.ttl_descriptor(i) # info about the specific channel 
-                rpr += '_'*20+'\n   '+i+': ' +nom['TTL'][i] +'\n'
-                
-                rpr += '\n'.join([f"({n}): {str(round(a))} -> {str(round(b))} ({_round_ut(a,b)})" for n,a,b in zip([str(j+1) for j in range(len(l['start lines']))], l['start times'], l['end times'])]) +'\n'
-            rpr += 20*'_'+'\n'
-            rpr += f'* Recording length: {round(_recording_length(self.raw))} s'+'\n'
-            info = self.recording_info()
-            rpr += f"* Import Date: {info['import date'][:-16]}"+'\n'
-            rpr += f"* Experiment Date: {info['exp date']}"+'\n'
-            rpr += f"* Comment: {info['comment']}"+'\n'
-            return rpr
-        else: return f'This recording is not valid, checkout the csv (file: {self.name})'
+        """Give general information about the recording data."""
+        general_info = f"""\
+File                 : {self.filepath}
+Rat_ID               : {self.rat_ID}
+Number of recordings : {self.number_of_recording}
+Data columns         : {self.columns}
+Total lenght         : {self.full_time[-1] - self.full_time[0]} {self.user_unit}
+Kept lenght          : {self.cut_time[-1] - self.cut_time[0]} ({abs(self.full_time[0]-self.cut_time[0])} seconds trimmed)
+Global sampling rate : {self.sampling_rate} S/{self.user_unit}
+Original file unit   : {self.file_unit}"""
+        return general_info
 
-    def recording_info(self):
-        df = extractor.History().recordings
-        di = df[df['Recording'] == self.name]
-        return {'import date':list(di['Import Date'])[0],
-                'exp date':list(di['Experiment Date'])[0],
-                'comment':list(di['Comment'])[0]}
-    
-    def ttl_descriptor(self,ttl_name):
-        if len(self.raw)>0:
-            '''Finds start,end lines and times and duration of events for a particular TTL channel'''
-            start, end = _ttl_linefinder(self.raw,ttl_name)
-            start_times = [self.time[i] for i in start] # list of all even starting times for channel
-            end_times = [self.time[i] for i in end]
-            return {'start lines': start,
-                    'start times':start_times,
-                    'end lines': end,
-                    'end times': end_times}
-        
-    def analyze_perievent(self,base,pre,post,norm,ttl_num,event_number):
-        '''Output = (sample_time,robust_Zscores,TTLstart_time,Z_scores)
-        Can also be used to analyse calcium-dependant and isosbestic (norm=cad,norm=iso)'''
-        global possible_ttl
-        if len(self.raw)>0:
-            if norm=='Z': dat = self.Z
-            if norm=='F': dat = self.F
-            if norm=='L': dat = self.L
-            if norm=='cad': dat = self.cad
-            if norm=='iso': dat = self.iso
-            # retrieve time and line number of ttl of interest
-            ttl_ch = possible_ttl[ttl_num-1]
-            ttl_time = self.ttl_descriptor(ttl_ch)['start times'][event_number-1] #select ttl channel and event
-            ttl_index = self.ttl_descriptor(ttl_ch)['start lines'][event_number-1] 
-            # cut data into sample, with the help of the _sampler function to get the indices
-            i = _sampler(self.time,base,post,ttl_time,pre)
-            sample_time = self.time[i['pre']:i['post']]
-            sample_signal = dat[i['pre']:i['post']]
-            sample_cad = self.cad[i['pre']:i['post']]
-            sample_iso = self.iso[i['pre']:i['post']]
-            sample_ttl1 = self.raw['DI/O-1'][i['pre']:i['post']]
-            sample_ttl2 = self.raw['DI/O-2'][i['pre']:i['post']]
-            sample_ttl3 = self.raw['DI/O-3'][i['pre']:i['post']]
-            sample_ttl4 = self.raw['DI/O-4'][i['pre']:i['post']]
-            # get baseline
-            baseline = dat[i['base'] : ttl_index]
-            #calculate the z-scores
-            zscores = (sample_signal-baseline.mean())/baseline.std()
-            # robust zscores ((signal - median(baseline))/mad(baseline))
-            robustzscores = (sample_signal - np.median(baseline))/stats.median_abs_deviation(baseline)
-            return {'sample time':sample_time,
-                    'robust Z-scores':robustzscores,
-                    'event time':ttl_time,
-                    'Z-scores':zscores,
-                    'sample signal':sample_signal,
-                    'sample cad':sample_cad,
-                    'sample iso':sample_iso,
-                    'ttl1': sample_ttl1,
-                    'ttl2': sample_ttl2,
-                    'ttl3': sample_ttl3,
-                    'ttl4': sample_ttl4}
+    def _read_file(self,filepath,alignement=0):
+        """Read file and convert in the desired unit if needed."""
+        df = pd.read_csv(filepath)
+        if self.file_unit and self.user_unit:
+            if self.file_unit == self.user_unit:
+                return df
+        elif not self.file_unit:
+            if 29 <= df['Time(s)'].iloc[-1] <= 28_740:
+                self.file_unit = 's'
+            elif df['Time(s)'].iloc[-1] > 29_000:
+                self.file_unit = 'ms'
+            else:
+                print('Please specify units')
+                return
+        unit_values = {'s':1,'ms':1000}
+        ratio = unit_values[self.file_unit]/unit_values[self.user_unit]
+        df['Time(s)'] = df['Time(s)']/ratio + alignement
+        return df
 
-## FUNCTIONS USED BY OBJECTS
+    def _extract_data(self):
+        """Extract raw fiber data from Doric system."""
+        idx = len(self.full_time)-len(self.full_time[self.full_time>self.trim_recording])
+        return pd.DataFrame({self.ncl[i]: self.df[i].to_numpy()[idx:] for i in self.ncl if i in self.raw_columns})
 
-def find_ttl_channel(data):
-    '''Returns the list of TTL channels for events that actually happen during the recording'''
-    global possible_ttl
-    ttl_channel = []
-    for i in [ttl for ttl in data.columns if ttl in possible_ttl]:
-        c = 0
-        for j in data[i]:
-            if j != 0: c+=1
-        if c != 0: ttl_channel.append(i)
-    return ttl_channel 
+    def _split_recordings(self):
+        """Cut at timestamp jumps (defined by a step greater than N times the mean sample space (defined in config.yaml)."""
+        time       = self.cut_time
+        jumps      = list(np.where(np.diff(time)> self.split_treshold * np.mean(np.diff(time)))[0] + 1)
+        indices    = [0] + jumps + [len(time)-1]
+        ind_tuples = [(indices[i],indices[i+1]) for i in range(len(indices)-1)]
+        self.number_of_recording = len(ind_tuples)
+        return {ind_tuples.index((s,e))+1 : self.data.iloc[s:e,:] for s,e in ind_tuples}
 
-def _call_raw(name,n):
-    global path
-    '''Retrieves raw data of selected recording and remove first n lines'''
-    n = int(n)
-    df = pd.read_csv(os.path.join(path['OUT'],name+'.csv'))
-    if len(df) <= n:
-        return [] 
-    else: 
-        data = df[n:] #cuts of the first n lines (about 2 secondes where diodes initialize)
-        data.reset_index(drop=True,inplace=True)
-        return data
+    def to_csv(self,
+               recordings   = 'all',
+               auto         = True,
+               columns      = None,
+               column_names = None,
+               prefix       = 'default'):
+        """Export data to csv.
 
-def _get_arrays(data):
-    '''Extract time, signal, control (for normalization) from raw data'''
-    global time_nom,sign_nom,control_nom
-    time = np.array(data[time_nom])
-    signal = np.array(data[sign_nom])
-    control = np.array(data[control_nom])
-    return (time,signal,control)
+        - recording     (integer/list/'all') : default behaviour is exporting all recordings (if multiple splitted recordings exist); alternatively a single or a few splits can be chosen
+        - auto          (True/False)         : automatically export signal and isosbestic separately with sampling_rate
+        - columns       ([<names>])          : (changes auto to False) export specific columns with their timestamps (columns names accessible with <obj>.columns
+        - columns_names ([<names>])          : change default name for columns in outputted csv (the list must correspond to the column list)
+        - prefix        ('string']           : default prefix is 'raw filename + recording number' (followed by data column name)
+        """
+        if prefix == 'default': prefix = self.name
+        if recordings == 'all': recordings = list(self.recordings.keys())
+        sig_nom  = self.ncl["AIn-1 - Demodulated(Lock-In)"]
+        ctrl_nom = self.ncl["AIn-2 - Demodulated(Lock-In)"]
+        time_nom = self.ncl["Time(s)"]
+        if auto and not columns:
+            nomenclature = {sig_nom : 'signal', ctrl_nom : 'control'}
+            for rec in recordings:
+                time = self.get(time_nom,rec)
+                for dataname in nomenclature.keys():
+                    df = pd.DataFrame({'timestamps'     : time,
+                                        'data'          : self.get(dataname,rec),
+                                        'sampling_rate' : [1/np.diff(time)] + [np.nan]*(len(time)-1) }) # timestamps data sampling rate
+                    df.to_csv(f'{prefix}_{rec}_{nomenclature[dataname]}.csv',index=False)
+        else:
+            recordings = self._list(recordings)
+            columns = self._list(columns)
+            column_names = self._list(column_names)
+            for r in recordings:
+                time = self.get(time_nom,r)
+                for c in columns:
+                    df = pd.DataFrame({'timestamps'     : time,
+                                        'data'          : self.get(c,r),
+                                        'sampling_rate' : [1/np.diff(time)] + [np.nan]*(len(time)-1) })
+                    df.to_csv(f'{prefix}_{r}_{c}.csv',index=False)
 
-def _normZ(data):
-    '''Normalizes data '''
-    t,signal,control = _get_arrays(data)
-    S = (signal - signal.mean())/signal.std()
-    I = (control - control.mean())/control.std()
-    return S-I
+    def _find_rec(self,timestamp):
+        """Find recording number corresponding to inputed timestamp."""
+        rec_num  = self.number_of_recording
+        time_nom = self.ncl['Time(s)']
+        return [i for i in range(1,rec_num) if self.get(time_nom,recording=i)[0] <= timestamp <= self.get(time_nom,recording=i)[-1]]
 
-def _normF(data):
-    '''Normalizes data'''
-    time, signal,control = _get_arrays(data)
-    fit = np.polyfit(control,signal,1)
-    fitted_control = control*fit[0] + fit[1]
-    return (signal - fitted_control)/fitted_control
+    def get(self,
+            column,
+            recording = 1,
+            add_time  = False,
+            as_df     = False):
+        """Extracts a data array from a specific column of a recording (default is first recording)
+        - add_time (False) : if True returns a 2D array with time included
+        - as_df    (False) : if True returns data as a data frame (add_time will automatically set to True)"""
+        time_nom = self.ncl['Time(s)']
+        data = np.array(self.recordings[recording][column])
+        time = np.array(self.recordings[recording][time_nom])
+        if as_df:
+            return pd.DataFrame({time_nom:time, column:data})
+        if add_time:
+            return np.vstack((time,data)).T
+        else:
+            return data
 
-def _normL(data):
-    '''Normalizes data'''
-    time, signal,control = _get_arrays(data)
-    fit = np.polyfit(control,signal,1)
-    fitted_control = control*fit[0] + fit[1]
-    return (signal - fitted_control)/fitted_control.std()
+    def downsample(self):
+        print("I don't exist yet :(")
 
-def _ttl_linefinder(data,ttl_name):
-    '''Finds the starting and ending lines of a particular ttl channel'''
-    global possible_ttl
-    time = _get_arrays(data)[0]
-    ttl = np.array([math.ceil(t) for t in data[ttl_name]]) #the ceil function converts all the artefacts (ie ttl not equal to 0 or 1, into binaries, for the method to work)
-    start = [i for i in range(1,len(ttl)) if ttl[i-1]-ttl[i] < 0]
-    end = [i-1 for i in range(1,len(ttl)) if ttl[i-1]-ttl[i] > 0]
-    if ttl[0] >0 : start.insert(0,1)
-    if ttl[-1] >0 : end.append(len(ttl)-1)
-    return (start,end)
+    def TTL(self,ttl,rec=1):
+        """Outputs TTL timestamps"""
+        ttl             =  self.get(self.ncl[f"DI/O-{ttl}"],rec)
+        time            =  self.get(self.ncl['Time(s)'],rec)
+        ttl[ttl <  0.01] =  0
+        ttl[ttl >= 0.01] =  1
+        if (ttl == 1).all(): return [time[0]]
+        if (ttl == 0).all(): return []
+        index           =  np.where(np.diff(ttl) == 1)[0]
+        return [time[i] for i in index]
 
-def _recording_length(data):
-    '''Calculates length of a recording (for class info)'''
-    start = data[time_nom][0]
-    end = data[time_nom][len(data)-1]
-    return end-start
-
-def _sampler(time,base,post,ttl_time,pre):
-    '''Takes a sample of the recording, based on one TTL event and desired baseline and postevent duration'''
-    start = ttl_time - base
-    end = ttl_time + post
-    before = ttl_time - pre
-    start_idx = np.where(abs(time-start) == min(abs(time-start)))[0][0]
-    end_idx = np.where(abs(time-end) == min(abs(time-end)))[0][0]
-    pre_idx = np.where(abs(time-before) == min(abs(time-before)))[0][0]
-    return {'base':start_idx,
-            'post':end_idx,
-            'pre':pre_idx}
-
-def _round_ut(a,b):
-    diff = abs(a-b)
-    if diff >= 1:
-        return str(round(diff))+' s'
-    else:
-        return str(round(1000*diff))+' ms'
-
+    def norm(self,
+             rec      = 1,
+             method   = 'F',
+             add_time = True):
+        """Normalizes data with specified method"""
+        signal  = self.get(self.ncl["AIn-1 - Demodulated(Lock-In)"],rec)
+        control = self.get(self.ncl["AIn-2 - Demodulated(Lock-In)"],rec)
+        time    = self.get(self.ncl["Time(s)"],rec)
+        if method == 'F':
+            fit = np.polyfit(control,signal,1)
+            fitted_control = control*fit[0] + fit[1]
+            normalized = (signal - fitted_control)/fitted_control
+        if method == 'Z':
+            S = (signal - signal.mean())/signal.std()
+            I = (control - control.mean())/control.std()
+            normalized = S-I
+        if method == 'raw' or not method:
+            normalized = np.vstack((signal,control))
+        if add_time:
+            return np.vstack((time,normalized)).T
+        else:
+            return normalized
