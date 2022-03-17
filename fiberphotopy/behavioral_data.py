@@ -9,11 +9,12 @@ class BehavioralData(FiberPhotopy):
 
     def __init__(self,
                  filepath,
-                 custom=True,
+                 custom='all',
                  **kwargs):
         """Initialize BehavioralData object, timestamp arrays are lowercase, periods are uppercase."""
         super().__init__('behavior',**kwargs)
         self.df               = pd.read_csv(filepath,skiprows=12,delimiter='\t',header=None,names=['TIME','F','ID','_P','_V','_L','_R','_T','_W','_X','_Y','_Z'])
+        self.custom           = custom
         self.filepath         = filepath
         self.start            = self.df.iloc[0,0]
         self.end              = self.df.iloc[-1,0]            # last timestamp (in ms) automatically changed to user_unit (see fp_utils.py)
@@ -41,7 +42,7 @@ class BehavioralData(FiberPhotopy):
         self.TIMEOUT          = self._union(self.LED1_ON,self.TO_DARK)
         self.NOTO_DARK        = self._intersection(self.DARK,self._non(self.TIMEOUT,end=self.end))
         # SWITCHES
-        self._custom_events_intervals(custom)
+        self._custom_events_intervals()
 
     def info(self):
         """Return information about object."""
@@ -83,7 +84,8 @@ FULL_HELP: <obj>.info"""
             if self.file_unit == self.user_unit:
                 pass
         elif not self.file_unit:
-            minimum,maximum = self.experiment_duration.values()
+            minimum = self.experiment_duration['min']
+            maximum = self.experiment_duration['max']
             if minimum <= self.end <= maximum:
                 self.file_unit = 's'
             elif self.end > maximum:
@@ -267,8 +269,8 @@ FULL_HELP: <obj>.info"""
         ax.set_ylim((0,1))
         ax.axes.yaxis.set_visible(False)
 
-    def _custom_events_intervals(self,boolean):
-        if boolean:
+    def _custom_events_intervals(self):
+        if self.custom in ['fiber','all']:
             self.switch_d_nd      = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.LED2_ON]])
             self.switch_to_nd     = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.TIMEOUT]])
             self.switch_nd_d      = np.array([i for i in [end for start,end in self.HLED_ON] if i in [start for start,end in self.LED2_ON]])
@@ -278,8 +280,25 @@ FULL_HELP: <obj>.info"""
                 self.__dict__[f'D_{n+1}']   = [t] 
             for n,t in enumerate(self.HLED_ON):
                 self.__dict__[f'ND_{n+1}']  = [t] 
+        if self.custom in ['movement','all']:
+            self.x      = self.get(idtuple=(9,1))['_X']
+            self.y      = self.get(idtuple=(9,1))['_Y']
+            self.xytime = self.get(idtuple=(9,1))['_Y']
+            self.xy = pd.concat((self.x,self.y),axis=1)
+ 
+ ###################### USER FUNCTIONS ##########################
 
-######################### USER FUNCTIONS ###########################
+    def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
+        """Show number of crossings."""
+        if self.custom not in ['all','movement']: return
+        array = np.zeros((max(self.y),max(self.x)))
+        for i in self.xy.index:
+            array[ self.xy.loc[i,'_Y'] -1,
+                   self.xy.loc[i,'_X'] - 1] += 1
+        fig,ax = plt.subplots(1,figsize=figsize)
+        ax.imshow(array,cmap=cmap,vmin=0,vmax=np.max(array))
+        ax.invert_yaxis()
+                
 
     def get(self,name=None,idtuple=None):
         """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
@@ -406,3 +425,5 @@ FULL_HELP: <obj>.info"""
             recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]  
             return {k: self._intersection(v,recorded_and_window) for k,v in intervals.items()}
 
+
+    
