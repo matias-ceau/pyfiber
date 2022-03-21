@@ -4,6 +4,7 @@ from fp_utils import FiberPhotopy
 
 import numpy as np
 import pandas as pd
+import os
 from math import ceil
 import matplotlib.pyplot as plt
 from scipy import integrate,stats,signal
@@ -39,11 +40,15 @@ class RatSession(FiberPhotopy):
         end_idx   = np.where(abs(time_array -        end) == min(abs(time_array -        end)))[0][-1]
         return (start_idx , event_idx, end_idx)        
         
-        
+    def _recorded_timestamps(self,events,**kwargs):
+        """Return timestamps using BehavioralData timestamps function and applying it to analyzable_events."""
+        recorded_events    = self.analyzable_events[events]
+        return self.behavior.timestamps(events=recorded_events,**kwargs)
+    
     def analyze_perievent(self,
                           event_time,
                           window     = 'default',
-                          norm       = 'F'):
+                          norm       = 'default'):
         """Return Analysis object, related to defined perievent window."""
         res = Analysis(self.rat_ID)
         res.event_time     = event_time
@@ -67,7 +72,7 @@ class RatSession(FiberPhotopy):
             res.window    = self.default_window
         else:
             res.window    = window
-        res.recordingdata = self.fiber.norm(rec=res.rec_number,method=norm)
+        res.recordingdata = self.fiber.norm(rec=res.rec_number,method=res.normalisation)
         res.rawdata       = self.fiber.norm(rec=res.rec_number,method='raw')
         start_idx,event_idx,end_idx = self._sample(res.recordingdata[:,0],event_time,res.window)
         res.data          = res.recordingdata[start_idx:end_idx+1]
@@ -125,7 +130,7 @@ class Analysis:
 
     def __init__(self,rat_ID):
         """Initialize Analysis object."""
-        super().__init__()
+        pass
 
     def __repr__(self):
         """Represent Analysis. Show attributes."""
@@ -194,12 +199,62 @@ class Analysis:
         return smoothed
 
 
-class MultiAnalysis(FiberPhotopy):
+class MultiSession(FiberPhotopy):
     """Group analyses or multiple events for single subject."""
 
-    def __init__(self,rat_session_list):
-        super().__init__(self)
+    def __init__(self,folder=None,session_list=None):
+        super().__init__('all')
+        if folder:
+            self.rat_sessions = self._import_folder(folder)
+        elif session_list:
+            self.rat_sessions = self._import_sessions(session_list)
 
-# find similar timestamps
+    def _import_folder(self,folder):
+        sessions = {}
+        if type(folder) == str:
+            rats = os.listdir(folder)
+            for r in rats:
+                for file in os.listdir(folder+'/'+r):
+                    path = folder+'/'+r+'/'+file
+                    if 'DI/O-1' in pd.read_csv(path).columns:
+                        f = fiber_data.FiberData(path)
+                    else:
+                        b  = behavioral_data.BehavioralData(path)
+                sessions[file] = RatSession(behavior=b ,fiber=f)
+            return sessions
 
-#
+    def _import_sessions(self,sesslist):
+        sessions = {}
+        for s in sesslist:
+            if s.ID != None:
+                name = s.ID
+            else:
+                name = s.fiber.filepath
+            sessions[name] = s
+    
+    def analyze(self,events,**kwargs):
+        result = MultiAnalysis()
+        result.rat_sessions = self.rat_sessions
+        result.dict = {}
+        for k,v in self.rat_sessions.items():
+            timestamps = v._recorded_timestamps(events=events,**kwargs)
+            result.dict[k]  = [v.analyze_perievent(i) for i in timestamps]
+            for obj in result.dict[k]:
+                if obj:
+                    for att in obj.__dict__.keys():
+                        if type(obj.__dict__[att]) in [int,float,np.float64,np.ndarray]:
+                            if result.__dict__.get(att):
+                                result.__dict__[att].append(obj.__dict__[att])
+                            else:
+                                result.__dict__[att] = [obj.__dict__[att]]
+        result.epoch = []
+        for n,time in enumerate(result.time):
+            result.epoch.append(time - result.event_time[n])
+        return result
+            
+class MultiAnalysis(FiberPhotopy):
+    
+    def __init__(self):
+        super().__init__('all')
+    
+    

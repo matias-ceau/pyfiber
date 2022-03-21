@@ -30,7 +30,7 @@ USER:
         split_treshold:    10       #ie 10 times the mean intersample space
         trim_recording:    2.0      # seconds trimmed from recording start
         default_window:    [10.0,10.0]  # perievent window
-        self.default_norm: F     # normalization method
+        default_norm:      F     # normalization method
 
 # IMETRONIC NOMENCLATURE FOR DAT FILES, CAN BE CHANGED IF NOMENCLATURE ITSELF CHANGES
 IMETRONIC:

@@ -281,20 +281,19 @@ FULL_HELP: <obj>.info"""
             for n,t in enumerate(self.HLED_ON):
                 self.__dict__[f'ND_{n+1}']  = [t] 
         if self.custom in ['movement','all']:
-            self.x      = self.get(idtuple=(9,1))['_X']
-            self.y      = self.get(idtuple=(9,1))['_Y']
-            self.xytime = self.get(idtuple=(9,1))['_Y']
-            self.xy = pd.concat((self.x,self.y),axis=1)
- 
+            self.x      = self.get(idtuple=(9,1))['_X'].to_numpy()
+            self.y      = self.get(idtuple=(9,1))['_Y'].to_numpy()
+            self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()
+
  ###################### USER FUNCTIONS ##########################
 
     def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
         """Show number of crossings."""
         if self.custom not in ['all','movement']: return
         array = np.zeros((max(self.y),max(self.x)))
-        for i in self.xy.index:
-            array[ self.xy.loc[i,'_Y'] -1,
-                   self.xy.loc[i,'_X'] - 1] += 1
+        for i in range(len(self.x)):
+            array[ self.y[i] -1,
+                   self.x[i] - 1] += 1
         fig,ax = plt.subplots(1,figsize=figsize)
         ax.imshow(array,cmap=cmap,vmin=0,vmax=np.max(array))
         ax.invert_yaxis()
@@ -318,12 +317,12 @@ FULL_HELP: <obj>.info"""
     def figure(self,obj,
               figsize = 'default',h=0.8,hspace=0,label_list=None,color_list=None, **kwargs):
         """Take either string, single events/intervals (or list of either), or data_dictionnary as input and plots into one graph."""
-        #if type(obj) == dict:
-        #    label_list  = list(obj.keys())
-        #    obj_list    = [b[0] for a,b in obj.items()]
-        #    color_list  = [b[1] for a,b in obj.items()]
-        #else:
-        obj_list = self._list(obj)
+        if type(obj) == dict:
+            label_list  = list(obj.keys())
+            obj_list    = [b[0] for a,b in obj.items()]
+            color_list  = [b[1] for a,b in obj.items()]
+        else:
+            obj_list = self._list(obj)
             #
         if not label_list: label_list = [None]*len(obj_list)
         if not color_list: color_list = [None]*len(obj_list)
@@ -350,11 +349,7 @@ FULL_HELP: <obj>.info"""
                    interval      = 'all',
                    intersection  = [],
                    exclude       = [],
-                   to_csv        = True,
-                   graph         = True,
-                   filename      = 'default',
-                   start_TTL1    = True,
-                   **kwargs):
+                   user_output=False):
         """events        : timestamp array, list of timestamp arrays, keyword or list of keywords (ex: 'np1')
            interval      : selected interval or list of intervals
            intersection  : intersection of inputed intervals
@@ -379,6 +374,23 @@ FULL_HELP: <obj>.info"""
         else:
             exclude_data = []
         selected_timestamps = self._set_element(events_data,selected_interval,is_element=True)
+        if user_output:
+            return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps
+        else:
+            return selected_timestamps
+    
+    def export_timestamps(self,
+                          events,
+                          interval      = 'all',
+                          intersection  = [],
+                          exclude       = [],
+                          to_csv        = True,
+                          graph         = True,
+                          filename      = 'default',
+                          start_TTL1    = False,
+                          **kwargs):
+        """Create list of timestamps and export them."""
+        events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps = self.timestamps(events,interval,intersection,exclude,user_output=True)   
         if graph:
             data = {f"Event(s):     {','.join([self.elements[i][1] for i in self._list(events)])}"      : (events_data,               'k'),#'r'),
                     f"Interval(s):  {','.join([self.elements[i][1] for i in self._list(interval)])}"    : (interval_data,             'g'),#'g'),

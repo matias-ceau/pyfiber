@@ -160,12 +160,13 @@ Original file unit   : {self.file_unit}"""
 
     def norm(self,
              rec      = 1,
-             method   = 'F',
+             method   = 'default',
              add_time = True):
         """Normalizes data with specified method"""
         signal  = self.get(self.ncl["AIn-1 - Demodulated(Lock-In)"],rec)
         control = self.get(self.ncl["AIn-2 - Demodulated(Lock-In)"],rec)
         time    = self.get(self.ncl["Time(s)"],rec)
+        if method == 'default': method = self.default_norm
         if method == 'F':
             fit = np.polyfit(control,signal,1)
             fitted_control = control*fit[0] + fit[1]
