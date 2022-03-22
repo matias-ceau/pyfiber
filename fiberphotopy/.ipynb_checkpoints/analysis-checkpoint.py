@@ -28,8 +28,6 @@ class RatSession(FiberPhotopy):
         else:
             self.fiber = fiber_data.FiberData(fiber,alignement=self.behavior.rec_start)
         self.analyses = {}
-        self.analyzable_events = self.behavior.events(recorded=True,window=self.default_window)
-        self.recorded_intervals = self.behavior.intervals(recorded=True,window=self.default_window)
 
     def _sample(self,time_array,event_time,window):
         """Take a sample of the recording, based on one event and desired preevent and postevent duration."""
@@ -40,11 +38,25 @@ class RatSession(FiberPhotopy):
         end_idx   = np.where(abs(time_array -        end) == min(abs(time_array -        end)))[0][-1]
         return (start_idx , event_idx, end_idx)        
         
-    def _recorded_timestamps(self,events,**kwargs):
+    def _recorded_timestamps(self,events,window,**kwargs):
         """Return timestamps using BehavioralData timestamps function and applying it to analyzable_events."""
-        recorded_events    = self.analyzable_events[events]
+        if type(events) == str:
+            recorded_events    = self.events(recorded=True,window=window)[events]
+        elif type(events) == list:
+            recorded_events = np.concatenate([self.events(recorded=True,window=window)[k] for k in events])
+        else:
+            print('You must input data as string')
+            return
         return self.behavior.timestamps(events=recorded_events,**kwargs)
     
+    def events(self,**kwargs):
+        """Return all events ; wrapper for behavioral data function"""
+        return self.behavior.events(**kwargs)
+    
+    def intervals(self,**kwargs):
+        """Return all intervals ; wrapper for behavioral data function"""
+        return self.behavior.intervals(**kwargs)
+            
     def analyze_perievent(self,
                           event_time,
                           window     = 'default',
@@ -127,7 +139,9 @@ class RatSession(FiberPhotopy):
 
 class Analysis:
     """Give results of perievent analysis relative to one event from a session."""
-
+    
+    _savgol = FiberPhotopy._savgol
+    
     def __init__(self,rat_ID):
         """Initialize Analysis object."""
         pass
@@ -146,6 +160,7 @@ class Analysis:
              event_label = 'event',
              linewidth   = 2,
              smooth      = 'savgol',
+             unsmoothed  = True,
              smth_window = 'default'):
         """Visualize data, by default smoothes data with Savitski Golay filter (window size 250ms)."""
         try:
@@ -155,11 +170,14 @@ class Analysis:
         time = self.time
         if smooth:
             time_and_data = self.smooth(data,method=smooth,window=smth_window)
-            time = time_and_data[:,0]
-            data = time_and_data[:,1]
+            s_time = time_and_data[:,0]
+            s_data = time_and_data[:,1]
         if len(data) == len(time):
             fig = plt.figure(figsize=figsize)
-            plt.plot(time,data,c='r')
+            if unsmoothed == True:
+                plt.plot(time,data,c='r',alpha=alpha)
+            if smooth:
+                plt.plot(s_time,s_data,c='k')
             plt.xlabel = xlabel
             plt.ylabel = ylabel
             plt.suptitle(plot_title)
@@ -168,7 +186,7 @@ class Analysis:
 
     def _possible_data(self):
         d = {k:v for k,v in self.__dict__.items() if type(v) == np.ndarray}
-        l = [f"'{k}'" for k in d.keys() if len(d[k]) == len(self.time)]
+        l = [f"'{k}'" for k in d.keys() if d[k].shape == self.time.shape]
         return '\n'.join(l)
 
     def smooth(self,
@@ -186,8 +204,7 @@ class Analysis:
             if window == 'default':
                 window = ceil(self.sampling_rate/4) #250 ms
         if method == 'savgol':
-            if window%2 ==0: window += 1
-            smoothed = signal.savgol_filter(data,window,polyorder)
+            smoothed = self._savgol(data,window,polyorder)
             if add_time:
                 return np.vstack((self.time,
                                   smoothed)).T
@@ -208,6 +225,7 @@ class MultiSession(FiberPhotopy):
             self.rat_sessions = self._import_folder(folder)
         elif session_list:
             self.rat_sessions = self._import_sessions(session_list)
+        self.names = list(self.rat_sessions.keys())
 
     def _import_folder(self,folder):
         sessions = {}
@@ -220,7 +238,7 @@ class MultiSession(FiberPhotopy):
                         f = fiber_data.FiberData(path)
                     else:
                         b  = behavioral_data.BehavioralData(path)
-                sessions[file] = RatSession(behavior=b ,fiber=f)
+                sessions[r] = RatSession(behavior=b ,fiber=f)
             return sessions
 
     def _import_sessions(self,sesslist):
@@ -232,13 +250,18 @@ class MultiSession(FiberPhotopy):
                 name = s.fiber.filepath
             sessions[name] = s
     
-    def analyze(self,events,**kwargs):
+    def analyze(self,events,
+                window='default',
+                norm='default',
+                **kwargs):
         result = MultiAnalysis()
+        if window=='default': window=self.default_window
+        result.window = window
         result.rat_sessions = self.rat_sessions
         result.dict = {}
         for k,v in self.rat_sessions.items():
-            timestamps = v._recorded_timestamps(events=events,**kwargs)
-            result.dict[k]  = [v.analyze_perievent(i) for i in timestamps]
+            timestamps = v._recorded_timestamps(events=events,window=window,**kwargs)
+            result.dict[k]  = [v.analyze_perievent(i,norm=norm,window=window) for i in timestamps]
             for obj in result.dict[k]:
                 if obj:
                     for att in obj.__dict__.keys():
@@ -250,11 +273,66 @@ class MultiSession(FiberPhotopy):
         result.epoch = []
         for n,time in enumerate(result.time):
             result.epoch.append(time - result.event_time[n])
+        result.update()
         return result
             
 class MultiAnalysis(FiberPhotopy):
     
     def __init__(self):
         super().__init__('all')
+        
+
+    def possible_data(self):
+        """Return dictionnary of possible data to plot"""
+        comparator = [i.shape for i in self.epoch]
+        possible = []
+        for k,v in self.__dict__.items():
+            if type(v) == list:
+                if len(v) > 0:
+                    if type(v[0]) == np.ndarray:
+                        if [i.shape for i in v] == comparator:
+                            possible.append(k)
+        return possible
+    
+    def update(self,
+               nb_of_points='default'):
+        """Recalculate mean values for all relevant values (perievent data). "nb of points" is the desired number of points for the new aligned data. Default is mean number of points of the data."""
+        if nb_of_points == 'default':
+            self.nb_of_points = round(np.mean([i.shape for i in self.time]))      
+        self.EPOCH = np.linspace(-1*self.window[0],
+                                 self.window[1],
+                                 self.nb_of_points)
+        for value in self.possible_data():
+            self.__dict__['interpolated_'+value] = []  
+            for a,b in zip(self.epoch,self.__dict__[value]):
+                self.__dict__['interpolated_'+value].append(np.interp(self.EPOCH,a,b))
+            self.__dict__[value.upper()]= sum(self.__dict__['interpolated_'+value])/len(self.__dict__['interpolated_'+value])
+    
+    def plot(self,
+             data='signal',
+             smooth_data=True,
+             smooth_mean=True,
+             interpolate_data=False,
+             interpolate_mean=False,
+             
+             **kwargs):
+        """Visualize specified data."""
+        cfg = {'figsize':(20,10),'c':'k','linewidth':1,'alpha':0.3}
+        if data not in self.__dict__.keys():
+            print(f"You need to choose among {self.possible_data()}")
+            return
+        else:
+            mean_data = self.__dict__[data.upper()] 
+            data_list = self.__dict__[data]
+        for key in cfg.keys():
+            if key in kwargs.keys():
+                cfg[key] = kwargs[key]
+        plt.figure(figsize=(cfg['figsize']))
+ 
+        for n,z in enumerate(data_list):
+            plt.plot(self.time[n],z,alpha=cfg['alpha'])
+        plt.plot(self.EPOCH,mean_data,c='k')
+        plt.axvline(0,alpha=1,linewidth=cfg['linewidth'],c=cfg['c'])
+        return kwargs
     
     

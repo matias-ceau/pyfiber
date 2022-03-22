@@ -413,9 +413,10 @@ FULL_HELP: <obj>.info"""
             pd.DataFrame({'timestamps': result}).to_csv(filename,index=False)
         return result
     
-    def events(self,recorded=False,window=(0,0),window_unit='s'):
+    def events(self,recorded=False,window=(0,0),window_unit='default'):
         """Retrieve list of events. Optionally only those which can be used in a perievent analysis (ie during the recording period and taking into account a perievent window)."""
         events = {k:v for k,v in self.__dict__.items() if type(v)==np.ndarray}
+        if window_unit == 'default': window_unit = self.user_unit
         if not recorded:
             return events
         else:
@@ -425,9 +426,10 @@ FULL_HELP: <obj>.info"""
             recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]    
             return {k: self._set_element(v,recorded_and_window,is_element=True) for k,v in events.items()}
         
-    def intervals(self,recorded=False,window=(0,0),window_unit='s'):
+    def intervals(self,recorded=False,window=(0,0),window_unit='default'):
         """Retrieve list of intervals."""
         intervals = {k:v for k,v in self.__dict__.items() if type(v)==list}
+        if window_unit == 'default': window_unit = self.user_unit
         if not recorded:
             return intervals
         else:
