@@ -1,8 +1,10 @@
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from fp_utils import FiberPhotopy
 import info
+import seaborn as sns
 
 class BehavioralData(FiberPhotopy):
     """Input : imetronic behavioral data file path."""
@@ -268,12 +270,14 @@ FULL_HELP: <obj>.info"""
         ax.set_xlim(x_lim)
         ax.set_ylim((0,1))
         ax.axes.yaxis.set_visible(False)
+            
 
     def _custom_events_intervals(self):
         if self.custom in ['fiber','all']:
             self.switch_d_nd      = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.LED2_ON]])
             self.switch_to_nd     = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.TIMEOUT]])
             self.switch_nd_d      = np.array([i for i in [end for start,end in self.HLED_ON] if i in [start for start,end in self.LED2_ON]])
+            self.switch_dto_nd    = np.sort(np.concatenate((self.switch_d_nd,self.switch_to_nd)))
             for i in range(self.fixed_ratio):
                 self.__dict__[f'np1_{i+1}'] = self._set_element(self.np1,self._non(self.TIMEOUT,self.end))[i::self.fixed_ratio]
             for n,t in enumerate(self.HLED_OFF):
@@ -286,7 +290,12 @@ FULL_HELP: <obj>.info"""
             self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()
 
  ###################### USER FUNCTIONS ##########################
-
+    
+    def debug_interinj(self):
+        """Return interinfusion time (between 2 consecutive pump activations)"""
+        a = self.get(idtuple=(6,1))
+        return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
+    
     def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
         """Show number of crossings."""
         if self.custom not in ['all','movement']: return
@@ -336,7 +345,6 @@ FULL_HELP: <obj>.info"""
         else:
             for n,ax in enumerate(axes):
                 self._graph(ax, obj_list[n], label=label_list[n], color=color_list[n], **kwargs)
-
 
     def summary(self, demo=True,**kwargs):
         """Return a graphical summary of main events and intervals (can be configured in config.yaml)."""
@@ -440,4 +448,69 @@ FULL_HELP: <obj>.info"""
             return {k: self._intersection(v,recorded_and_window) for k,v in intervals.items()}
 
 
+class MultiBehavior:
+    
+    _savgol = FiberPhotopy._savgol
+    
+    def __init__(self,folder,**kwargs):
+        self.sessions = {}
+        self.paths = []
+        for currentpath, folders, files in os.walk(folder):
+            for file in files:
+                path = os.path.join(currentpath, file)
+                if path[-3:] == 'dat':
+                    self.paths.append(path)
+                    print(f"Importing {path}...")
+                    self.sessions[path] = BehavioralData(path,**kwargs)
+        self.names = list(self.sessions.keys())
+        self.number = len(self.sessions.items())
+        event_names = list(list(self.sessions.items())[0][1].events().keys())
+        for session in self.sessions:
+            for attribute in self.sessions[session].__dict__.keys():
+                if attribute in self.__dict__.keys():
+                    self.__dict__[attribute].append(self.sessions[session].__dict__[attribute])
+                else:
+                    self.__dict__[attribute] = [self.sessions[session].__dict__[attribute]]
+        for attribute in self.__dict__.keys():
+            if attribute in event_names:
+                self.__dict__[attribute] = pd.DataFrame(self.__dict__[attribute],index=self.names)
+    
+    def _cnt(self,attribute):
+        return {k: np.histogram(self.__dict__[attribute].loc[k,:].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
+    
+    def count(self,attribute):
+        return pd.DataFrame({ k:pd.Series(v) for k,v in self._cnt(attribute).items()}).T
+        
+    def cumul(self,attribute,plot=True,figsize=(20,15),**kwargs):
+        cumul = pd.DataFrame({ k:pd.Series(np.cumsum(v)) for k,v in self._cnt(attribute).items()})
+        if plot: cumul.plot(figsize,**kwargs)
+        return cumul.T
+    
+    def show_rate(self,attribute,interval='HLED_ON',binsize=120,percentiles=[15,50,85],figsize=(20,10),interval_alpha=0.3):
+        plt.figure(figsize=figsize)
+        dic = {}
+        for name in self.count(attribute).index:
+            count = self.count(attribute).loc[name,:].copy()
+            count.dropna(inplace=True)
+            count = count.values
+            dic[name] = np.array([np.sum(count[n-binsize:n]) for n in range(binsize,len(count))])
+            plt.plot(dic[name],linewidth=1)
+        if interval:
+            if type(interval) == str: interval = list(self.sessions.items())[0][-1].__dict__[interval]
+            if len(interval):
+                for a,b in interval:
+                    plt.axvspan(a-binsize,b-binsize,alpha=interval_alpha)
+        self.__dict__[attribute+'_rate'] = pd.DataFrame({k:pd.Series(v) for k,v in dic.items()}).T
+
+        idx = ['p'+str(i) for i in percentiles]
+        self.__dict__[attribute+'_percentiles'] = pd.DataFrame({k:[np.nan]*len(idx) for k in self.__dict__[attribute+'_rate'].columns},index=idx)
+        for c in self.__dict__[attribute+'_rate'].columns:
+            data = self.__dict__[attribute+'_rate'].loc[:,c].copy().values
+            self.__dict__[attribute+'_percentiles'].loc[:,c] = np.nanpercentile(data,percentiles)
+        self.__dict__[attribute+'_percentiles'].T.plot(figsize=figsize)
+        if interval:
+            if type(interval) == str: interval = list(self.sessions.items())[0][-1].__dict__[interval]
+            if len(interval):
+                for a,b in interval:
+                    plt.axvspan(a-binsize,b-binsize,alpha=interval_alpha)
     

@@ -32,7 +32,7 @@ class FiberData(FiberPhotopy):
             self.recordings = self._split_recordings()
         else:
             self.recordings = {1: self.data}
-        self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording)]
+        self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording+1)]
 
     def __repr__(self):
         """Give general information about the recording data."""
@@ -124,7 +124,7 @@ Original file unit   : {self.file_unit}"""
         """Find recording number corresponding to inputed timestamp."""
         rec_num  = self.number_of_recording
         time_nom = self.ncl['Time(s)']
-        return [i for i in range(1,rec_num) if self.get(time_nom,recording=i)[0] <= timestamp <= self.get(time_nom,recording=i)[-1]]
+        return [i for i in range(1,rec_num+1) if self.get(time_nom,recording=i)[0] <= timestamp <= self.get(time_nom,recording=i)[-1]]
 
     def get(self,
             column,

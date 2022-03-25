@@ -8,12 +8,13 @@ import os
 from math import ceil
 import matplotlib.pyplot as plt
 from scipy import integrate,stats,signal
+import seaborn as sns
 #from scipy.stats import sem
 
 class RatSession(FiberPhotopy):
     """Create object containing both fiber recordings and behavioral files from a single session."""
 
-    def __init__(self,behavior,fiber,rat_ID=None,folder=None,**kwargs):
+    def __init__(self,behavior,fiber,rat_ID=None,**kwargs):
         super().__init__('all',**kwargs)
         self.rat_ID = rat_ID
         if type(behavior) == behavioral_data.BehavioralData:
@@ -78,7 +79,9 @@ class RatSession(FiberPhotopy):
         try:
             res.rec_number = self.fiber._find_rec(event_time)[0] # locates recording containing the timestamp
         except IndexError:
-            print('No fiber recording at this timestamp')
+            print('No fiber recording at this timestamp:')
+            print(event_time)
+            print(self.fiber.filepath,self.behavior.filepath)
             return None
         if window == 'default':
             res.window    = self.default_window
@@ -175,7 +178,7 @@ class Analysis:
         if len(data) == len(time):
             fig = plt.figure(figsize=figsize)
             if unsmoothed == True:
-                plt.plot(time,data,c='r',alpha=alpha)
+                plt.plot(time,data,c='r',alpha=0.5)
             if smooth:
                 plt.plot(s_time,s_data,c='k')
             plt.xlabel = xlabel
@@ -219,12 +222,22 @@ class Analysis:
 class MultiSession(FiberPhotopy):
     """Group analyses or multiple events for single subject."""
 
-    def __init__(self,folder=None,session_list=None):
+    def __init__(self,folder=None,session_list=None,debug=False):
         super().__init__('all')
         if folder:
             self.rat_sessions = self._import_folder(folder)
         elif session_list:
             self.rat_sessions = self._import_sessions(session_list)
+        if debug:
+            removed = []
+            for session,obj in self.rat_sessions.items():
+                interval = obj.behavior.debug_interinj()
+                if interval < debug:
+                    removed.append((session,interval))
+            if len(removed)>0:
+                for session,interval in removed:
+                    self.rat_sessions.pop(session)
+                    print(f"Session {session} removed, interinfusion = {interval} ms")                    
         self.names = list(self.rat_sessions.keys())
 
     def _import_folder(self,folder):
@@ -232,8 +245,10 @@ class MultiSession(FiberPhotopy):
         if type(folder) == str:
             rats = os.listdir(folder)
             for r in rats:
+                print(f"\nImporting folder {r}...")
                 for file in os.listdir(folder+'/'+r):
                     path = folder+'/'+r+'/'+file
+                    print(f"Importing file {path}...")
                     if 'DI/O-1' in pd.read_csv(path).columns:
                         f = fiber_data.FiberData(path)
                     else:
@@ -265,21 +280,41 @@ class MultiSession(FiberPhotopy):
             for obj in result.dict[k]:
                 if obj:
                     for att in obj.__dict__.keys():
-                        if type(obj.__dict__[att]) in [int,float,np.float64,np.ndarray]:
-                            if result.__dict__.get(att):
-                                result.__dict__[att].append(obj.__dict__[att])
-                            else:
-                                result.__dict__[att] = [obj.__dict__[att]]
+                        if result.__dict__.get(att):
+                            result.__dict__[att].append(obj.__dict__[att])  #append
+                        else:
+                            result.__dict__[att] = [obj.__dict__[att]]   #create
         result.epoch = []
         for n,time in enumerate(result.time):
             result.epoch.append(time - result.event_time[n])
         result.update()
         return result
+    
+    def compare_behavior(self,attribute):
+        obj_behav = [self.rat_sessions[k].behavior for k in self.rat_sessions.keys()]
+        timebins = np.arange(0,9001,1)
+        cumul = [np.zeros(timebins.shape) for i in range(len(obj_behav))]
+        names = [] ; endpoints = []
+        for n,o in enumerate(obj_behav):
+            a,b = np.histogram(o.__dict__[attribute],bins=timebins)
+            cumul[n] = np.array([np.sum(a[:n]) for n in range(len(a))])
+            names.append(self.names[n])
+            endpoints.append(round(o.end))
+        plt.figure(figsize=(20,10))
+        plt.title(attribute)
+        sns.heatmap(np.array(cumul),yticklabels=self.names)
+        plt.figure(figsize=(20,10))
+        pltcumul = [cumul[n][:endpoints[n]] for n in range(len(endpoints))]
+        for n,i in enumerate(pltcumul):
+            plt.plot(i,label=names[n])
+        plt.legend()
+        return np.array(cumul)
             
 class MultiAnalysis(FiberPhotopy):
     
     def __init__(self):
         super().__init__('all')
+        self.exclude_list = []
         
 
     def possible_data(self):
@@ -293,6 +328,9 @@ class MultiAnalysis(FiberPhotopy):
                         if [i.shape for i in v] == comparator:
                             possible.append(k)
         return possible
+    
+    def exclude(self,list_of_sessions):
+        return
     
     def update(self,
                nb_of_points='default'):
@@ -312,9 +350,8 @@ class MultiAnalysis(FiberPhotopy):
              data='signal',
              smooth_data=True,
              smooth_mean=True,
-             interpolate_data=False,
-             interpolate_mean=False,
-             
+             data_window=500,
+             mean_window=500,
              **kwargs):
         """Visualize specified data."""
         cfg = {'figsize':(20,10),'c':'k','linewidth':1,'alpha':0.3}
@@ -330,9 +367,12 @@ class MultiAnalysis(FiberPhotopy):
         plt.figure(figsize=(cfg['figsize']))
  
         for n,z in enumerate(data_list):
-            plt.plot(self.time[n],z,alpha=cfg['alpha'])
-        plt.plot(self.EPOCH,mean_data,c='k')
+            if smooth_data:
+                z = self._savgol(z,data_window)
+            plt.plot(self.epoch[n],z,alpha=cfg['alpha'])
+        if smooth_mean:
+            mean_data = self._savgol(mean_data,mean_window)
+        plt.plot(self.EPOCH,mean_data,c='k',label='mean')
         plt.axvline(0,alpha=1,linewidth=cfg['linewidth'],c=cfg['c'])
-        return kwargs
     
     

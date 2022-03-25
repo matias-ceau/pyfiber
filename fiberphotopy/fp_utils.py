@@ -35,7 +35,8 @@ class FiberPhotopy:
         elif type(anything) == list: return anything
         else: print(f"{type(anything)} not taken care of by _list")
         
-    def _savgol(self,data,window,polyorder=3):
+    def _savgol(self,data,window=10,polyorder=3,nosmoothing=False):
+            if nosmoothing: return data
             window = round(window)
             if window%2 ==0:
                 window += 1
