@@ -28,9 +28,15 @@ USER:
     FIBERPHOTOMETRY:
         split_recordings:  True
         split_treshold:    10       #ie 10 times the mean intersample space
+        min_sample_per_rec: 5       # used when splitting recordings groupped to the same datafile, ignores recording if less than specified samples
         trim_recording:    2.0      # seconds trimmed from recording start
-        default_window:    [10.0,10.0]  # perievent window
-        default_norm:      F     # normalization method
+        perievent_window:  [10.0,10.0]  # perievent window
+        default_norm:      F      # normalization method
+        peak_window:       10     # lenght of detection window in seconds
+        peak_distance:     50ms   # minimun distance between peaks (used for peak detection)
+        peak_zscore:       full   #'full' or 'bins' (choose if dF/F zscore is done for whole recordings or inside each bin when doing peak detection
+        peak_baseline_MAD: 2
+        peak_peak_MAD:     3 
 
 # IMETRONIC NOMENCLATURE FOR DAT FILES, CAN BE CHANGED IF NOMENCLATURE ITSELF CHANGES
 IMETRONIC:

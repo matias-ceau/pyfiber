@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import time
 import matplotlib.pyplot as plt
 import numpy as np
 from fp_utils import FiberPhotopy
@@ -12,9 +13,15 @@ class BehavioralData(FiberPhotopy):
     def __init__(self,
                  filepath,
                  custom='all',
+                 autoinherit=False,
                  **kwargs):
         """Initialize BehavioralData object, timestamp arrays are lowercase, periods are uppercase."""
-        super().__init__('behavior',**kwargs)
+        if autoinherit:
+            self.__dict__.update(autoinherit)
+        else:
+            super().__init__('behavior',**kwargs)
+        print(f'Importing {filepath}...')
+        start = time.time()
         self.df               = pd.read_csv(filepath,skiprows=12,delimiter='\t',header=None,names=['TIME','F','ID','_P','_V','_L','_R','_T','_W','_X','_Y','_Z'])
         self.custom           = custom
         self.filepath         = filepath
@@ -33,8 +40,8 @@ class BehavioralData(FiberPhotopy):
         self.inj1             = self._extract(6, 1,'_L',1)     # injection (6,1) (NB: first pump turn)
         self.ttl1_on          = self._extract(15,1,'_L',1)
         self.ttl1_off         = self._extract(15,1,'_L',0)
-        if self.ttl1_on != np.array([]):
-            self.rec_start    = self.ttl1_on[:1]
+        if self.ttl1_on.size:
+            self.rec_start    = np.array([self.ttl1_on[0]])
         else:
             self.rec_start    = np.array([])
         for i in ['hled','led1','led2','ttl1']:
@@ -45,6 +52,7 @@ class BehavioralData(FiberPhotopy):
         self.NOTO_DARK        = self._intersection(self.DARK,self._non(self.TIMEOUT,end=self.end))
         # SWITCHES
         self._custom_events_intervals()
+        print(f'Importing of {filepath} finished in {time.time() - start} seconds')
 
     def info(self):
         """Return information about object."""
@@ -460,7 +468,6 @@ class MultiBehavior:
                 path = os.path.join(currentpath, file)
                 if path[-3:] == 'dat':
                     self.paths.append(path)
-                    print(f"Importing {path}...")
                     self.sessions[path] = BehavioralData(path,**kwargs)
         self.names = list(self.sessions.keys())
         self.number = len(self.sessions.items())
@@ -494,20 +501,21 @@ class MultiBehavior:
             count.dropna(inplace=True)
             count = count.values
             dic[name] = np.array([np.sum(count[n-binsize:n]) for n in range(binsize,len(count))])
-            plt.plot(dic[name],linewidth=1)
+            plt.plot(dic[name],linewidth=1,label=name)
+            plt.legend()
         if interval:
             if type(interval) == str: interval = list(self.sessions.items())[0][-1].__dict__[interval]
             if len(interval):
                 for a,b in interval:
                     plt.axvspan(a-binsize,b-binsize,alpha=interval_alpha)
         self.__dict__[attribute+'_rate'] = pd.DataFrame({k:pd.Series(v) for k,v in dic.items()}).T
-
-        idx = ['p'+str(i) for i in percentiles]
-        self.__dict__[attribute+'_percentiles'] = pd.DataFrame({k:[np.nan]*len(idx) for k in self.__dict__[attribute+'_rate'].columns},index=idx)
-        for c in self.__dict__[attribute+'_rate'].columns:
-            data = self.__dict__[attribute+'_rate'].loc[:,c].copy().values
-            self.__dict__[attribute+'_percentiles'].loc[:,c] = np.nanpercentile(data,percentiles)
-        self.__dict__[attribute+'_percentiles'].T.plot(figsize=figsize)
+        if percentiles:
+            idx = ['p'+str(i) for i in percentiles]
+            self.__dict__[attribute+'_percentiles'] = pd.DataFrame({k:[np.nan]*len(idx) for k in self.__dict__[attribute+'_rate'].columns},index=idx)
+            for c in self.__dict__[attribute+'_rate'].columns:
+                data = self.__dict__[attribute+'_rate'].loc[:,c].copy().values
+                self.__dict__[attribute+'_percentiles'].loc[:,c] = np.nanpercentile(data,percentiles)
+            self.__dict__[attribute+'_percentiles'].T.plot(figsize=figsize)
         if interval:
             if type(interval) == str: interval = list(self.sessions.items())[0][-1].__dict__[interval]
             if len(interval):
