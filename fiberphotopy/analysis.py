@@ -39,8 +39,8 @@ class RatSession(FiberPhotopy):
         start_idx = np.where(abs(time_array -      start) == min(abs(time_array -      start)))[0][0]
         event_idx = np.where(abs(time_array - event_time) == min(abs(time_array - event_time)))[0][0]
         end_idx   = np.where(abs(time_array -        end) == min(abs(time_array -        end)))[0][-1]
-        return (start_idx , event_idx, end_idx)        
-        
+        return (start_idx , event_idx, end_idx)
+
     def _recorded_timestamps(self,events,window,**kwargs):
         """Return timestamps using BehavioralData timestamps function and applying it to analyzable_events."""
         if type(events) == str:
@@ -51,15 +51,15 @@ class RatSession(FiberPhotopy):
             print('You must input data as string')
             return
         return self.behavior.timestamps(events=recorded_events,**kwargs)
-    
+
     def events(self,**kwargs):
         """Return all events ; wrapper for behavioral data function"""
         return self.behavior.events(**kwargs)
-    
+
     def intervals(self,**kwargs):
         """Return all intervals ; wrapper for behavioral data function"""
         return self.behavior.intervals(**kwargs)
-            
+
     def analyze_perievent(self,
                           event_time,
                           window     = 'default',
@@ -131,7 +131,7 @@ class RatSession(FiberPhotopy):
         self.perievent_window     = new_window
         self.analyzable_events  = self.behavior.events(recorded=True,window=self.perievent_window)
         self.recorded_intervals = self.behavior.intervals(recorded=True,window=self.perievent_window)
-            
+
     def plot(self,what='events'):
         """Plot either events or intervals that happen within recording timeframe."""
         if what == 'events':
@@ -144,9 +144,9 @@ class RatSession(FiberPhotopy):
 
 class Analysis:
     """Give results of perievent analysis relative to one event from a session."""
-    
+
     _savgol = FiberPhotopy._savgol
-    
+
     def __init__(self,rat_ID):
         """Initialize Analysis object."""
         pass
@@ -241,7 +241,7 @@ class MultiSession(FiberPhotopy):
             if len(removed)>0:
                 for session,interval in removed:
                     self.rat_sessions.pop(session)
-                    print(f"Session {session} removed, interinfusion = {interval} ms") 
+                    print(f"Session {session} removed, interinfusion = {interval} ms")
             else:
                 print('No sessions removed.')
         self.names = list(self.rat_sessions.keys())
@@ -271,10 +271,10 @@ class MultiSession(FiberPhotopy):
             else:
                 name = s.fiber.filepath
             sessions[name] = s
-    
+
     def show_rates(self,**kwargs):
         self.multibehavior.show_rate(**kwargs)
-    
+
     def analyze(self,events,
                 window='default',
                 norm='default',
@@ -299,7 +299,7 @@ class MultiSession(FiberPhotopy):
             result.epoch.append(t - result.event_time[n])
         result.update()
         return result
-    
+
     def compare_behavior(self,attribute):
         obj_behav = [self.rat_sessions[k].behavior for k in self.rat_sessions.keys()]
         end = max(rat[1].behavior.end for rat in self.rat_sessions.items())
@@ -320,13 +320,13 @@ class MultiSession(FiberPhotopy):
             plt.plot(i,label=names[n])
         plt.legend()
         return np.array(cumul)
-            
+
 class MultiAnalysis(FiberPhotopy):
-    
+
     def __init__(self):
         super().__init__('all')
         self.exclude_list = []
-        
+
 
     def possible_data(self):
         """Return dictionnary of possible data to plot"""
@@ -339,31 +339,31 @@ class MultiAnalysis(FiberPhotopy):
                         if [i.shape for i in v] == comparator:
                             possible.append(k)
         return possible
-    
+
     def exclude(self,list_of_sessions):
         return
-    
+
     def update(self,
                nb_of_points='default'):
         """Recalculate mean values for all relevant values (perievent data). "nb of points" is the desired number of points for the new aligned data. Default is mean number of points of the data."""
         if nb_of_points == 'default':
-            self.nb_of_points = round(np.mean([i.shape for i in self.time]))      
+            self.nb_of_points = round(np.mean([i.shape for i in self.time]))
         self.EPOCH = np.linspace(-1*self.window[0],
                                  self.window[1],
                                  self.nb_of_points)
         for value in self.possible_data():
-            self.__dict__['interpolated_'+value] = []  
+            self.__dict__['interpolated_'+value] = []
             for a,b in zip(self.epoch,self.__dict__[value]):
                 self.__dict__['interpolated_'+value].append(np.interp(self.EPOCH,a,b))
             self.__dict__[value.upper()]= sum(self.__dict__['interpolated_'+value])/len(self.__dict__['interpolated_'+value])
-    
+
     def plot(self,
              data='signal',
              smooth_data=True,
              smooth_mean=True,
              data_window=500,
              mean_window=500,
-             label=False,
+             label=None,
              **kwargs):
         """Visualize specified data."""
         cfg = {'figsize':(20,10),'c':'k','linewidth':1,'alpha':0.3}
@@ -371,22 +371,21 @@ class MultiAnalysis(FiberPhotopy):
             print(f"You need to choose among {self.possible_data()}")
             return
         else:
-            mean_data = self.__dict__[data.upper()] 
+            mean_data = self.__dict__[data.upper()]
             data_list = self.__dict__[data]
         for key in cfg.keys():
             if key in kwargs.keys():
                 cfg[key] = kwargs[key]
         plt.figure(figsize=(cfg['figsize']))
- 
+
         for n,z in enumerate(data_list):
             if label: label = list(self.rat_sessions.keys())[n]
             if smooth_data:
                 z = self._savgol(z,data_window)
             plt.plot(self.epoch[n],z,alpha=cfg['alpha'],label=label)
-            plt.legend()
+            if label:
+                plt.legend()
         if smooth_mean:
             mean_data = self._savgol(mean_data,mean_window)
         plt.plot(self.EPOCH,mean_data,c='k',label='mean')
         plt.axvline(0,alpha=1,linewidth=cfg['linewidth'],c=cfg['c'])
-    
-    

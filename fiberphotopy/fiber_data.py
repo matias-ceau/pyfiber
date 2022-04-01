@@ -83,7 +83,7 @@ Original file unit   : {self.file_unit}"""
 
     def _read_file(self,filepath,alignement=0):
         """Read file and convert in the desired unit if needed."""
-        df = pd.read_csv(filepath)
+        df = pd.read_csv(filepath,engine='pyarrow')
         if self.file_unit and self.user_unit:
             if self.file_unit == self.user_unit:
                 return df
@@ -203,7 +203,7 @@ Original file unit   : {self.file_unit}"""
         if method == 'default': method = self.default_norm
         if method == 'F':
             coeff = np.polynomial.polynomial.polyfit(ctrl,sig,1)
-            #fitted_control = np.polynomial.polynomial.polyval(coeff,ctrl) 
+            #fitted_control = np.polynomial.polynomial.polyval(coeff,ctrl)
             #coeff = np.polyfit(ctrl,sig,1) /!\ coeff order is inversed with np.polyfit vs np.p*.p*.polyfit
             fitted_control = coeff[0] + ctrl*coeff[1]
             normalized = (sig - fitted_control)/fitted_control
@@ -218,10 +218,10 @@ Original file unit   : {self.file_unit}"""
         else:
             return normalized
 
-        
+
     def detect_peaks(self,t,s,window='default',distance='default',plot=True,figsize=(30,10),zscore='full',bMAD='default',pMAD='default'):
         """Detect peaks on segments of data:
-        
+
         window:   window size for peak detection, the median is calculated for each bin
         distance: minimun distance between peaks, limits peak over detection
         zscore:   full if zscore is to be computed on the whole recording before splitting in bins, or bins if after
@@ -229,7 +229,7 @@ Original file unit   : {self.file_unit}"""
         """
         if window   == 'default': window   = self.peak_window
         if distance == 'default': distance = self.peak_distance
-        if zscore   == 'default': zscore   = self.peak_zscore 
+        if zscore   == 'default': zscore   = self.peak_zscore
         if bMAD     == 'default': bMAD     = int(self.peak_baseline_MAD)
         else: bMAD = int(bMAD)
         if pMAD     == 'default': pMAD     = int(self.peak_peak_MAD)
@@ -253,7 +253,7 @@ Original file unit   : {self.file_unit}"""
         # find median for each bin and remove events >2MAD for baselines
         baselines = [b[b < np.median(b) + bMAD*np.median(abs(b - np.median(b)))] for b in bins]
         # calculate peak tresholds for each bin, by default >3MAD of previsoult created baseline
-        tresholds = [np.median(b)+pMAD*np.median(abs(b-np.median(b))) for b in baselines]  
+        tresholds = [np.median(b)+pMAD*np.median(abs(b-np.median(b))) for b in baselines]
         # find peaks using scipy.signal.find_peaks with thresholds
         peaks = []
         for n,bin_ in enumerate(bins):
@@ -275,11 +275,11 @@ Original file unit   : {self.file_unit}"""
                 plt.plot(bin_medians[n]+bin_mad[n]*2,color='darkgray',label=n*'_'+'>2MAD + median')
                 plt.plot(peak_tresholds[n],color='r',label=n*'_'+'>3MAD + baseline')
             for n,p in enumerate(peaks):
-                plt.scatter(p.loc[:,'time'],p.loc[:,'zscore']) 
+                plt.scatter(p.loc[:,'time'],p.loc[:,'zscore'])
             plt.legend()
-        return pd.concat(peaks,ignore_index=True)  
-    
-    
+        return pd.concat(peaks,ignore_index=True)
+
+
     def plot_transients(self,value='zscore',figsize=(20,20),colors='k',alpha=0.3,**kwargs):
         """Show graphical representation of detected transients with their amplitude."""
         fig,axes = plt.subplots(self.number_of_recording,figsize=figsize)
@@ -294,7 +294,7 @@ Original file unit   : {self.file_unit}"""
                 data = self.peaks[n+1]
                 for i in data.index:
                     ax.vlines(data.loc[i,'time'],ymin=0,ymax=data.loc[i,value],colors=colors,alpha=alpha,**kwargs)
-                
+
     def peakFA(self,a,b):
         r = 0
         for n,i in enumerate(self.rec_intervals):
@@ -308,6 +308,3 @@ Original file unit   : {self.file_unit}"""
                 'max zscore'  : data['zscore'].max(),
                 'max dF/F'    : data['dF/F'].max(),
                 'data'        : data}
-
-        
-    

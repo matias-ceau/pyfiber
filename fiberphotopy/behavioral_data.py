@@ -108,8 +108,8 @@ FULL_HELP: <obj>.info"""
         self.start
         self.end /= ratio
         return ratio
-    
-    
+
+
     def _attr_interval(self,string):
         on = self.__dict__[string+'_on']
         off = self.__dict__[string+'_off']
@@ -186,7 +186,9 @@ FULL_HELP: <obj>.info"""
 
     def _union(self,*sets):
         """Find union of sets, using self._set_operations(union)."""
-        if len(sets) == 1: return sets[0] #intersection of an ensemble with itself is itself
+        if len(sets) == 1:
+            print('yep')
+            return sets[0] #intersection of an ensemble with itself is itself
         union = self._set_operations(sets[0],sets[1],'union')
         if len(sets) == 2: return union
         else:
@@ -236,16 +238,17 @@ FULL_HELP: <obj>.info"""
 
     def _graph(self, ax,
                  obj,
-                 label = None,
+                 label = '',
                  color = None,
                  demo  = True,
                  unit  = 'min',
-                 x_lim = 'default'):
+                 x_lim = 'default',
+                 alpha = 1):
         factor = {k:v*({'s':1,'ms':1000}[self.user_unit]) for k,v in {'ms' : 0.001, 's': 1, 'min': 60, 'h': 3.6*10**3}.items()}[unit]
         if x_lim == 'default': x_lim = (self.start/factor,self.end/factor)
         data = self._translate(obj)
         # Choosing label
-        if type(obj) == str and label == None:
+        if type(obj) == str and label == '':
             label = obj
         elif label:
             pass
@@ -263,11 +266,12 @@ FULL_HELP: <obj>.info"""
                 ax.axvspan(0,0,label=label)
             for n,interval in enumerate(data):
                 if color: color = self._list(color)[n%len(self._list(color))]
-                ax.axvspan(interval[0]/factor,interval[1]/factor, label='_'*n+label,color=color)
+                if not label: label = ''
+                ax.axvspan(interval[0]/factor,interval[1]/factor, label='_'*n+label,color=color,alpha=alpha)
         # Plotting events
         elif type(data) == np.ndarray:
             if not label:
-                label = [k for k,v in self.events.items() if np.array_equal(data,v)][0]
+                label = [k for k,v in self.events().items() if np.array_equal(data,v)][0]
             if label in self.elements.keys():
                 if not color: color = self.elements[label][-1]
                 if demo: label = self.elements[label][1]
@@ -278,7 +282,7 @@ FULL_HELP: <obj>.info"""
         ax.set_xlim(x_lim)
         ax.set_ylim((0,1))
         ax.axes.yaxis.set_visible(False)
-            
+
 
     def _custom_events_intervals(self):
         if self.custom in ['fiber','all']:
@@ -289,21 +293,28 @@ FULL_HELP: <obj>.info"""
             for i in range(self.fixed_ratio):
                 self.__dict__[f'np1_{i+1}'] = self._set_element(self.np1,self._non(self.TIMEOUT,self.end))[i::self.fixed_ratio]
             for n,t in enumerate(self.HLED_OFF):
-                self.__dict__[f'D_{n+1}']   = [t] 
+                self.__dict__[f'D_{n+1}']   = [t]
             for n,t in enumerate(self.HLED_ON):
-                self.__dict__[f'ND_{n+1}']  = [t] 
+                self.__dict__[f'ND_{n+1}']  = [t]
         if self.custom in ['movement','all']:
             self.x      = self.get(idtuple=(9,1))['_X'].to_numpy()
             self.y      = self.get(idtuple=(9,1))['_Y'].to_numpy()
             self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()
+        if self.custom in ['licks','all']:
+            self.l1_0       = self.get(idtuple=(2,1))[self.get(idtuple=(2,1))['_P']==0]['TIME'].to_numpy()
+            self.l1_1       = self.get(idtuple=(2,1))[self.get(idtuple=(2,1))['_P']==1]['TIME'].to_numpy()
+            self.lk1_start  = self._extract(5, 1,'_V',0)
+            self.lk1_end    = self._extract(5, 1,'_V',1)
+            self.LK1        = self._interval(self.lk1_start, self.lk1_end, self.end)
+            self.lk1_intnb  = np.diff(np.concatenate(([0],self.get('LK1')[self.get('LK1')['_V']==0]['_W'].to_numpy())))
 
  ###################### USER FUNCTIONS ##########################
-    
+
     def debug_interinj(self):
-        """Return interinfusion time (between 2 consecutive pump activations)"""
+        """Return interinfusion time (between 2 consecutive pump activations)."""
         a = self.get(idtuple=(6,1))
         return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
-    
+
     def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
         """Show number of crossings."""
         if self.custom not in ['all','movement']: return
@@ -314,7 +325,31 @@ FULL_HELP: <obj>.info"""
         fig,ax = plt.subplots(1,figsize=figsize)
         ax.imshow(array,cmap=cmap,vmin=0,vmax=np.max(array))
         ax.invert_yaxis()
-                
+
+    def what_data(self,plot=True,figsize=(20,40)):
+        """Return dataframe summarizing the imetronic dat file."""
+        d = {}
+        for k in self.config['IMETRONIC'].keys():
+            d.update(self.config['IMETRONIC'][k])
+        elements = {}
+        for k,v in d.items():
+            df = self.get(idtuple=v)
+            if len(df):
+                elements[k] = [len(df)] + [round(np.mean(df[i]),3) if np.mean(df[i]) != 0 else '' for i in df.columns]
+        data = pd.DataFrame(elements,index=['count']+list(self.df.columns)).T.sort_values('count',ascending=False)
+        if plot:
+            names = data.index.values
+            columns = data.columns.values[4:]
+            fig,axes = plt.subplots(len(names),figsize=figsize)
+            for n,ax in enumerate(axes):
+                name = names[n]
+                df = self.get(name)
+                for c in columns:
+                    ax.scatter(df['TIME']/60_000,df[c],label=c.split('_')[1])
+                ax.legend()
+                ax.title.set_text(name)
+                ax.set_xlim((0, max([i for i in data['TIME'] if type(i) != str])/60_000))
+        return data
 
     def get(self,name=None,idtuple=None):
         """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
@@ -394,7 +429,7 @@ FULL_HELP: <obj>.info"""
             return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps
         else:
             return selected_timestamps
-    
+
     def export_timestamps(self,
                           events,
                           interval      = 'all',
@@ -406,7 +441,7 @@ FULL_HELP: <obj>.info"""
                           start_TTL1    = False,
                           **kwargs):
         """Create list of timestamps and export them."""
-        events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps = self.timestamps(events,interval,intersection,exclude,user_output=True)   
+        events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps = self.timestamps(events,interval,intersection,exclude,user_output=True)
         if graph:
             data = {f"Event(s):     {','.join([self.elements[i][1] for i in self._list(events)])}"      : (events_data,               'k'),#'r'),
                     f"Interval(s):  {','.join([self.elements[i][1] for i in self._list(interval)])}"    : (interval_data,             'g'),#'g'),
@@ -428,7 +463,7 @@ FULL_HELP: <obj>.info"""
                 if filename[-3:] != 'csv': filename += f'{self.rat_ID}.csv'
             pd.DataFrame({'timestamps': result}).to_csv(filename,index=False)
         return result
-    
+
     def events(self,recorded=False,window=(0,0),window_unit='default'):
         """Retrieve list of events. Optionally only those which can be used in a perievent analysis (ie during the recording period and taking into account a perievent window)."""
         events = {k:v for k,v in self.__dict__.items() if type(v)==np.ndarray}
@@ -439,9 +474,9 @@ FULL_HELP: <obj>.info"""
             if window_unit != self.user_unit:
                 if self.user_unit == 'ms' and window_unit == 's': window = [i/1000 for i in window]
                 elif self.user_unit == 's' and window_unit == 'ms': window = [i*1000 for i in window]
-            recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]    
+            recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]
             return {k: self._set_element(v,recorded_and_window,is_element=True) for k,v in events.items()}
-        
+
     def intervals(self,recorded=False,window=(0,0),window_unit='default'):
         """Retrieve list of intervals."""
         intervals = {k:v for k,v in self.__dict__.items() if type(v)==list}
@@ -452,14 +487,14 @@ FULL_HELP: <obj>.info"""
             if window_unit != self.user_unit:
                 if self.user_unit == 'ms' and window_unit == 's': window = [i/1000 for i in window]
                 elif self.user_unit == 's' and window_unit == 'ms': window = [i*1000 for i in window]
-            recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]  
+            recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]
             return {k: self._intersection(v,recorded_and_window) for k,v in intervals.items()}
 
 
 class MultiBehavior:
-    
+
     _savgol = FiberPhotopy._savgol
-    
+
     def __init__(self,folder,**kwargs):
         self.sessions = {}
         self.paths = []
@@ -481,18 +516,18 @@ class MultiBehavior:
         for attribute in self.__dict__.keys():
             if attribute in event_names:
                 self.__dict__[attribute] = pd.DataFrame(self.__dict__[attribute],index=self.names)
-    
+
     def _cnt(self,attribute):
         return {k: np.histogram(self.__dict__[attribute].loc[k,:].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
-    
+
     def count(self,attribute):
         return pd.DataFrame({ k:pd.Series(v) for k,v in self._cnt(attribute).items()}).T
-        
+
     def cumul(self,attribute,plot=True,figsize=(20,15),**kwargs):
         cumul = pd.DataFrame({ k:pd.Series(np.cumsum(v)) for k,v in self._cnt(attribute).items()})
         if plot: cumul.plot(figsize,**kwargs)
         return cumul.T
-    
+
     def show_rate(self,attribute,interval='HLED_ON',binsize=120,percentiles=[15,50,85],figsize=(20,10),interval_alpha=0.3):
         plt.figure(figsize=figsize)
         dic = {}
@@ -521,4 +556,8 @@ class MultiBehavior:
             if len(interval):
                 for a,b in interval:
                     plt.axvspan(a-binsize,b-binsize,alpha=interval_alpha)
-    
+
+    def summary(self):
+        for r in self.sessions.keys():
+            self.sessions[r].summary()
+            plt.title(r)
