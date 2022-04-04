@@ -18,7 +18,7 @@ NB:
 - For all switch (on/off) commands, unnecessary commands are also listed (eg.: if 2 switch off commands occurs in a row, the second one is in the list)
 - For all intervals, unnecessary commands are accounted for in order to obtain the real ON/OFF intervals.
 
-EVENTS:
+EVENTS: [<obj>.events()]
 ****************************************************************************************************************************************************************** 
  - <obj>.hled_on     : houselight switch on command  
  - <obj>.led1_on     : LED1 switch on command  
@@ -28,7 +28,7 @@ EVENTS:
  - <obj>.inj1        : injection occurs (when injection consist of multiple pump turns, only the first one is registered)  
  - <obj>.ttl1_on     : TTL1 starts
  - <obj>.rec_start   : timestamp at which recording TTL1 switches on first  
- - <obj>.npa[X]      : active nosepoke number X (modulo FR) ; eg. in the case of an experiment with an FR = 5, <obj>.npa[5] is the rewarded nosepoke 
+ - <obj>.np1_<n>     : active nosepoke number n (modulo FR) ; eg. in the case of an experiment with an FR = 5, <obj>.np1_5 is the rewarded nosepoke 
  
 SWITCHES:
 ******************************************************************************************************************************************************************
@@ -36,7 +36,7 @@ SWITCHES:
 - <obj>.switch_to_nd : switch from 'drug period' to 'no drug period' if timeout before the switch
 - <obj>.switch_nd_d  : switch from 'no drug period' to 'drug period'
  
-INTERVALS:
+INTERVALS: [<obj>.intervals()]
 ****************************************************************************************************************************************************************** 
  - <obj>.HLED_ON     : period with houselight on
  - <obj>.TTL1_ON     : period with TTL1 on (ie: recorded period in settings where TTL1 controls recording)
@@ -46,8 +46,8 @@ INTERVALS:
  - <obj>.TO_DARK     : period with all lights off occuring near an injection thus being part of a timeout
  - <obj>.TIMEOUT     : combination of LED1_ON and TO_DARK, ie full timeouts
  - <obj>.NOTO_DARK   : period of dark not included in a timeout (can be first 10s of darkness in some settings)
- - <obj>.D[X]        : 'drug period' number X, in settings where a period off approximately 40 min with HLED off is defined as a drug period   
- - <obj>.ND[X]       : 'no drug period' number X, in settings where a period off approximately 15 min with HLED off is defined as a no drug period      
+ - <obj>.D_<n>       : 'drug period' number n, in settings where a period off approximately 40 min with HLED off is defined as a drug period   
+ - <obj>.ND_<n>      : 'no drug period' number n, in settings where a period off approximately 15 min with HLED off is defined as a no drug period      
 
 DICTIONNARY:
 ****************************************************************************************************************************************************************** 

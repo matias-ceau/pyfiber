@@ -1,6 +1,18 @@
 import numpy as np
 import pandas as pd
+import time
+import scipy.signal as signal
+import matplotlib.pyplot as plt
 from fp_utils import FiberPhotopy
+
+def timer(ref,name):
+    now = time.time()
+    delta = now - ref
+    print(f'''\
+============================================================================
+    {name} took {delta} seconds
+============================================================================''')
+    return now
 
 class FiberData(FiberPhotopy):
     """Extract fiberphotometry data from Doric system."""
@@ -10,17 +22,25 @@ class FiberData(FiberPhotopy):
                  name      = 'default',
                  rat_ID    = None,
                  alignement=0,
+                autoinherit=False,
                  **kwargs):
-        super().__init__('fiber',**kwargs)
+        start = time.time()
+        if autoinherit:
+            self.__dict__.update(autoinherit)
+        else:
+            super().__init__('fiber',**kwargs)
         self.alignement = alignement
         self.filepath = filepath
         self.rat_ID = rat_ID
+        #part1 = timer(start,'part1')
         if name == 'default':
             self.name = self.filepath.split('/')[-1].split('.csv')[0]
             if self.rat_ID:
                 self.name += rat_ID
         self.number_of_recording = 0
+        #part2 = timer(part1,'adding names')
         self.df = self._read_file(filepath,alignement=alignement)
+        #part3 = timer(part2,'reading df')
         self.full_time = np.array(self.df['Time(s)'])
         self.raw_columns = list(self.df.columns)
         self.ncl = self.config['DORIC']
@@ -28,11 +48,25 @@ class FiberData(FiberPhotopy):
         self.columns = list(self.data.columns)
         self.cut_time = np.array(self.data[self.ncl['Time(s)']])
         self.sampling_rate = 1/np.median(np.diff(self.cut_time))
+        #part4 = timer(part3,'a bunch of things')
         if self.split_recordings:
             self.recordings = self._split_recordings()
         else:
             self.recordings = {1: self.data}
-        self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording)]
+        #part5 = timer(part4,'splitting the recording')
+        self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording+1)]
+        #part6 = timer(part5,'getting record intervals')
+        self.peaks = {}
+        print('Analyzing peaks...')
+        for r in self.recordings.keys():
+            #try:
+            data = self.norm(rec=r,add_time=True)
+            t = data[:,0] ; s = data[:,1]
+            self.peaks[r] = self.detect_peaks(t,s,plot=False)
+            #except ValueError:
+            #    self.peaks[r] = 'cannot calculate peaks'
+        #part7 = timer(part6,'Peak analysis')
+        print(f'Importing of {filepath} finished in {time.time() - start} seconds')
 
     def __repr__(self):
         """Give general information about the recording data."""
@@ -49,7 +83,7 @@ Original file unit   : {self.file_unit}"""
 
     def _read_file(self,filepath,alignement=0):
         """Read file and convert in the desired unit if needed."""
-        df = pd.read_csv(filepath)
+        df = pd.read_csv(filepath,engine='pyarrow')
         if self.file_unit and self.user_unit:
             if self.file_unit == self.user_unit:
                 return df
@@ -76,7 +110,7 @@ Original file unit   : {self.file_unit}"""
         time       = self.cut_time
         jumps      = list(np.where(np.diff(time)> self.split_treshold * np.mean(np.diff(time)))[0] + 1)
         indices    = [0] + jumps + [len(time)-1]
-        ind_tuples = [(indices[i],indices[i+1]) for i in range(len(indices)-1)]
+        ind_tuples = [(indices[i],indices[i+1]) for i in range(len(indices)-1) if indices[i+1]-indices[i] > self.min_sample_per_rec ]
         self.number_of_recording = len(ind_tuples)
         return {ind_tuples.index((s,e))+1 : self.data.iloc[s:e,:] for s,e in ind_tuples}
 
@@ -124,7 +158,7 @@ Original file unit   : {self.file_unit}"""
         """Find recording number corresponding to inputed timestamp."""
         rec_num  = self.number_of_recording
         time_nom = self.ncl['Time(s)']
-        return [i for i in range(1,rec_num) if self.get(time_nom,recording=i)[0] <= timestamp <= self.get(time_nom,recording=i)[-1]]
+        return [i for i in range(1,rec_num+1) if self.get(time_nom,recording=i)[0] <= timestamp <= self.get(time_nom,recording=i)[-1]]
 
     def get(self,
             column,
@@ -160,23 +194,117 @@ Original file unit   : {self.file_unit}"""
 
     def norm(self,
              rec      = 1,
-             method   = 'F',
+             method   = 'default',
              add_time = True):
         """Normalizes data with specified method"""
-        signal  = self.get(self.ncl["AIn-1 - Demodulated(Lock-In)"],rec)
-        control = self.get(self.ncl["AIn-2 - Demodulated(Lock-In)"],rec)
-        time    = self.get(self.ncl["Time(s)"],rec)
+        sig  = self.get(self.ncl["AIn-1 - Demodulated(Lock-In)"],rec)
+        ctrl = self.get(self.ncl["AIn-2 - Demodulated(Lock-In)"],rec)
+        tm    = self.get(self.ncl["Time(s)"],rec)
+        if method == 'default': method = self.default_norm
         if method == 'F':
-            fit = np.polyfit(control,signal,1)
-            fitted_control = control*fit[0] + fit[1]
-            normalized = (signal - fitted_control)/fitted_control
+            coeff = np.polynomial.polynomial.polyfit(ctrl,sig,1)
+            #fitted_control = np.polynomial.polynomial.polyval(coeff,ctrl)
+            #coeff = np.polyfit(ctrl,sig,1) /!\ coeff order is inversed with np.polyfit vs np.p*.p*.polyfit
+            fitted_control = coeff[0] + ctrl*coeff[1]
+            normalized = (sig - fitted_control)/fitted_control
         if method == 'Z':
-            S = (signal - signal.mean())/signal.std()
-            I = (control - control.mean())/control.std()
+            S = (sig - sig.mean())/signal.std()
+            I = (ctrl - ctrl.mean())/ctrl.std()
             normalized = S-I
         if method == 'raw' or not method:
-            normalized = np.vstack((signal,control))
+            normalized = np.vstack((sig,ctrl))
         if add_time:
-            return np.vstack((time,normalized)).T
+            return np.vstack((tm,normalized)).T
         else:
             return normalized
+
+
+    def detect_peaks(self,t,s,window='default',distance='default',plot=True,figsize=(30,10),zscore='full',bMAD='default',pMAD='default'):
+        """Detect peaks on segments of data:
+
+        window:   window size for peak detection, the median is calculated for each bin
+        distance: minimun distance between peaks, limits peak over detection
+        zscore:   full if zscore is to be computed on the whole recording before splitting in bins, or bins if after
+        plot,figsize: parameters for plotting
+        """
+        if window   == 'default': window   = self.peak_window
+        if distance == 'default': distance = self.peak_distance
+        if zscore   == 'default': zscore   = self.peak_zscore
+        if bMAD     == 'default': bMAD     = int(self.peak_baseline_MAD)
+        else: bMAD = int(bMAD)
+        if pMAD     == 'default': pMAD     = int(self.peak_peak_MAD)
+        else: pMAD = int(pMAD)
+        dF = s
+        # calculate zscores
+        if zscore == 'full':
+            s = (s - s.mean())/s.std()
+        # distance
+        distance = round(float(distance.split('ms')[0])/(np.mean(np.diff(t))*1000))
+        if distance == 0: distance = 1
+        # find indexes for n second windows
+        t_points = np.arange(t[0],t[-1],window)
+        if t_points[-1] != t[-1]: t_points = np.concatenate((t_points,[t[-1]]))
+        indexes = [np.where(abs(t-i) == abs(t-i).min())[0][0] for i in t_points]
+        # create time bins
+        bins   = [pd.Series(s[indexes[i-1]:indexes[i]],index=t[indexes[i-1]:indexes[i]]) for i in range(1,len(indexes))]
+        dFbins = [pd.Series(dF[indexes[i-1]:indexes[i]],index=t[indexes[i-1]:indexes[i]]) for i in range(1,len(indexes))]
+        if zscore == 'bins':
+            bins = [(b - b.mean())/b.std() for b in bins]
+        # find median for each bin and remove events >2MAD for baselines
+        baselines = [b[b < np.median(b) + bMAD*np.median(abs(b - np.median(b)))] for b in bins]
+        # calculate peak tresholds for each bin, by default >3MAD of previsoult created baseline
+        tresholds = [np.median(b)+pMAD*np.median(abs(b-np.median(b))) for b in baselines]
+        # find peaks using scipy.signal.find_peaks with thresholds
+        peaks = []
+        for n,bin_ in enumerate(bins):
+            b = pd.DataFrame(bin_).reset_index()
+            indices, heights = signal.find_peaks(b.iloc[:,1],height=tresholds[n],distance=distance)
+            peaks.append(pd.DataFrame({'time'      : [b.iloc[i,0] for i in indices],
+                                       'dF/F'      : [dFbins[n].iloc[i] for i in indices],
+                                       'zscore' : list(heights.values())[0]}))
+        if plot:
+            plt.figure(figsize=figsize)
+            peak_tresholds = [pd.Series(t,index=baselines[n].index) for n,t in enumerate(tresholds)]
+            bin_medians    = [pd.Series(np.median(b),index=bins[n].index) for n,b in enumerate(bins)]
+            bin_mad        = [pd.Series(np.median(abs(b - np.median(b))),index=bins[n].index) for n,b in enumerate(bins)]
+            for n,i in enumerate(bins):
+                c = random.choice(list('bgrcmy'))
+                plt.plot(i,alpha=0.6,color=c)
+                plt.plot(baselines[n],color=c,label=n*'_'+'signal <2MAD + median')
+                plt.plot(bin_medians[n],color='k',label=n*'_'+'signal median')
+                plt.plot(bin_medians[n]+bin_mad[n]*2,color='darkgray',label=n*'_'+'>2MAD + median')
+                plt.plot(peak_tresholds[n],color='r',label=n*'_'+'>3MAD + baseline')
+            for n,p in enumerate(peaks):
+                plt.scatter(p.loc[:,'time'],p.loc[:,'zscore'])
+            plt.legend()
+        return pd.concat(peaks,ignore_index=True)
+
+
+    def plot_transients(self,value='zscore',figsize=(20,20),colors='k',alpha=0.3,**kwargs):
+        """Show graphical representation of detected transients with their amplitude."""
+        fig,axes = plt.subplots(self.number_of_recording,figsize=figsize)
+        if self.number_of_recording ==1:
+            axes.grid(which='both')
+            data = self.peaks[1]
+            for i in data.index:
+                axes.vlines(data.loc[i,'time'],ymin=0,ymax=data.loc[i,value],colors=colors,alpha=alpha,**kwargs)
+        else:
+            for n,ax in enumerate(axes):
+                ax.grid(which='both')
+                data = self.peaks[n+1]
+                for i in data.index:
+                    ax.vlines(data.loc[i,'time'],ymin=0,ymax=data.loc[i,value],colors=colors,alpha=alpha,**kwargs)
+
+    def peakFA(self,a,b):
+        r = 0
+        for n,i in enumerate(self.rec_intervals):
+            if (i[0]<a<i[1]) and (i[0]<b<i[1]):
+                r = n+1
+        if r == 0: return
+        data = self.peaks[r][(self.peaks[r]['time'] > a) & (self.peaks[r]['time'] < b)]
+        return {'frequency'   : len(data)/(b-a),
+                'mean zscore' : data['zscore'].mean(),
+                'mean dF/F'   : data['dF/F'].mean(),
+                'max zscore'  : data['zscore'].max(),
+                'max dF/F'    : data['dF/F'].max(),
+                'data'        : data}
