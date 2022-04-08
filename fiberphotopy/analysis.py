@@ -53,11 +53,11 @@ class RatSession(FiberPhotopy):
         return self.behavior.timestamps(events=recorded_events,**kwargs)
 
     def events(self,**kwargs):
-        """Return all events ; wrapper for behavioral data function"""
+        """Return all events ; wrapper for behavioral data function."""
         return self.behavior.events(**kwargs)
 
     def intervals(self,**kwargs):
-        """Return all intervals ; wrapper for behavioral data function"""
+        """Return all intervals ; wrapper for behavioral data function."""
         return self.behavior.intervals(**kwargs)
 
     def analyze_perievent(self,
@@ -224,7 +224,7 @@ class Analysis:
 class MultiSession(FiberPhotopy):
     """Group analyses or multiple events for single subject."""
 
-    def __init__(self,folder=None,session_list=None,debug=False):
+    def __init__(self,folder=None,session_list=None,debug=800):
         super().__init__('all')
         start = time.time()
         if folder:

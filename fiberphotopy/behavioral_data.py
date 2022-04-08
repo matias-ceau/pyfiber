@@ -118,8 +118,12 @@ FULL_HELP: <obj>.info"""
         self.__dict__[string.upper()+'_OFF'] = self._non(on_int,self.end)
 
     def _interval(self,on,off,end):
-        on  = set([i for i in on if i not in off])
-        off =set([i for i in off if i not in on])
+        on  = list(set([i for i in on if i not in off]))
+        off = list(set([i for i in off if i not in on]))
+        # if not len(on): return []
+        # if not len(off): return [(on[0]),end]
+        # while off[0] < on[0]:
+        #     off = off[1:]
         on_series = pd.Series([1]*len(set(on)),index=on,dtype='float64')
         off_series = pd.Series([0]*len(set(off)),index=off,dtype='float64')
         s = pd.concat((on_series,off_series)).sort_index()
@@ -187,7 +191,6 @@ FULL_HELP: <obj>.info"""
     def _union(self,*sets):
         """Find union of sets, using self._set_operations(union)."""
         if len(sets) == 1:
-            print('yep')
             return sets[0] #intersection of an ensemble with itself is itself
         union = self._set_operations(sets[0],sets[1],'union')
         if len(sets) == 2: return union
@@ -207,9 +210,10 @@ FULL_HELP: <obj>.info"""
         return intersection
 
     def _non(self,A,end):
-        """Return non A for a set A inputed as list of tuples defining time interval limits."""
-        if A == []:
+        """Return non A for any set A inputed as list of tuples defining time interval limits."""
+        if len(A) == 0:
             return [(self.start,self.end)]
+        if A == [(self.start,self.end)]: return []
         sides = [i for a in A for i in a]
         if sides[-1] < end: sides.append(end)
         if sides[0] != 0:
@@ -238,7 +242,7 @@ FULL_HELP: <obj>.info"""
 
     def _graph(self, ax,
                  obj,
-                 label = '',
+                 label = None,
                  color = None,
                  demo  = True,
                  unit  = 'min',
@@ -248,7 +252,7 @@ FULL_HELP: <obj>.info"""
         if x_lim == 'default': x_lim = (self.start/factor,self.end/factor)
         data = self._translate(obj)
         # Choosing label
-        if type(obj) == str and label == '':
+        if type(obj) == str and label == None:
             label = obj
         elif label:
             pass
@@ -300,13 +304,7 @@ FULL_HELP: <obj>.info"""
             self.x      = self.get(idtuple=(9,1))['_X'].to_numpy()
             self.y      = self.get(idtuple=(9,1))['_Y'].to_numpy()
             self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()
-        if self.custom in ['licks','all']:
-            self.l1_0       = self.get(idtuple=(2,1))[self.get(idtuple=(2,1))['_P']==0]['TIME'].to_numpy()
-            self.l1_1       = self.get(idtuple=(2,1))[self.get(idtuple=(2,1))['_P']==1]['TIME'].to_numpy()
-            self.lk1_start  = self._extract(5, 1,'_V',0)
-            self.lk1_end    = self._extract(5, 1,'_V',1)
-            self.LK1        = self._interval(self.lk1_start, self.lk1_end, self.end)
-            self.lk1_intnb  = np.diff(np.concatenate(([0],self.get('LK1')[self.get('LK1')['_V']==0]['_W'].to_numpy())))
+
 
  ###################### USER FUNCTIONS ##########################
 
@@ -525,7 +523,7 @@ class MultiBehavior:
 
     def cumul(self,attribute,plot=True,figsize=(20,15),**kwargs):
         cumul = pd.DataFrame({ k:pd.Series(np.cumsum(v)) for k,v in self._cnt(attribute).items()})
-        if plot: cumul.plot(figsize,**kwargs)
+        if plot: cumul.plot(figsize=figsize,**kwargs)
         return cumul.T
 
     def show_rate(self,attribute,interval='HLED_ON',binsize=120,percentiles=[15,50,85],figsize=(20,10),interval_alpha=0.3):
