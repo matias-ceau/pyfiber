@@ -293,7 +293,7 @@ FULL_HELP: <obj>.info"""
             self.switch_d_nd      = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.LED2_ON]])
             self.switch_to_nd     = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.TIMEOUT]])
             self.switch_nd_d      = np.array([i for i in [end for start,end in self.HLED_ON] if i in [start for start,end in self.LED2_ON]])
-            self.switch_dto_nd    = np.sort(np.concatenate((self.switch_d_nd,self.switch_to_nd)))
+            self.switch_dto_nd    = np.unique(np.sort(np.concatenate((self.switch_d_nd,self.switch_to_nd))))
             for i in range(self.fixed_ratio):
                 self.__dict__[f'np1_{i+1}'] = self._set_element(self.np1,self._non(self.TIMEOUT,self.end))[i::self.fixed_ratio]
             for n,t in enumerate(self.HLED_OFF):
@@ -303,7 +303,7 @@ FULL_HELP: <obj>.info"""
         if self.custom in ['movement','all']:
             self.x      = self.get(idtuple=(9,1))['_X'].to_numpy()
             self.y      = self.get(idtuple=(9,1))['_Y'].to_numpy()
-            self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()
+            self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()/1000 #conversion
 
 
  ###################### USER FUNCTIONS ##########################
@@ -407,8 +407,10 @@ FULL_HELP: <obj>.info"""
            filename      : selected filemame for csv
            graph         : True/False visualise selection"""
         events_data = np.sort(np.concatenate(self._internal_selection(events)))
+        print(events_data)
         if interval == 'all':
             interval_data = [(self.start,self.end)]
+            print(interval_data)
         else:
             interval_data = self._union(*self._internal_selection(interval))
         selected_interval = interval_data
@@ -417,11 +419,13 @@ FULL_HELP: <obj>.info"""
             selected_interval = self._intersection(selected_interval,intersection_data)
         else:
             intersection_data = []
+            print(intersection_data)
         if exclude  != []:
             exclude_data = self._union(*self._internal_selection(exclude))
             selected_interval = self._intersection(selected_interval,self._non(exclude_data,end=self.end))
         else:
             exclude_data = []
+            print(exclude_data)
         selected_timestamps = self._set_element(events_data,selected_interval,is_element=True)
         if user_output:
             return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps
@@ -441,12 +445,12 @@ FULL_HELP: <obj>.info"""
         """Create list of timestamps and export them."""
         events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps = self.timestamps(events,interval,intersection,exclude,user_output=True)
         if graph:
-            data = {f"Event(s):     {','.join([self.elements[i][1] for i in self._list(events)])}"      : (events_data,               'k'),#'r'),
-                    f"Interval(s):  {','.join([self.elements[i][1] for i in self._list(interval)])}"    : (interval_data,             'g'),#'g'),
-                    f"Intersection: {','.join([self.elements[i][1] for i in self._list(intersection)])}": (intersection_data,  'darkgrey'),#'#069AF3'),
-                    f"Excluded:     {','.join([self.elements[i][1] for i in self._list(exclude)])}"     : (exclude_data,              'r'),#'k'),
-                    "Selected interval(s):"                                                             : (selected_interval,         'y'),#'orange'),
-                    "Selected timestamp(s):"                                                            : (selected_timestamps,       'g')}#'darkorange')}
+            data = {f"Event(s):     {','.join([self.elements[i][1] for i in self._list(events)])}"      : (events_data,               'r'),          #'k'),#
+                    f"Interval(s):  {','.join([self.elements[i][1] for i in self._list(interval)])}"    : (interval_data,             'g'),          #'g'),#
+                    f"Intersection: {','.join([self.elements[i][1] for i in self._list(intersection)])}": (intersection_data,   '#069AF3'),    #'darkgrey'),#
+                    f"Excluded:     {','.join([self.elements[i][1] for i in self._list(exclude)])}"     : (exclude_data,              '#069AF3'),          #'r'),#
+                    "Selected interval(s):"                                                             : (selected_interval,         'orange'),     #'y'),#
+                    "Selected timestamp(s):"                                                            : (selected_timestamps,       'darkorange')} #'g')}#
             data_dict = {k:v for k,v in data.items() if v[0] != []}
             self.figure(data_dict,**kwargs)
         if start_TTL1:

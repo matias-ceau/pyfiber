@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['..\\..\\biovector\\biovector\\__main__.py', '..\\..\\biovector\\biovector\\bv_utils.py', '..\\..\\biovector\\biovector\\interactive.py', '..\\..\\biovector\\biovector\\KO_programs.py', '..\\..\\biovector\\biovector\\stats.py', '..\\..\\biovector\\biovector\\workout.py', '..\\..\\biovector\\data\\exercises.csv', '..\\..\\biovector\\data\\sets.csv', '..\\..\\biovector\\data\\stats\\workouts.csv', '..\\fiberphotopy\\behavioral_data.py', '..\\fiberphotopy\\analysis.py', '..\\fiberphotopy\\fiber_data.py', '..\\..\\biovector\\config.yaml', '..\\fiberphotopy\\fp_utils.py']
+recent_files = ['..\\..\\biovector\\biovector\\stats.py', '..\\fiberphotopy\\analysis.py', '..\\fiberphotopy\\fiber_data.py', '..\\..\\biovector\\config.yaml', '..\\fiberphotopy\\fp_utils.py', '..\\config.yaml', '..\\fiberphotopy\\behavioral_data.py', '..\\..\\biovector\\biovector\\__main__.py', '..\\..\\biovector\\biovector\\KO_programs.py', '..\\..\\biovector\\biovector\\bv_utils.py', '..\\..\\biovector\\biovector\\printbv.py', '..\\..\\biovector\\biovector\\workout.py']
 
 [main]
 version = 0.2.0

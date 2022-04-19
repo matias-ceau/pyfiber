@@ -241,9 +241,11 @@ class MultiSession(FiberPhotopy):
             if len(removed)>0:
                 for session,interval in removed:
                     self.rat_sessions.pop(session)
+                    self.removed = removed
                     print(f"Session {session} removed, interinfusion = {interval} ms")
             else:
                 print('No sessions removed.')
+                self.removed = 'No session removed'
         self.names = list(self.rat_sessions.keys())
         if folder: self.multibehavior = behavioral_data.MultiBehavior(folder)
         print(f'Extraction finished, {int(len(self.names)*2)} files in {time.time() - start} seconds')
@@ -294,6 +296,7 @@ class MultiSession(FiberPhotopy):
                             result.__dict__[att].append(obj.__dict__[att])  #append
                         else:
                             result.__dict__[att] = [obj.__dict__[att]]   #create
+
         result.epoch = []
         for n,t in enumerate(result.time):
             result.epoch.append(t - result.event_time[n])
