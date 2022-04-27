@@ -53,11 +53,11 @@ class RatSession(FiberPhotopy):
         return self.behavior.timestamps(events=recorded_events,**kwargs)
 
     def events(self,**kwargs):
-        """Return all events ; wrapper for behavioral data function"""
+        """Return all events ; wrapper for behavioral data function."""
         return self.behavior.events(**kwargs)
 
     def intervals(self,**kwargs):
-        """Return all intervals ; wrapper for behavioral data function"""
+        """Return all intervals ; wrapper for behavioral data function."""
         return self.behavior.intervals(**kwargs)
 
     def analyze_perievent(self,
@@ -224,7 +224,7 @@ class Analysis:
 class MultiSession(FiberPhotopy):
     """Group analyses or multiple events for single subject."""
 
-    def __init__(self,folder=None,session_list=None,debug=False):
+    def __init__(self,folder=None,session_list=None,debug=800):
         super().__init__('all')
         start = time.time()
         if folder:
@@ -241,9 +241,11 @@ class MultiSession(FiberPhotopy):
             if len(removed)>0:
                 for session,interval in removed:
                     self.rat_sessions.pop(session)
+                    self.removed = removed
                     print(f"Session {session} removed, interinfusion = {interval} ms")
             else:
                 print('No sessions removed.')
+                self.removed = 'No session removed'
         self.names = list(self.rat_sessions.keys())
         if folder: self.multibehavior = behavioral_data.MultiBehavior(folder)
         print(f'Extraction finished, {int(len(self.names)*2)} files in {time.time() - start} seconds')
@@ -294,6 +296,7 @@ class MultiSession(FiberPhotopy):
                             result.__dict__[att].append(obj.__dict__[att])  #append
                         else:
                             result.__dict__[att] = [obj.__dict__[att]]   #create
+
         result.epoch = []
         for n,t in enumerate(result.time):
             result.epoch.append(t - result.event_time[n])

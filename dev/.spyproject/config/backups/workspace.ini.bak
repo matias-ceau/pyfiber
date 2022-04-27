@@ -1,0 +1,12 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = 'empty-project-type'
+recent_files = ['..\\fiberphotopy\\behavioral_data.py', '..\\..\\biovector\\biovector\\__main__.py', '..\\..\\biovector\\biovector\\bv_utils.py', '..\\..\\biovector\\biovector\\printbv.py', '..\\..\\biovector\\biovector\\workout.py', '..\\..\\biovector\\todo.md', '..\\..\\biovector\\biovector\\stats.py', '..\\..\\biovector\\biovector\\interactive.py', '..\\..\\biovector\\data\\sets.csv', '..\\..\\biovector\\data\\.swap.csv', '..\\..\\biovector\\data\\stats\\workouts.csv', '..\\..\\biovector\\data\\programs\\531.yaml']
+
+[main]
+version = 0.2.0
+recent_files = []
+

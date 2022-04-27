@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import random
 import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
@@ -83,11 +84,8 @@ Original file unit   : {self.file_unit}"""
 
     def _read_file(self,filepath,alignement=0):
         """Read file and convert in the desired unit if needed."""
-        df = pd.read_csv(filepath,engine='pyarrow')
-        if self.file_unit and self.user_unit:
-            if self.file_unit == self.user_unit:
-                return df
-        elif not self.file_unit:
+        df = pd.read_csv(filepath,usecols=["AIn-1 - Demodulated(Lock-In)","AIn-2 - Demodulated(Lock-In)","Time(s)"],dtype=np.float64)#,engine='pyarrow')
+        if not self.file_unit:
             if 29 <= df['Time(s)'].iloc[-1] <= 28_740:
                 self.file_unit = 's'
             elif df['Time(s)'].iloc[-1] > 29_000:
@@ -182,7 +180,7 @@ Original file unit   : {self.file_unit}"""
         print("I don't exist yet :(")
 
     def TTL(self,ttl,rec=1):
-        """Outputs TTL timestamps"""
+        """Output TTL timestamps."""
         ttl             =  self.get(self.ncl[f"DI/O-{ttl}"],rec)
         time            =  self.get(self.ncl['Time(s)'],rec)
         ttl[ttl <  0.01] =  0
@@ -196,7 +194,7 @@ Original file unit   : {self.file_unit}"""
              rec      = 1,
              method   = 'default',
              add_time = True):
-        """Normalizes data with specified method"""
+        """Normalize data with specified method"""
         sig  = self.get(self.ncl["AIn-1 - Demodulated(Lock-In)"],rec)
         ctrl = self.get(self.ncl["AIn-2 - Demodulated(Lock-In)"],rec)
         tm    = self.get(self.ncl["Time(s)"],rec)
@@ -280,10 +278,11 @@ Original file unit   : {self.file_unit}"""
         return pd.concat(peaks,ignore_index=True)
 
 
-    def plot_transients(self,value='zscore',figsize=(20,20),colors='k',alpha=0.3,**kwargs):
+    def plot_transients(self,value='zscore',figsize=(20,20),rec='all',colors='k',alpha=0.3,**kwargs):
         """Show graphical representation of detected transients with their amplitude."""
-        fig,axes = plt.subplots(self.number_of_recording,figsize=figsize)
-        if self.number_of_recording ==1:
+        if rec == 'all': rec = self.number_of_recording
+        fig,axes = plt.subplots(rec,figsize=figsize)
+        if type(axes) != np.ndarray:
             axes.grid(which='both')
             data = self.peaks[1]
             for i in data.index:
