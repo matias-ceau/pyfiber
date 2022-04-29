@@ -14,9 +14,11 @@ import seaborn as sns
 
 class RatSession(FiberPhotopy):
     """Create object containing both fiber recordings and behavioral files from a single session."""
-
+    vars().update(FiberPhotopy.FIBER)
+    vars().update(FiberPhotopy.BEHAVIOR)
+    
     def __init__(self,behavior,fiber,rat_ID=None,**kwargs):
-        super().__init__('all',**kwargs)
+        super().__init__(**kwargs)
         heritage = self.__dict__
         self.rat_ID = rat_ID
         if type(behavior) == behavioral_data.BehavioralData:
@@ -81,9 +83,8 @@ class RatSession(FiberPhotopy):
         try:
             res.rec_number = self.fiber._find_rec(event_time)[0] # locates recording containing the timestamp
         except IndexError:
-            print('No fiber recording at this timestamp:')
-            print(event_time)
-            print(self.fiber.filepath,self.behavior.filepath)
+            print(f"""\
+No fiber recording at timestamp: {event_time} for {self.fiber.filepath},{self.behavior.filepath}""")
             return None
         if window == 'default':
             res.window    = self.perievent_window
@@ -223,16 +224,19 @@ class Analysis:
 
 class MultiSession(FiberPhotopy):
     """Group analyses or multiple events for single subject."""
-
-    def __init__(self,folder=None,session_list=None,debug=800):
-        super().__init__('all')
+    vars().update(FiberPhotopy.FIBER)
+    vars().update(FiberPhotopy.BEHAVIOR)
+    
+    def __init__(self,folder=None,session_list=None,debug=800,verbosity=True):
+        super().__init__()
+        self.verbosity = verbosity
         start = time.time()
         if folder:
             self.rat_sessions = self._import_folder(folder)
         elif session_list:
             self.rat_sessions = self._import_sessions(session_list)
         if debug:
-            print('Analysing interinfusion intervals...')
+            self._print('Analysing interinfusion intervals...')
             removed = []
             for session,obj in self.rat_sessions.items():
                 interval = obj.behavior.debug_interinj()
@@ -242,20 +246,21 @@ class MultiSession(FiberPhotopy):
                 for session,interval in removed:
                     self.rat_sessions.pop(session)
                     self.removed = removed
-                    print(f"Session {session} removed, interinfusion = {interval} ms")
+                    self._print(f"Session {session} removed, interinfusion = {interval} ms")
+                    
             else:
-                print('No sessions removed.')
+                self._print('No sessions removed.')
                 self.removed = 'No session removed'
         self.names = list(self.rat_sessions.keys())
         if folder: self.multibehavior = behavioral_data.MultiBehavior(folder)
-        print(f'Extraction finished, {int(len(self.names)*2)} files in {time.time() - start} seconds')
+        self._print(f'Extraction finished, {int(len(self.names)*2)} files in {time.time() - start} seconds')
 
     def _import_folder(self,folder):
         sessions = {}
         if type(folder) == str:
             rats = os.listdir(folder)
             for r in rats:
-                print(f"\nImporting folder {r}...")
+                self._print(f"\nImporting folder {r}...")
                 for file in os.listdir(folder+'/'+r):
                     path = folder+'/'+r+'/'+file
                     if '.csv' in path:
@@ -325,7 +330,9 @@ class MultiSession(FiberPhotopy):
         return np.array(cumul)
 
 class MultiAnalysis(FiberPhotopy):
-
+    vars().update(FiberPhotopy.FIBER)
+    vars().update(FiberPhotopy.BEHAVIOR)
+    
     def __init__(self):
         super().__init__('all')
         self.exclude_list = []

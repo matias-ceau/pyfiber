@@ -2,31 +2,43 @@ import numpy as np
 from scipy import signal
 import pandas as pd
 import yaml
+import datetime
+import info
 
 
 class FiberPhotopy:
     """Parent object for Behavioral, Fiber and Analysis objects."""
-
-    def __init__(self,object_type='general',configfile='../config.yaml',**kwargs):
+    try:
+        with open('../config.yaml') as f:
+            CFG = yaml.load(f, Loader=yaml.FullLoader)
+    except FileNotFoundError:
+        print('File not found')
+        CFG = None
+    vars().update(CFG)
+    vars().update(CFG['GENERAL'])
+    vars().update(CFG['SYSTEM'])
+            
+    def __init__(self,verbosity=True,**kwargs):
                 # GENERAL
-        self.hello          = 'Hi'
-        self.configfile     = configfile
-        try:
-            with open(configfile) as f:
-                self.config = yaml.load(f, Loader=yaml.FullLoader)
-        except FileNotFoundError:
-            print('File not found')
-            self.config = None
-        self.__dict__.update(self.config['USER']['GENERAL'])
-        if object_type == 'fiber':
-            self.__dict__.update(self.config['USER']['FIBERPHOTOMETRY'])
-        if object_type == 'behavior':
-            self.__dict__.update(self.config['USER']['BEHAVIOR'])
-        if object_type == 'all':
-            for category in self.config['USER'].keys():
-                self.__dict__.update(self.config['USER'][category])
-        self.__dict__.update(**kwargs)
-
+        self.verbosity      = verbosity
+        self.info           = []
+        self._log           = []
+        self.__dict__.update(**kwargs)      
+        
+    @property
+    def log(self):
+        print('\n'.join([' '.join(i.split('\n')) for i in self._log])+'\n')
+    @log.setter
+    def log(self,value):
+        log = f"{datetime.datetime.now().strftime('%H:%M:%S')} --- {value}"
+        self._log.append(log)
+        
+    @property
+    def help(self):
+        if self.type == 'BehavioralData':
+            print(info.behavior_help)
+                           
+        
     def _list(self,anything):
         """Convert user input into list if not already."""
         if not anything: return []
@@ -41,3 +53,7 @@ class FiberPhotopy:
             if window%2 ==0:
                 window += 1
             return signal.savgol_filter(data,window,polyorder)
+        
+    def _print(self,thing):
+        self.log = thing
+        if self.verbosity: print(self._log[-1])
