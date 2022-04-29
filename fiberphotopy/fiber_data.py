@@ -15,9 +15,11 @@ def timer(ref,name):
 ============================================================================''')
     return now
 
+
 class FiberData(FiberPhotopy):
     """Extract fiberphotometry data from Doric system."""
-
+    vars().update(FiberPhotopy.FIBER)
+    
     def __init__(self,
                  filepath,
                  name      = 'default',
@@ -26,12 +28,10 @@ class FiberData(FiberPhotopy):
                 autoinherit=False,
                  **kwargs):
         start = time.time()
-        if autoinherit:
-            self.__dict__.update(autoinherit)
-        else:
-            super().__init__('fiber',**kwargs)
+        super().__init__(**kwargs)
         self.alignement = alignement
         self.filepath = filepath
+        self._print(f'Importing {filepath}...')
         self.rat_ID = rat_ID
         #part1 = timer(start,'part1')
         if name == 'default':
@@ -44,7 +44,7 @@ class FiberData(FiberPhotopy):
         #part3 = timer(part2,'reading df')
         self.full_time = np.array(self.df['Time(s)'])
         self.raw_columns = list(self.df.columns)
-        self.ncl = self.config['DORIC']
+        self.ncl = self.SYSTEM['DORIC']
         self.data = self._extract_data()
         self.columns = list(self.data.columns)
         self.cut_time = np.array(self.data[self.ncl['Time(s)']])
@@ -58,7 +58,7 @@ class FiberData(FiberPhotopy):
         self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording+1)]
         #part6 = timer(part5,'getting record intervals')
         self.peaks = {}
-        print('Analyzing peaks...')
+        self._print('Analyzing peaks...')
         for r in self.recordings.keys():
             #try:
             data = self.norm(rec=r,add_time=True)
@@ -67,7 +67,7 @@ class FiberData(FiberPhotopy):
             #except ValueError:
             #    self.peaks[r] = 'cannot calculate peaks'
         #part7 = timer(part6,'Peak analysis')
-        print(f'Importing of {filepath} finished in {time.time() - start} seconds')
+        self._print(f'Importing of {filepath} finished in {time.time() - start} seconds')
 
     def __repr__(self):
         """Give general information about the recording data."""
@@ -79,23 +79,25 @@ Data columns         : {self.columns}
 Total lenght         : {self.full_time[-1] - self.full_time[0]} {self.user_unit}
 Kept lenght          : {self.cut_time[-1] - self.cut_time[0]} ({abs(self.full_time[0]-self.cut_time[0])} seconds trimmed)
 Global sampling rate : {self.sampling_rate} S/{self.user_unit}
-Original file unit   : {self.file_unit}"""
+"""
         return general_info
 
     def _read_file(self,filepath,alignement=0):
         """Read file and convert in the desired unit if needed."""
         df = pd.read_csv(filepath,usecols=["AIn-1 - Demodulated(Lock-In)","AIn-2 - Demodulated(Lock-In)","Time(s)"],dtype=np.float64)#,engine='pyarrow')
-        if not self.file_unit:
-            if 29 <= df['Time(s)'].iloc[-1] <= 28_740:
-                self.file_unit = 's'
-            elif df['Time(s)'].iloc[-1] > 29_000:
-                self.file_unit = 'ms'
-            else:
-                print('Please specify units')
-                return
-        unit_values = {'s':1,'ms':1000}
-        ratio = unit_values[self.file_unit]/unit_values[self.user_unit]
-        df['Time(s)'] = df['Time(s)']/ratio + alignement
+        # if not self.file_unit:
+        #     if 29 <= df['Time(s)'].iloc[-1] <= 28_740:
+        #         self.file_unit = 's'
+        #     elif df['Time(s)'].iloc[-1] > 29_000:
+        #         self.file_unit = 'ms'
+        #     else:
+        #         print('Please specify units')
+        #         return
+        # unit_values = {'s':1,'ms':1000}
+        #ratio = unit_values[self.file_unit]/unit_values[self.user_unit]
+        # df['Time(s)'] = df['Time(s)']/ratio + alignement
+        print(df,alignement)
+        df['Time(s)'] = df['Time(s)'] + alignement
         return df
 
     def _extract_data(self):
@@ -110,6 +112,7 @@ Original file unit   : {self.file_unit}"""
         indices    = [0] + jumps + [len(time)-1]
         ind_tuples = [(indices[i],indices[i+1]) for i in range(len(indices)-1) if indices[i+1]-indices[i] > self.min_sample_per_rec ]
         self.number_of_recording = len(ind_tuples)
+        self._print(f"Found {self.number_of_recording} separate recordings.")
         return {ind_tuples.index((s,e))+1 : self.data.iloc[s:e,:] for s,e in ind_tuples}
 
     def to_csv(self,
@@ -199,6 +202,7 @@ Original file unit   : {self.file_unit}"""
         ctrl = self.get(self.ncl["AIn-2 - Demodulated(Lock-In)"],rec)
         tm    = self.get(self.ncl["Time(s)"],rec)
         if method == 'default': method = self.default_norm
+        self._print(f"Normalizing recording {rec} with method '{method}'")
         if method == 'F':
             coeff = np.polynomial.polynomial.polyfit(ctrl,sig,1)
             #fitted_control = np.polynomial.polynomial.polyval(coeff,ctrl)
@@ -232,6 +236,7 @@ Original file unit   : {self.file_unit}"""
         else: bMAD = int(bMAD)
         if pMAD     == 'default': pMAD     = int(self.peak_peak_MAD)
         else: pMAD = int(pMAD)
+        self._print('')
         dF = s
         # calculate zscores
         if zscore == 'full':

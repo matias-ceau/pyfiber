@@ -9,55 +9,29 @@ import seaborn as sns
 
 class BehavioralData(FiberPhotopy):
     """Input : imetronic behavioral data file path."""
-
+    vars().update(FiberPhotopy.BEHAVIOR)
     def __init__(self,
                  filepath,
-                 custom='all',
-                 autoinherit=False,
                  **kwargs):
         """Initialize BehavioralData object, timestamp arrays are lowercase, periods are uppercase."""
-        if autoinherit:
-            self.__dict__.update(autoinherit)
-        else:
-            super().__init__('behavior',**kwargs)
-        print(f'Importing {filepath}...')
+        self.type = 'BehavioralData'
+        self.__dict__.update({k:v for k,v in locals().items() if k not in ('self','__class__','kwargs')})
+        super().__init__(**kwargs)
+        self._print(f'IMPORTING {filepath}...')
         start = time.time()
         self.df               = pd.read_csv(filepath,skiprows=12,delimiter='\t',header=None,names=['TIME','F','ID','_P','_V','_L','_R','_T','_W','_X','_Y','_Z'])
-        self.custom           = custom
-        self.filepath         = filepath
+        self.df['TIME']      /= self.behavior_time_ratio 
         self.start            = self.df.iloc[0,0]
         self.end              = self.df.iloc[-1,0]            # last timestamp (in ms) automatically changed to user_unit (see fp_utils.py)
-        self.time_ratio       = self._time_ratio()
-        #RAW EVENT TIMESTAMPS
-        self.hled_on          = self._extract(1, 1,'_P',1)     # houselight on (start of ND period) (1,1)
-        self.hled_off         = self._extract(1, 1,'_P',0)     # houselight on
-        self.led1_on          = self._extract(1, 2,'_P',1)     # CS = administration light on (1,2)
-        self.led1_off         = self._extract(1, 2,'_P',0)     # led1 off (possibly unnecessary switch off commands depending of exercises)
-        self.led2_on          = self._extract(1, 3,'_P',1)
-        self.led2_off         = self._extract(1, 3,'_P',0)
-        self.np1              = self._extract(3, 1,'_V',1)     # NP active detected (3,1)
-        self.np2              = self._extract(3, 2,'_V',1)     # NP inactive detected (3,2)
-        self.inj1             = self._extract(6, 1,'_L',1)     # injection (6,1) (NB: first pump turn)
-        self.ttl1_on          = self._extract(15,1,'_L',1)
-        self.ttl1_off         = self._extract(15,1,'_L',0)
-        if self.ttl1_on.size:
-            self.rec_start    = np.array([self.ttl1_on[0]])
-        else:
-            self.rec_start    = np.array([])
-        for i in ['hled','led1','led2','ttl1']:
-            self._attr_interval(i)
-        self.DARK             = self._intersection(self.HLED_OFF,self.LED1_OFF,self.LED2_OFF)
-        self.TO_DARK          = self._interval_is_close_to(self.DARK,self.inj1)
-        self.TIMEOUT          = self._union(self.LED1_ON,self.TO_DARK)
-        self.NOTO_DARK        = self._intersection(self.DARK,self._non(self.TIMEOUT,end=self.end))
-        # SWITCHES
-        self._custom_events_intervals()
-        print(f'Importing of {filepath} finished in {time.time() - start} seconds')
+        self.rec_start = None
+        self._create_attributes()
+        self._print(f'Importing finished in {np.round(time.time() - start,3)} seconds\n')
 
-    def info(self):
-        """Return information about object."""
-        print(info.behavior_help)
-
+    @property    
+    def raw(self):
+        with open(self.filepath) as f:
+            print(''.join(f.readlines()))
+            
     def __repr__(self):
         """Return __repr__."""
         return f"""\
@@ -65,58 +39,75 @@ GENERAL INFORMATION:
 ******************************************************************************************************************************************************************
     Filename            : {self.filepath}
     Rat ID              : {self.rat_ID}
-    Experiment duration : {self.end} ({self.user_unit})
-    Time unit           : {self.user_unit} (File original unit: {self.file_unit}
+    Experiment duration : {self.end} (s)
+    Time unit           : converted to seconds (ratio: {self.behavior_time_ratio})
     Fixed ratio         : FR{self.fixed_ratio}
 
-Useful commands:
-    - <obj>.summary() : shows graphical summary of the dat file
-    - <obj>.df        : shows raw IMETRONIC data
-    - <obj>.elements  : list of elements that can be used in the main functions
-
-Main functions:
-    - <obj>.timestamps(param)  : outputs timestamps based on user-defined criteria and optionally outputs a csv of timestamps
-    - <obj>._internal_graph(element)     : shows graphical representation of the element
-    - <obj>.get(param)         : outputs slice from full dat file (formatted as a DataFrame)
-
-FULL_HELP: <obj>.info"""
+(Need help?: <obj>.help"""
 
 ######################### HELPER FUNCTIONS ###########################
+
+######################################################################################################
+          #RAW EVENT TIMESTAMP
+    def _create_attributes(self):
+        # simple events
+        for e,param in self.BEHAVIOR['imetronic_events'].items():
+            self._print(f"Detecting {e+'...':<30}  {param})")
+            if param[0] == 'conditional':
+                (f,i),(c,v) = param[1:]
+                self.__dict__[e] = self._extract(f,i,c,v)
+            if param[0] == 'simple':
+                (f,i),c = param[1:]
+                self.__dict__[e] = self.get(idtuple=(f,i))[c]
+        # local function, translates from string to data, including special nomenclature       
+        def t(inp):
+            if type(inp) == str:
+                return self._translate(inp)
+            if type(inp) in [float,int]:
+                return inp
+            elif type(inp) == list:
+               return [t(i) for i in inp]
+            else:
+                print('inp',inp)
+
+        # simple intervals, only need events    
+        for e,param in self.BEHAVIOR['basic_intervals'].items():
+            self._print(f"Detecting {e+'...':<30}  {param})")
+            if param[0] == 'ON_OFF':
+                w,(a,b) = param[1:]
+                ON = self._interval(t(a),t(b),self.end)
+                if w == 'on'  or w == 'both': self.__dict__[e+'_ON'] = ON
+                if w == 'off' or w == 'both': self.__dict__[e+'_OFF'] = self._non(ON,self.end)
+        # custom events an intervals, function defined first as generation is sequential and depend on a specific order       
+        def _custom_gen(e,param):
+            p,a,*b = param
+            self._print(f"Detecting {e+'...':<30}  {param})")
+            if p == 'INTERSECTION':  self.__dict__[e] = self._intersection(*t(a))
+            if p == 'NEAR_EVENT':    self.__dict__[e] = self._interval_is_close_to(**{k:v for k,v in zip(['intervals','events','nearness'],t([a]+b))})
+            if p == 'DURATION':      self.__dict__[e] = self._select_interval_by_duration(t(a),b)
+            if p == 'UNION':         self.__dict__[e] = self._union(*t(a))
+            if p == 'boundary':      self.__dict__[e] = np.array([i if i == 'start' else j for i,j in t(*b)])  
+            if p == 'combination':   self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
+            if p == 'indexed':       self.__dict__[e] = t(a)[b[0]-1 : b[0]]
+            if p == 'iselement':     self.__dict__[e] =  self._set_element(t(a), t(*b))
+            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) < b[0][0])|(t(a) > b[0][1])]
+            if p == 'generative':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : t(a)[i::b[0]] for i in range(b[0])})
+            if p == 'GENERATIVE':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : n for i,n in enumerate(t(a))})
+        for e,param in self.BEHAVIOR['custom'].items(): _custom_gen(e,param)
+            
+ ######################################################################################################           
     def _extract(self,family,subtype,column,value):
         """Extract timestamps for counters from imetronic file, first and second values indentify datatype, additional column precise event of interest (start,end, etc.)."""
         return     self.df[(self.df['F']    ==  family)  &
                           (self.df['ID']   ==  subtype) &
-                          (self.df[column] ==  value)]['TIME'].to_numpy()/self.time_ratio
+                          (self.df[column] ==  value)]['TIME'].to_numpy()
 
-    def _time_ratio(self):
-        """Read file and returns ratio with which to divide timedata."""
-        if self.file_unit and self.user_unit:
-            if self.file_unit == self.user_unit:
-                pass
-        elif not self.file_unit:
-            minimum = self.experiment_duration['min']
-            maximum = self.experiment_duration['max']
-            if minimum <= self.end <= maximum:
-                self.file_unit = 's'
-            elif self.end > maximum:
-                self.file_unit = 'ms'
-            else:
-                print('Please specify units')
-                pass
-        unit_values = {'s':1,'ms':1000}
-        ratio = unit_values[self.file_unit]/unit_values[self.user_unit]
-        self.start
-        self.end /= ratio
-        return ratio
-
-
-    def _attr_interval(self,string):
-        on = self.__dict__[string+'_on']
-        off = self.__dict__[string+'_off']
-        on_int = self._interval(on,off,self.end)
-        self.__dict__[string.upper()+'_ON'] = on_int
-        self.__dict__[string.upper()+'_OFF'] = self._non(on_int,self.end)
-
+    def _select_interval_by_duration(self,interval,condition):
+        if condition[0] == '<': return [(a,b) for a,b in interval if (b-a)<condition[1]]
+        elif condition[0] == '>': [(a,b) for a,b in interval if (b-a)>condition[1]] 
+        elif condition[0] == '=': [(a,b) for a,b in interval if (b-a)==condition[1]]
+        else: print('Invalid input for select by interval duration.')
+        
     def _interval(self,on,off,end):
         on  = list(set([i for i in on if i not in off]))
         off = list(set([i for i in off if i not in on]))
@@ -143,22 +134,27 @@ FULL_HELP: <obj>.info"""
         return [tuple(i) for i in intervals if i[0]-i[1] != 0]
 
 
-    def _interval_is_close_to(self,intervals,events,closed='right'):
+    def _interval_is_close_to(self,intervals,events,nearness,closed='right'):
         """Return a list of intervals each near of at least one event from the specified event array (near being defined by treshold)."""
         result = [] ; intervals = pd.arrays.IntervalArray.from_tuples(intervals,closed=closed)
         for n in range(len(intervals)):
-            if (abs(events -  intervals[n].left) < self.close_interval).any():
+            if (abs(events -  intervals[n].left) < nearness).any():
                 result.append((intervals[n].left,intervals[n].right))
         return result
 
-    def _set_element(self,event_array,intervals,is_element=True):
+    def _set_element(self,event_array,intervals,is_element=True,boolean=False):
         """Return events (inputed as list or array) that are elements (is_element=True) or not (is_element=False) of intervals (tuple list or pd.intervalarray)."""
         if type(intervals) != pd.core.arrays.interval.IntervalArray:
             intervals = pd.arrays.IntervalArray.from_tuples(intervals,closed='left')
         if is_element:
-            return np.array([event for event in event_array if intervals.contains(event).any()])
+            res = np.array([event for event in event_array if intervals.contains(event).any()])
         else:
-            return np.array([event for event in event_array if not intervals.contains(event).any()])
+            res = np.array([event for event in event_array if not intervals.contains(event).any()])
+        if not boolean: return res
+        if boolean and is_element:     return len(res) >  0
+        if boolean and not is_element: return len(res) == 0
+        else: self._print(f'Something went wrong with _set_element method ({self.__class__})') 
+            
 
     def _set_operations(self,A,B,operation):
         """Do basic set operations with two sets lits, A and B, given as list of interval limits.
@@ -225,8 +221,15 @@ FULL_HELP: <obj>.info"""
     def _translate(self,obj):
         """Translate strings into corresponding arrays."""
         if type(obj) == str:
-            try: return self.__dict__[obj]
-            except KeyError: print(f'Acceptable keys: {self.elements.keys()}')
+            if '~' in obj:
+                obj = obj[1:] ; non = True
+            else: non = False
+            try:
+                if non:
+                    return self._non(self.__dict__[obj],self.end)
+                else:
+                    return self.__dict__[obj]
+            except KeyError: (f'Acceptable keys: {self.elements.keys()}')
         else: return obj
 
     def _internal_selection(self,obj):
@@ -248,7 +251,7 @@ FULL_HELP: <obj>.info"""
                  unit  = 'min',
                  x_lim = 'default',
                  alpha = 1):
-        factor = {k:v*({'s':1,'ms':1000}[self.user_unit]) for k,v in {'ms' : 0.001, 's': 1, 'min': 60, 'h': 3.6*10**3}.items()}[unit]
+        factor = {'ms' : 0.001, 's': 1, 'min': 60, 'h': 3.6*10**3}[unit]
         if x_lim == 'default': x_lim = (self.start/factor,self.end/factor)
         data = self._translate(obj)
         # Choosing label
@@ -288,24 +291,6 @@ FULL_HELP: <obj>.info"""
         ax.axes.yaxis.set_visible(False)
 
 
-    def _custom_events_intervals(self):
-        if self.custom in ['fiber','all']:
-            self.switch_d_nd      = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.LED2_ON]])
-            self.switch_to_nd     = np.array([i for i in [start for start,end in self.HLED_ON] if i in [end for start,end in self.TIMEOUT]])
-            self.switch_nd_d      = np.array([i for i in [end for start,end in self.HLED_ON] if i in [start for start,end in self.LED2_ON]])
-            self.switch_dto_nd    = np.unique(np.sort(np.concatenate((self.switch_d_nd,self.switch_to_nd))))
-            for i in range(self.fixed_ratio):
-                self.__dict__[f'np1_{i+1}'] = self._set_element(self.np1,self._non(self.TIMEOUT,self.end))[i::self.fixed_ratio]
-            for n,t in enumerate(self.HLED_OFF):
-                self.__dict__[f'D_{n+1}']   = [t]
-            for n,t in enumerate(self.HLED_ON):
-                self.__dict__[f'ND_{n+1}']  = [t]
-        if self.custom in ['movement','all']:
-            self.x      = self.get(idtuple=(9,1))['_X'].to_numpy()
-            self.y      = self.get(idtuple=(9,1))['_Y'].to_numpy()
-            self.xytime = self.get(idtuple=(9,1))['TIME'].to_numpy()/1000 #conversion
-
-
  ###################### USER FUNCTIONS ##########################
 
     def debug_interinj(self):
@@ -327,8 +312,8 @@ FULL_HELP: <obj>.info"""
     def what_data(self,plot=True,figsize=(20,40)):
         """Return dataframe summarizing the imetronic dat file."""
         d = {}
-        for k in self.config['IMETRONIC'].keys():
-            d.update(self.config['IMETRONIC'][k])
+        for k in self.SYSTEM['IMETRONIC'].keys():
+            d.update(self.SYSTEM['IMETRONIC'][k])
         elements = {}
         for k,v in d.items():
             df = self.get(idtuple=v)
@@ -351,18 +336,15 @@ FULL_HELP: <obj>.info"""
 
     def get(self,name=None,idtuple=None):
         """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
-        if type(self.config) != str:
+        if name:
             nomenclature = {}
-            for i in [self.config['IMETRONIC'][d] for d in self.config['IMETRONIC'].keys()]: nomenclature.update(i)
+            for i in [self.SYSTEM['IMETRONIC'][d] for d in self.SYSTEM['IMETRONIC'].keys()]: nomenclature.update(i)
             if name:
                 name = name.upper()
                 if name in nomenclature.keys():
                     return self.df[(self.df['F']  == int(nomenclature[name][0])) & (self.df['ID'] == int(nomenclature[name][1]))]
-        else:
-            print('No configuration file, use idtuple')
-        if idtuple: return self.df[(self.df['F']  == int(idtuple[0])) & (self.df['ID'] == int(idtuple[1]))]
+        elif idtuple: return self.df[(self.df['F']  == int(idtuple[0])) & (self.df['ID'] == int(idtuple[1]))]
         else: return self.df
-
 
     def figure(self,obj,
               figsize = 'default',h=0.8,hspace=0,label_list=None,color_list=None, **kwargs):
@@ -407,25 +389,25 @@ FULL_HELP: <obj>.info"""
            filename      : selected filemame for csv
            graph         : True/False visualise selection"""
         events_data = np.sort(np.concatenate(self._internal_selection(events)))
-        print(events_data)
+        self._print(f'Event timestamps: {events_data}')
         if interval == 'all':
             interval_data = [(self.start,self.end)]
-            print(interval_data)
+            self._print(f'Choosen interval: {interval_data} (all)')
         else:
             interval_data = self._union(*self._internal_selection(interval))
         selected_interval = interval_data
         if intersection != []:
             intersection_data = self._intersection(*self._internal_selection(intersection))
             selected_interval = self._intersection(selected_interval,intersection_data)
+            self._print(f'Intersection of {intersection}: {intersection_data}')
         else:
             intersection_data = []
-            print(intersection_data)
         if exclude  != []:
             exclude_data = self._union(*self._internal_selection(exclude))
             selected_interval = self._intersection(selected_interval,self._non(exclude_data,end=self.end))
+            self._print(f"Excluded intervals: {exclude}: selected {exclude_data}")
         else:
             exclude_data = []
-            print(exclude_data)
         selected_timestamps = self._set_element(events_data,selected_interval,is_element=True)
         if user_output:
             return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps
@@ -466,29 +448,22 @@ FULL_HELP: <obj>.info"""
             pd.DataFrame({'timestamps': result}).to_csv(filename,index=False)
         return result
 
-    def events(self,recorded=False,window=(0,0),window_unit='default'):
+    def events(self,recorded=False,window=(0,0)):
         """Retrieve list of events. Optionally only those which can be used in a perievent analysis (ie during the recording period and taking into account a perievent window)."""
         events = {k:v for k,v in self.__dict__.items() if type(v)==np.ndarray}
-        if window_unit == 'default': window_unit = self.user_unit
+        #if window_unit == 'default': window_unit = 's'
         if not recorded:
             return events
         else:
-            if window_unit != self.user_unit:
-                if self.user_unit == 'ms' and window_unit == 's': window = [i/1000 for i in window]
-                elif self.user_unit == 's' and window_unit == 'ms': window = [i*1000 for i in window]
             recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]
             return {k: self._set_element(v,recorded_and_window,is_element=True) for k,v in events.items()}
 
-    def intervals(self,recorded=False,window=(0,0),window_unit='default'):
+    def intervals(self,recorded=False,window=(0,0)):
         """Retrieve list of intervals."""
         intervals = {k:v for k,v in self.__dict__.items() if type(v)==list}
-        if window_unit == 'default': window_unit = self.user_unit
         if not recorded:
             return intervals
         else:
-            if window_unit != self.user_unit:
-                if self.user_unit == 'ms' and window_unit == 's': window = [i/1000 for i in window]
-                elif self.user_unit == 's' and window_unit == 'ms': window = [i*1000 for i in window]
             recorded_and_window = [(a+window[0],b-window[1]) for a,b in self.TTL1_ON]
             return {k: self._intersection(v,recorded_and_window) for k,v in intervals.items()}
 
