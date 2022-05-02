@@ -96,7 +96,7 @@ Global sampling rate : {self.sampling_rate} S/{self.user_unit}
         # unit_values = {'s':1,'ms':1000}
         #ratio = unit_values[self.file_unit]/unit_values[self.user_unit]
         # df['Time(s)'] = df['Time(s)']/ratio + alignement
-        print(df,alignement)
+        #print(df,alignement)
         df['Time(s)'] = df['Time(s)'] + alignement
         return df
 

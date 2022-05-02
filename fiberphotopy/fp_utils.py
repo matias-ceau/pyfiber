@@ -4,6 +4,7 @@ import pandas as pd
 import yaml
 import datetime
 import info
+import inspect
 
 
 class FiberPhotopy:
@@ -21,9 +22,10 @@ class FiberPhotopy:
     def __init__(self,verbosity=True,**kwargs):
                 # GENERAL
         self.verbosity      = verbosity
+        self.type           = None
         self.info           = []
         self._log           = []
-        self.__dict__.update(**kwargs)      
+        self.__dict__.update(**kwargs)  
         
     @property
     def log(self):
@@ -37,8 +39,28 @@ class FiberPhotopy:
     def help(self):
         if self.type == 'BehavioralData':
             print(info.behavior_help)
-                           
+        function_doc = [(k,v.__doc__) for k,v in self.__class__.__dict__.items() if (callable(v)) & (k[0] != '_')]
+        # args     = [inspect.getfullargspec(i).args for n,i in self.__class__.__dict__.items() if callable(i) & (n[0]!='_')]
+        # defaults = [inspect.getfullargspec(i).defaults for n,i in self.__class__.__dict__.items() if callable(i)]
+        # number   = [len(i) for i in args]
+        # deflen   = [len(i) if i else 0 for i in defaults]
+        # diff     = [['']*(b-a) for a,b in zip(deflen,number)]
+        # tuples   = [list(zip(k,a+list(b))) if b else list(zip(k,a)) for k,a,b in zip(args,diff,defaults)]
+        # args     = [', '.join([f"{k}={v}" if v != '' else f"{k}" for k,v in a]) for a in tuples]
+        for (a,b) in function_doc:
+            print(f"<obj>.\033[1m{a}\033[0m()\n {b}\n")                   
+    
+    @property
+    def _help(self):
+        if self.type == 'BehavioralData':
+            print(info.behavior_help)
+        function_doc = [(k,v) for k,v in self.__class__.__dict__.items() if (callable(v))]
+        for (a,b) in function_doc:
+            print(f"{a:<20} --> {b.__doc__}")  
+            print(f"{inspect.getfullargspec(b)}")
+            
         
+    
     def _list(self,anything):
         """Convert user input into list if not already."""
         if not anything: return []

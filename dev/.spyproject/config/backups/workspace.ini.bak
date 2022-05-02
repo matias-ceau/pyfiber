@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['..\\fiberphotopy\\behavioral_data.py', '..\\..\\biovector\\todo.md', '..\\..\\biovector\\data\\.swap.csv', '..\\..\\biovector\\data\\status.csv', '..\\..\\biovector\\config.yaml', '..\\..\\harmonics\\harmonics.py', '..\\..\\harmonics\\config.yaml']
+recent_files = ['..\\fiberphotopy\\behavioral_data.py', '..\\fiberphotopy\\fiber_data.py', '..\\fiberphotopy\\analysis.py', '..\\config.yaml', '..\\fiberphotopy\\fp_utils.py', '..\\fiberphotopy\\info.py', '..\\..\\harmonics\\harmonics.py']
 
 [main]
 version = 0.2.0

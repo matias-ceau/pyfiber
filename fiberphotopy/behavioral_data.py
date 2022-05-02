@@ -58,7 +58,7 @@ GENERAL INFORMATION:
                 self.__dict__[e] = self._extract(f,i,c,v)
             if param[0] == 'simple':
                 (f,i),c = param[1:]
-                self.__dict__[e] = self.get(idtuple=(f,i))[c]
+                self.__dict__[e] = self.get((f,i))[c]
         # local function, translates from string to data, including special nomenclature       
         def t(inp):
             if type(inp) == str:
@@ -295,7 +295,7 @@ GENERAL INFORMATION:
 
     def debug_interinj(self):
         """Return interinfusion time (between 2 consecutive pump activations)."""
-        a = self.get(idtuple=(6,1))
+        a = self.get((6,1))
         return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
 
     def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
@@ -315,8 +315,11 @@ GENERAL INFORMATION:
         for k in self.SYSTEM['IMETRONIC'].keys():
             d.update(self.SYSTEM['IMETRONIC'][k])
         elements = {}
-        for k,v in d.items():
-            df = self.get(idtuple=v)
+        detected_tuples = list(set(zip(self.df.F,self.df.ID)))
+        unnamed_tuples = sorted([i for i in detected_tuples if i not in [tuple(i) for i in d.values()]])
+        unnamed_dict = {k:list(k) for k in unnamed_tuples}
+        for k,v in {**d,**unnamed_dict}.items():
+            df = self.get(v)
             if len(df):
                 elements[k] = [len(df)] + [round(np.mean(df[i]),3) if np.mean(df[i]) != 0 else '' for i in df.columns]
         data = pd.DataFrame(elements,index=['count']+list(self.df.columns)).T.sort_values('count',ascending=False)
@@ -334,17 +337,19 @@ GENERAL INFORMATION:
                 ax.set_xlim((0, max([i for i in data['TIME'] if type(i) != str])/60_000))
         return data
 
-    def get(self,name=None,idtuple=None):
+    def get(self,name):
         """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
-        if name:
+        if type(name) == str:
             nomenclature = {}
             for i in [self.SYSTEM['IMETRONIC'][d] for d in self.SYSTEM['IMETRONIC'].keys()]: nomenclature.update(i)
             if name:
                 name = name.upper()
                 if name in nomenclature.keys():
                     return self.df[(self.df['F']  == int(nomenclature[name][0])) & (self.df['ID'] == int(nomenclature[name][1]))]
-        elif idtuple: return self.df[(self.df['F']  == int(idtuple[0])) & (self.df['ID'] == int(idtuple[1]))]
-        else: return self.df
+        elif type(name) in [list,tuple]: 
+            return self.df[(self.df['F']  == int(name[0])) & (self.df['ID'] == int(name[1]))]
+        else: 
+            return self.df
 
     def figure(self,obj,
               figsize = 'default',h=0.8,hspace=0,label_list=None,color_list=None, **kwargs):
@@ -382,12 +387,12 @@ GENERAL INFORMATION:
                    exclude       = [],
                    user_output=False):
         """events        : timestamp array, list of timestamp arrays, keyword or list of keywords (ex: 'np1')
-           interval      : selected interval or list of intervals
-           intersection  : intersection of inputed intervals
-           exclude       : array or list of arrays to exclude
-           to_csv        : True/False output csv timestamp file
-           filename      : selected filemame for csv
-           graph         : True/False visualise selection"""
+interval      : selected interval or list of intervals
+intersection  : intersection of inputed intervals
+exclude       : array or list of arrays to exclude
+to_csv        : True/False output csv timestamp file
+filename      : selected filemame for csv
+graph         : True/False visualise selection"""
         events_data = np.sort(np.concatenate(self._internal_selection(events)))
         self._print(f'Event timestamps: {events_data}')
         if interval == 'all':
@@ -468,11 +473,12 @@ GENERAL INFORMATION:
             return {k: self._intersection(v,recorded_and_window) for k,v in intervals.items()}
 
 
-class MultiBehavior:
+class MultiBehavior(FiberPhotopy):
 
     _savgol = FiberPhotopy._savgol
 
     def __init__(self,folder,**kwargs):
+        super().__init__()
         self.sessions = {}
         self.paths = []
         for currentpath, folders, files in os.walk(folder):
