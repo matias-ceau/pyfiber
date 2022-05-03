@@ -20,7 +20,7 @@ class BehavioralData(FiberPhotopy):
         self._print(f'IMPORTING {filepath}...')
         start = time.time()
         self.df               = pd.read_csv(filepath,skiprows=12,delimiter='\t',header=None,names=['TIME','F','ID','_P','_V','_L','_R','_T','_W','_X','_Y','_Z'])
-        self.df['TIME']      /= self.behavior_time_ratio 
+        self.df['TIME']      /= self.behavior_time_ratio
         self.start            = self.df.iloc[0,0]
         self.end              = self.df.iloc[-1,0]            # last timestamp (in ms) automatically changed to user_unit (see fp_utils.py)
         self.rec_start = None
@@ -90,9 +90,9 @@ GENERAL INFORMATION:
             if p == 'combination':   self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
             if p == 'indexed':       self.__dict__[e] = t(a)[b[0]-1 : b[0]]
             if p == 'iselement':     self.__dict__[e] =  self._set_element(t(a), t(*b))
-            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) < b[0][0])|(t(a) > b[0][1])]
+            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) > b[0][0])|(t(a) < b[0][1])]
             if p == 'generative':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : t(a)[i::b[0]] for i in range(b[0])})
-            if p == 'GENERATIVE':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : n for i,n in enumerate(t(a))})
+            if p == 'GENERATIVE':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : [n] for i,n in enumerate(t(a))})
         for e,param in self.BEHAVIOR['custom'].items(): _custom_gen(e,param)
             
  ######################################################################################################           
@@ -383,6 +383,7 @@ GENERAL INFORMATION:
     def timestamps(self,
                    events,
                    interval      = 'all',
+                   length        = False,
                    intersection  = [],
                    exclude       = [],
                    user_output=False):
@@ -399,7 +400,9 @@ graph         : True/False visualise selection"""
             interval_data = [(self.start,self.end)]
             self._print(f'Choosen interval: {interval_data} (all)')
         else:
+            print(self._internal_selection(interval))
             interval_data = self._union(*self._internal_selection(interval))
+            print(interval_data)
         selected_interval = interval_data
         if intersection != []:
             intersection_data = self._intersection(*self._internal_selection(intersection))
@@ -413,6 +416,9 @@ graph         : True/False visualise selection"""
             self._print(f"Excluded intervals: {exclude}: selected {exclude_data}")
         else:
             exclude_data = []
+        if length:
+            selected_interval = [(a,a+length) for a,b in selected_interval]
+            self._print(f"Intervals restricted to {length} seconds.")
         selected_timestamps = self._set_element(events_data,selected_interval,is_element=True)
         if user_output:
             return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps

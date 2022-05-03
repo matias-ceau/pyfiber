@@ -5,6 +5,7 @@ import yaml
 import datetime
 import info
 import inspect
+import time
 
 
 class FiberPhotopy:
@@ -79,3 +80,12 @@ class FiberPhotopy:
     def _print(self,thing):
         self.log = thing
         if self.verbosity: print(self._log[-1])
+
+def timer(ref,name):
+    now = time.time()
+    delta = now - ref
+    print(f'''\
+============================================================================
+    {name} took {delta} seconds
+============================================================================''')
+    return now

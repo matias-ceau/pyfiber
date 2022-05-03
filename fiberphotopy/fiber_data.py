@@ -4,16 +4,7 @@ import random
 import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
-from fp_utils import FiberPhotopy
-
-def timer(ref,name):
-    now = time.time()
-    delta = now - ref
-    print(f'''\
-============================================================================
-    {name} took {delta} seconds
-============================================================================''')
-    return now
+from fp_utils import FiberPhotopy, timer
 
 
 class FiberData(FiberPhotopy):
@@ -76,9 +67,9 @@ File                 : {self.filepath}
 Rat_ID               : {self.rat_ID}
 Number of recordings : {self.number_of_recording}
 Data columns         : {self.columns}
-Total lenght         : {self.full_time[-1] - self.full_time[0]} {self.user_unit}
+Total lenght         : {self.full_time[-1] - self.full_time[0]} s
 Kept lenght          : {self.cut_time[-1] - self.cut_time[0]} ({abs(self.full_time[0]-self.cut_time[0])} seconds trimmed)
-Global sampling rate : {self.sampling_rate} S/{self.user_unit}
+Global sampling rate : {self.sampling_rate} S/s
 """
         return general_info
 

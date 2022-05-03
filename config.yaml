@@ -3,7 +3,12 @@ GENERAL:
     rat_ID: 'Not specified'
     behavior_time_ratio:  1000         #1000 if behavior file in milliseconds
     experiment_duration: {min: 29, max: 28999} #used to automatically determine time units ; minimum and maximum experiment duration, max must be no greater than 1000 times min ; can be overidden by specifying file_unit in the object
-
+    folder_nomenclature:
+        separator: '_'
+        naming:    '@_rat_@_@_j@'
+        meanings:  ['experiment','','rat_number','experiment_type','session_number']
+        ID:        ['experiment','rat_number']
+    
 BEHAVIOR:   
 # for clarity, events should be in lowercase and intervals in upper case 
     imetronic_events:  
@@ -55,7 +60,7 @@ BEHAVIOR:
         switch_dto_nd:    ['combination'    ,  [switch_d_nd,switch_to_nd]                 ]
         switch_nd_d:      ['iselement'      ,  hled_on_end                    , LED2_ON   ]
         switch_between:   ['timerestricted' ,  switch_dto_nd                  ,[100,3400] ]
-        switch_1:         ['indexed'        ,  switch_between                 , 0         ]
+        switch_1:         ['indexed'        ,  switch_between                 , 1         ]
         np_effective:     ['iselement'      ,  np1                            , ~TIMEOUT  ]
         np1_n:            ['generative'     ,  np_effective                   ,         5 ]
         D_n:              ['GENERATIVE'     ,  HLED_OFF                                   ]
@@ -86,7 +91,7 @@ FIBER:
     split_treshold:    10       #ie 10 times the mean intersample space
     min_sample_per_rec: 5       # used when splitting recordings groupped to the same datafile, ignores recording if less than specified samples
     trim_recording:    2.0      # seconds trimmed from recording start
-    perievent_window:  [3.0,3.0]  # perievent window
+    perievent_window:  [1.0,1.0]  # perievent window
     default_norm:      F      # normalization method
     peak_window:       10     # lenght of detection window in seconds
     peak_distance:     50ms   # minimun distance between peaks (used for peak detection)
