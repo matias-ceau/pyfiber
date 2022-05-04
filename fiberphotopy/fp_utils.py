@@ -24,7 +24,6 @@ class FiberPhotopy:
                 # GENERAL
         self.verbosity      = verbosity
         self.type           = None
-        self.info           = []
         self._log           = []
         self.__dict__.update(**kwargs)  
         
@@ -60,7 +59,9 @@ class FiberPhotopy:
             print(f"{a:<20} --> {b.__doc__}")  
             print(f"{inspect.getfullargspec(b)}")
             
-        
+    @property
+    def info(self):
+         print('\n'.join(['<obj>.'+f'\033[1m{i}\033[0m' for i in sorted(self.__dict__)]))
     
     def _list(self,anything):
         """Convert user input into list if not already."""

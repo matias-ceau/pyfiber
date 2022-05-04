@@ -32,7 +32,10 @@ class RatSession(FiberPhotopy):
         else:
             self.fiber = fiber_data.FiberData(fiber,alignement=self.behavior.rec_start)
         self.analyses = {}
-
+        
+    def __repr__(self): return f"""<RatSession(fiber={self.fiber.filepath},
+                                               behavior={self.behavior.filepath})"""
+    
     def _sample(self,time_array,event_time,window):
         """Take a sample of the recording, based on one event and desired preevent and postevent duration."""
         start  = event_time - window[0]
@@ -150,8 +153,8 @@ class Analysis:
     def __init__(self,rat_ID):
         pass
 
-    def __repr__(self):
-        return '\n'.join(['<obj>.'+i for i in self.__dict__.keys()])
+    def __repr__(self): 
+        return f"<Analysis.object> // {self.window}, {self.event_time}"
 
     def plot(self,
              data,
@@ -228,6 +231,7 @@ class MultiSession(FiberPhotopy):
         super().__init__()
         print('folder',folder)
         self.verbosity = verbosity
+        self.folder = folder
         start = time.time()
         self._import_folder(folder)
         if debug:
@@ -241,13 +245,14 @@ class MultiSession(FiberPhotopy):
                 for session,interval in self.removed:
                     self.sessions.pop(session)
                     self._print(f"Session {session} removed, interinfusion = {interval} s")
-                self.info.append(self.removed)
             else:
                 self._print('No sessions removed.')
                 self.removed = 'No session removed'
         self.names = list(self.sessions.keys())
         self._getID()
         self._print(f'Extraction finished, {int(len(self.names))} sessions ({int(len(self.names)*2)} files) in {time.time() - start} seconds')
+
+    def __repr__(self): return f"<MultiSession object> // folder: {self.folder}"
 
     def _import_folder(self,folder):
         sessions = {}
@@ -284,7 +289,7 @@ class MultiSession(FiberPhotopy):
         
     def show_rates(self,**kwargs):
         """Show rates for specified events."""
-        self.multibehavior.show_rate(**kwargs)
+        behavioral_data.MultiBehavior(self.folder).show_rate(**kwargs)
 
     def analyze(self,events,
                 window='default',
@@ -300,26 +305,32 @@ norm='default'    : normalization method used"""
         if sessions == 'all': sessions = self.sessions
         else: sessions = {k:v for k,v in self.sessions.items() if k in sessions}
         if window=='default': window=self.perievent_window
-        result.window = window
-        result.rat_sessions = sessions
+        result.WINDOW = window
+        #result.rat_sessions = sessions
         result.dict = {}
+        result.key  = []
         for k,v in sessions.items():
             timestamps = v._recorded_timestamps(events=events,window=window,**kwargs)
             result.dict[k]  = [v.analyze_perievent(i,norm=norm,window=window) for i in timestamps]
+            result.key.append(len(result.dict[k])*[k])
             for obj in result.dict[k]:
                 if obj:
-                    print("MESSAGE\n",'this is k=>',k,'this is v=>',v)
                     for att in obj.__dict__.keys():
                         if result.__dict__.get(att):
                             result.__dict__[att].append(obj.__dict__[att])  #append
                         else:
                             result.__dict__[att] = [obj.__dict__[att]] #create
-
+        result.key = [j for k in [i for i in result.key if i] for j in k]
         result.epoch = []
         for n,t in enumerate(result.time):
             result.epoch.append(t - result.event_time[n])
         result.update()
         timer(start,"Analysis")
+        if type(events) == str: result.event_name = events
+        elif type(events) == list:
+            if len(events):
+                if type(events[0]) == str: result.event_name = str(events)
+        else: result.event_name = 'custom events, see times.'
         return result
 
     def compare_behavior(self,attribute):
@@ -351,7 +362,13 @@ class MultiAnalysis(FiberPhotopy):
     def __init__(self):
         super().__init__()
         self.exclude_list = []
-
+    
+    def __repr__(self): return f"""<MultiAnalysis object>
+    event:             {self.event_name}
+    window:            {self.WINDOW}
+    number of events:  {len(self.key)}
+    key:               {', '.join(self.key)}"""
+    
     def possible_data(self):
         """Return dictionnary of possible data to plot"""
         comparator = [i.shape for i in self.epoch]
@@ -372,8 +389,8 @@ class MultiAnalysis(FiberPhotopy):
         """Recalculate mean values for all relevant values (perievent data). "nb of points" is the desired number of points for the new aligned data. Default is mean number of points of the data."""
         if nb_of_points == 'default':
             self.nb_of_points = round(np.mean([i.shape for i in self.time]))
-        self.EPOCH = np.linspace(-1*self.window[0],
-                                 self.window[1],
+        self.EPOCH = np.linspace(-1*self.WINDOW[0],
+                                 self.WINDOW[1],
                                  self.nb_of_points)
         for value in self.possible_data():
             self.__dict__['interpolated_'+value] = []

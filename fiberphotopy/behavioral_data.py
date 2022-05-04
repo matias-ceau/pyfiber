@@ -486,6 +486,7 @@ class MultiBehavior(FiberPhotopy):
     def __init__(self,folder,**kwargs):
         super().__init__()
         self.sessions = {}
+        self.foldername = folder
         self.paths = []
         for currentpath, folders, files in os.walk(folder):
             for file in files:
@@ -496,16 +497,24 @@ class MultiBehavior(FiberPhotopy):
         self.names = list(self.sessions.keys())
         self.number = len(self.sessions.items())
         event_names = list(list(self.sessions.items())[0][1].events().keys())
-        for session in self.sessions:
-            for attribute in self.sessions[session].__dict__.keys():
-                if attribute in self.__dict__.keys():
-                    self.__dict__[attribute].append(self.sessions[session].__dict__[attribute])
+        for name,obj in self.sessions.items():
+            for attr,val in obj.__dict__.items():
+                if attr in self.__dict__.keys():
+                    try:
+                        self.__dict__[attr].append(val)
+                    except AttributeError:
+                        if attr+'_all' in self.__dict__.keys():
+                            self.__dict__[attr+'_all'].append(val)
+                        else:
+                            self.__dict__[attr+'_all'] = [val]
                 else:
-                    self.__dict__[attribute] = [self.sessions[session].__dict__[attribute]]
-        for attribute in self.__dict__.keys():
-            if attribute in event_names:
-                self.__dict__[attribute] = pd.DataFrame(self.__dict__[attribute],index=self.names)
-
+                    self.__dict__[attr] = [val]
+        for attr,val in self.__dict__.items():
+            if attr in event_names:
+                self.__dict__[attr] = pd.DataFrame(val,index=self.names)
+    
+    def __repr__(self): return f"<MultiBehavior object> // {self.folder}"
+    
     def _cnt(self,attribute):
         return {k: np.histogram(self.__dict__[attribute].loc[k,:].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
 
