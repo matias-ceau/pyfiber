@@ -54,7 +54,7 @@ class FiberData(FiberPhotopy):
             #try:
             data = self.norm(rec=r,add_time=True)
             t = data[:,0] ; s = data[:,1]
-            self.peaks[r] = self.detect_peaks(t,s,plot=False)
+            self.peaks[r] = self._detect_peaks(t,s,plot=False)
             #except ValueError:
             #    self.peaks[r] = 'cannot calculate peaks'
         #part7 = timer(part6,'Peak analysis')
@@ -212,7 +212,7 @@ Global sampling rate : {self.sampling_rate} S/s
             return normalized
 
 
-    def detect_peaks(self,t,s,window='default',distance='default',plot=True,figsize=(30,10),zscore='full',bMAD='default',pMAD='default'):
+    def _detect_peaks(self,t,s,window='default',distance='default',plot=True,figsize=(30,10),zscore='full',bMAD='default',pMAD='default'):
         """Detect peaks on segments of data:
 
         window:   window size for peak detection, the median is calculated for each bin
@@ -293,7 +293,7 @@ Global sampling rate : {self.sampling_rate} S/s
     def peakFA(self,a,b):
         r = 0
         for n,i in enumerate(self.rec_intervals):
-            if (i[0]<a<i[1]) and (i[0]<b<i[1]):
+            if (i[0]<=a<i[1]) and (i[0]<b<=i[1]):
                 r = n+1
         if r == 0: return
         data = self.peaks[r][(self.peaks[r]['time'] > a) & (self.peaks[r]['time'] < b)]

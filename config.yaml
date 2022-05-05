@@ -65,6 +65,7 @@ BEHAVIOR:
         np1_n:            ['generative'     ,  np_effective                   ,         5 ]
         D_n:              ['GENERATIVE'     ,  HLED_OFF                                   ]
         ND_n:             ['GENERATIVE'     ,  HLED_ON                                    ]
+        ND_first:         ['NEAR_EVENT'     ,  HLED_ON                        ,switch_1, 1]
                
     fixed_ratio:    5
     elements:

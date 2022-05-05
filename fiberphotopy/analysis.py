@@ -33,8 +33,9 @@ class RatSession(FiberPhotopy):
             self.fiber = fiber_data.FiberData(fiber,alignement=self.behavior.rec_start)
         self.analyses = {}
         
-    def __repr__(self): return f"""<RatSession(fiber={self.fiber.filepath},
-                                               behavior={self.behavior.filepath})"""
+    def __repr__(self): return f"""\
+<RatSession(fiber    = "{self.fiber.filepath}",
+            behavior = "{self.behavior.filepath}")"""
     
     def _sample(self,time_array,event_time,window):
         """Take a sample of the recording, based on one event and desired preevent and postevent duration."""
@@ -252,7 +253,10 @@ class MultiSession(FiberPhotopy):
         self._getID()
         self._print(f'Extraction finished, {int(len(self.names))} sessions ({int(len(self.names)*2)} files) in {time.time() - start} seconds')
 
-    def __repr__(self): return f"<MultiSession object> // folder: {self.folder}"
+    def __repr__(self): return f"""<MultiSession object> // folder: {self.folder}"""
+    
+    def __getitem__(self,item):
+        return self.sessions[item]
 
     def _import_folder(self,folder):
         sessions = {}
@@ -368,6 +372,9 @@ class MultiAnalysis(FiberPhotopy):
     window:            {self.WINDOW}
     number of events:  {len(self.key)}
     key:               {', '.join(self.key)}"""
+    
+    def __getitem__(self,item):
+        return self.dict[item]
     
     def possible_data(self):
         """Return dictionnary of possible data to plot"""

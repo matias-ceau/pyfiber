@@ -86,11 +86,12 @@ GENERAL INFORMATION:
             if p == 'NEAR_EVENT':    self.__dict__[e] = self._interval_is_close_to(**{k:v for k,v in zip(['intervals','events','nearness'],t([a]+b))})
             if p == 'DURATION':      self.__dict__[e] = self._select_interval_by_duration(t(a),b)
             if p == 'UNION':         self.__dict__[e] = self._union(*t(a))
-            if p == 'boundary':      self.__dict__[e] = np.array([i if i == 'start' else j for i,j in t(*b)])  
+            if p == 'boundary': 
+                self.__dict__[e] = np.array([i if a == 'start' else j for i,j in t(*b)])  
             if p == 'combination':   self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
             if p == 'indexed':       self.__dict__[e] = t(a)[b[0]-1 : b[0]]
             if p == 'iselement':     self.__dict__[e] =  self._set_element(t(a), t(*b))
-            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) > b[0][0])|(t(a) < b[0][1])]
+            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) > b[0][0])&(t(a) < b[0][1])]
             if p == 'generative':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : t(a)[i::b[0]] for i in range(b[0])})
             if p == 'GENERATIVE':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : [n] for i,n in enumerate(t(a))})
         for e,param in self.BEHAVIOR['custom'].items(): _custom_gen(e,param)
@@ -145,7 +146,7 @@ GENERAL INFORMATION:
     def _set_element(self,event_array,intervals,is_element=True,boolean=False):
         """Return events (inputed as list or array) that are elements (is_element=True) or not (is_element=False) of intervals (tuple list or pd.intervalarray)."""
         if type(intervals) != pd.core.arrays.interval.IntervalArray:
-            intervals = pd.arrays.IntervalArray.from_tuples(intervals,closed='left')
+            intervals = pd.arrays.IntervalArray.from_tuples(intervals,closed='both')#'left')
         if is_element:
             res = np.array([event for event in event_array if intervals.contains(event).any()])
         else:
