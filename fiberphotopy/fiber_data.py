@@ -4,6 +4,7 @@ import random
 import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
+plt.style.use('dark_background')
 from fp_utils import FiberPhotopy, timer
 
 

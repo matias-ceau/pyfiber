@@ -8,6 +8,7 @@ import time
 import os
 from math import ceil
 import matplotlib.pyplot as plt
+plt.style.use('dark_background')
 from scipy import integrate,stats,signal
 import seaborn as sns
 #from scipy.stats import sem
@@ -146,12 +147,13 @@ No fiber recording at timestamp: {event_time} for {self.fiber.filepath},{self.be
             self._print("Choose either 'intervals' or 'events'")
         self.behavior.figure(obj=list(data.values()),label_list=list(data.keys()))
 
-class Analysis:
+class Analysis(FiberPhotopy):
     """Give results of perievent analysis relative to one event from a session."""
 
     _savgol = FiberPhotopy._savgol
 
     def __init__(self,rat_ID):
+        super().__init__()
         pass
 
     def __repr__(self): 
