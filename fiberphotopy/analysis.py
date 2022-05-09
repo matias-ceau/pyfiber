@@ -8,7 +8,6 @@ import time
 import os
 from math import ceil
 import matplotlib.pyplot as plt
-plt.style.use('dark_background')
 from scipy import integrate,stats,signal
 import seaborn as sns
 #from scipy.stats import sem
@@ -233,7 +232,7 @@ class MultiSession(FiberPhotopy):
     def __init__(self,folder,debug=0.800,verbosity=True):
         super().__init__()
         print('folder',folder)
-        self.verbosity = verbosity
+        self._verbosity = verbosity
         self.folder = folder
         start = time.time()
         self._import_folder(folder)
@@ -241,7 +240,7 @@ class MultiSession(FiberPhotopy):
             self._print('Analysing interinfusion intervals...')
             self.removed = []
             for session,obj in self.sessions.items():
-                interval = obj.behavior.debug_interinj()
+                interval = obj.behavior._debug_interinj()
                 if interval < debug:
                     self.removed.append((session,interval))
             if len(self.removed)>0:
@@ -319,17 +318,13 @@ norm='default'    : normalization method used"""
             timestamps = v._recorded_timestamps(events=events,window=window,**kwargs)
             result.dict[k]  = [v.analyze_perievent(i,norm=norm,window=window) for i in timestamps]
             result.key.append(len(result.dict[k])*[k])
-            for obj in result.dict[k]:
-                if obj:
-                    for att in obj.__dict__.keys():
-                        if result.__dict__.get(att):
-                            result.__dict__[att].append(obj.__dict__[att])  #append
-                        else:
-                            result.__dict__[att] = [obj.__dict__[att]] #create
         result.key = [j for k in [i for i in result.key if i] for j in k]
-        result.epoch = []
-        for n,t in enumerate(result.time):
-            result.epoch.append(t - result.event_time[n])
+        # result.epoch = []
+        result._objects = np.concatenate(list(result.dict.values())).tolist()
+        result._attribute_names = [i for i in np.unique(np.concatenate([list(vars(a).keys()) for a in result._objects])) if i[0] != '_']
+        result._attribute_dict = {k:[d[k] for d in [vars(o) for o in result._objects]] for k in result._attribute_names}
+        result.__dict__.update(result._attribute_dict)
+        result.epoch = [t - result.event_time[n] for n,t in enumerate(result.time)]
         result.update()
         timer(start,"Analysis")
         if type(events) == str: result.event_name = events
@@ -377,6 +372,14 @@ class MultiAnalysis(FiberPhotopy):
     
     def __getitem__(self,item):
         return self.dict[item]
+    
+    @property
+    def data(self):
+        return pd.DataFrame({k:v for k,v in self._attribute_dict.items() if type(v[0]) != np.ndarray},index=self.key)
+    
+    @property
+    def full_data(self):
+        return pd.DataFrame(self._attribute_dict,index=self.key)
     
     def possible_data(self):
         """Return dictionnary of possible data to plot"""

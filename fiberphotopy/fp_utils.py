@@ -22,8 +22,7 @@ class FiberPhotopy:
             
     def __init__(self,verbosity=True,**kwargs):
                 # GENERAL
-        self.verbosity      = verbosity
-        self.type           = None
+        self._verbosity      = verbosity
         self._log           = []
         self.__dict__.update(**kwargs)  
         
@@ -37,8 +36,6 @@ class FiberPhotopy:
         
     @property
     def help(self):
-        if self.type == 'BehavioralData':
-            print(info.behavior_help)
         function_doc = [(k,v.__doc__) for k,v in self.__class__.__dict__.items() if (callable(v)) & (k[0] != '_')]
         # args     = [inspect.getfullargspec(i).args for n,i in self.__class__.__dict__.items() if callable(i) & (n[0]!='_')]
         # defaults = [inspect.getfullargspec(i).defaults for n,i in self.__class__.__dict__.items() if callable(i)]
@@ -48,7 +45,9 @@ class FiberPhotopy:
         # tuples   = [list(zip(k,a+list(b))) if b else list(zip(k,a)) for k,a,b in zip(args,diff,defaults)]
         # args     = [', '.join([f"{k}={v}" if v != '' else f"{k}" for k,v in a]) for a in tuples]
         for (a,b) in function_doc:
-            print(f"<obj>.\033[1m{a}\033[0m()\n {b}\n")                   
+            print(f"<obj>.\033[1m{a}\033[0m()\n {b}\n") 
+        if type(self).__name__  == 'BehavioralData':
+            print(info.behavior_help)                  
     
     @property
     def _help(self):
@@ -61,7 +60,7 @@ class FiberPhotopy:
             
     @property
     def info(self):
-         print('\n'.join(['<obj>.'+f'\033[1m{i}\033[0m' for i in sorted(self.__dict__)]))
+         print('\n'.join(['<obj>.'+f'\033[1m{i}\033[0m' for i in sorted(self.__dict__) if i[0] != '_']))
     
     def _list(self,anything):
         """Convert user input into list if not already."""
@@ -80,7 +79,7 @@ class FiberPhotopy:
         
     def _print(self,thing):
         self.log = thing
-        if self.verbosity: print(self._log[-1])
+        if self._verbosity: print(self._log[-1])
 
 def timer(ref,name):
     now = time.time()

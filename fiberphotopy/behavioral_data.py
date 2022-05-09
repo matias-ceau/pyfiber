@@ -14,7 +14,6 @@ class BehavioralData(FiberPhotopy):
                  filepath,
                  **kwargs):
         """Initialize BehavioralData object, timestamp arrays are lowercase, periods are uppercase."""
-        self.type = 'BehavioralData'
         self.__dict__.update({k:v for k,v in locals().items() if k not in ('self','__class__','kwargs')})
         super().__init__(**kwargs)
         self._print(f'IMPORTING {filepath}...')
@@ -31,7 +30,22 @@ class BehavioralData(FiberPhotopy):
     def raw(self):
         with open(self.filepath) as f:
             print(''.join(f.readlines()))
-            
+    
+    @property
+    def total(self):
+       return pd.DataFrame({k : v.shape[0] for k,v in self.events().items()},index=['count']).T 
+    
+    @property
+    def data(self):
+        user_value = self._verbosity
+        self._verbosity = False
+        events = self.events().keys()
+        intervals = self.intervals().keys()
+        values = np.vstack([[self.timestamps(events=e,interval=i).shape[0] for e in self.events().keys()] for i in self.intervals()])
+        df     = pd.DataFrame(values,index=intervals,columns=events).T
+        self._verbosity = user_value
+        return pd.concat((self.total,df),axis=1)
+    
     def __repr__(self):
         """Return __repr__."""
         return f"""\
@@ -58,7 +72,7 @@ GENERAL INFORMATION:
                 self.__dict__[e] = self._extract(f,i,c,v)
             if param[0] == 'simple':
                 (f,i),c = param[1:]
-                self.__dict__[e] = self.get((f,i))[c]
+                self.__dict__[e] = self.get((f,i))[c].to_numpy()
         # local function, translates from string to data, including special nomenclature       
         def t(inp):
             if type(inp) == str:
@@ -294,18 +308,17 @@ GENERAL INFORMATION:
 
  ###################### USER FUNCTIONS ##########################
 
-    def debug_interinj(self):
+    def _debug_interinj(self):
         """Return interinfusion time (between 2 consecutive pump activations)."""
         a = self.get((6,1))
         return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
 
     def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
         """Show number of crossings."""
-        if self.custom not in ['all','movement']: return
-        array = np.zeros((max(self.y),max(self.x)))
-        for i in range(len(self.x)):
-            array[ self.y[i] -1,
-                   self.x[i] - 1] += 1
+        array = np.zeros((max(self.y_coordinates),max(self.x_coordinates)))
+        for i in range(len(self.x_coordinates)):
+            array[ self.y_coordinates[i] -1,
+                   self.x_coordinates[i] - 1] += 1
         fig,ax = plt.subplots(1,figsize=figsize)
         ax.imshow(array,cmap=cmap,vmin=0,vmax=np.max(array))
         ax.invert_yaxis()
@@ -401,9 +414,7 @@ graph         : True/False visualise selection"""
             interval_data = [(self.start,self.end)]
             self._print(f'Choosen interval: {interval_data} (all)')
         else:
-            print(self._internal_selection(interval))
             interval_data = self._union(*self._internal_selection(interval))
-            print(interval_data)
         selected_interval = interval_data
         if intersection != []:
             intersection_data = self._intersection(*self._internal_selection(intersection))
@@ -472,7 +483,7 @@ graph         : True/False visualise selection"""
 
     def intervals(self,recorded=False,window=(0,0)):
         """Retrieve list of intervals."""
-        intervals = {k:v for k,v in self.__dict__.items() if type(v)==list}
+        intervals = {k:v for k,v in self.__dict__.items() if type(v)==list and k[0]!='_'}
         if not recorded:
             return intervals
         else:
