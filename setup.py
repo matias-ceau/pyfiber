@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name='fiberphotopy',
-    packages=find_packages(where='fiberphotopy'),
+    name='pyfiber',
+    packages=find_packages(where='pyfiber'),
     version='0.1.0',
     description='Fiber photometry and behavioral data coupling',
     author='Matias Ceau',
@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='GPLv3',
-    url="https://github.com/matias-ceau/fiberphotopy",
+    url="https://github.com/matias-ceau/pyfiber",
     install_requires=[],
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -24,5 +24,5 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     test_suite='tests',
-    package_dir={"": "fiberphotopy"}
+    package_dir={"": "pyfiber"}
 )
