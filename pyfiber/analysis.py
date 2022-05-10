@@ -1,6 +1,6 @@
-import behavioral_data
-import fiber_data
-from fp_utils import FiberPhotopy, timer
+from . import behavioral_data
+from . import  fiber_data
+from .fp_utils import FiberPhotopy as FiberPhotopy
 
 import numpy as np
 import pandas as pd

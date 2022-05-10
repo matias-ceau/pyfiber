@@ -5,7 +5,7 @@ import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 
-from fp_utils import FiberPhotopy, timer
+from .fp_utils import FiberPhotopy as FiberPhotopy, timer as timer
 
 
 class FiberData(FiberPhotopy):

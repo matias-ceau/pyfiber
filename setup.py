@@ -5,16 +5,17 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='pyfiber',
-    packages=find_packages(where='pyfiber'),
-    version='0.1.0',
-    description='Fiber photometry and behavioral data coupling',
+    packages=['pyfiber','pyfiber.fp_utils','pyfiber.behavioral_data','pyfiber.fiber_data','pyfiber.analysis'],
+    version='0.1.6',
+    description='Fiber photometry and behavioral data analysis tool',
     author='Matias Ceau',
     author_email="matias@ceau.net",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    include_package_data=True,
     license='GPLv3',
     url="https://github.com/matias-ceau/pyfiber",
-    install_requires=[],
+    install_requires=['numpy','scipy','pandas','pyyaml','datetime','seaborn','matplotlib'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
@@ -24,5 +25,5 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     test_suite='tests',
-    package_dir={"": "pyfiber"}
+#   package_dir={"": "pyfiber"}
 )

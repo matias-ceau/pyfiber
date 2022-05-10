@@ -2,19 +2,20 @@ import numpy as np
 from scipy import signal
 import yaml
 import datetime
-import info
 import inspect
 import time
+import os
 
 
 class FiberPhotopy:
     """Parent object for Behavioral, Fiber and Analysis objects."""
+    ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
     try:
-        with open('../config.yaml') as f:
+        with open(os.path.join(ROOT_DIR,'pyfiber','config.yaml')) as f:
             CFG = yaml.load(f, Loader=yaml.FullLoader)
     except FileNotFoundError:
         print('File not found')
-        CFG = None
+        raise FileNotFoundError
     vars().update(CFG)
     vars().update(CFG['GENERAL'])
     vars().update(CFG['SYSTEM'])
@@ -50,8 +51,6 @@ class FiberPhotopy:
     
     @property
     def _help(self):
-        if self.type == 'BehavioralData':
-            print(info.behavior_help)
         function_doc = [(k,v) for k,v in self.__class__.__dict__.items() if (callable(v))]
         for (a,b) in function_doc:
             print(f"{a:<20} --> {b.__doc__}")  

@@ -3,7 +3,7 @@ import os
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-from fp_utils import FiberPhotopy
+from .fp_utils import FiberPhotopy as FiberPhotopy
 import seaborn as sns
 
 class BehavioralData(FiberPhotopy):
