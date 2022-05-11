@@ -14,13 +14,12 @@ class BehavioralData(FiberPhotopy):
                  filepath,
                  **kwargs):
         """Initialize BehavioralData object, timestamp arrays are lowercase, periods are uppercase."""
-        self.type = 'BehavioralData'
         self.__dict__.update({k:v for k,v in locals().items() if k not in ('self','__class__','kwargs')})
         super().__init__(**kwargs)
         self._print(f'IMPORTING {filepath}...')
         start = time.time()
         self.df               = pd.read_csv(filepath,skiprows=12,delimiter='\t',header=None,names=['TIME','F','ID','_P','_V','_L','_R','_T','_W','_X','_Y','_Z'])
-        self.df['TIME']      /= self.behavior_time_ratio 
+        self.df['TIME']      /= self.behavior_time_ratio
         self.start            = self.df.iloc[0,0]
         self.end              = self.df.iloc[-1,0]            # last timestamp (in ms) automatically changed to user_unit (see fp_utils.py)
         self.rec_start = None
@@ -31,7 +30,22 @@ class BehavioralData(FiberPhotopy):
     def raw(self):
         with open(self.filepath) as f:
             print(''.join(f.readlines()))
-            
+    
+    @property
+    def total(self):
+       return pd.DataFrame({k : v.shape[0] for k,v in self.events().items()},index=['count']).T 
+    
+    @property
+    def data(self):
+        user_value = self._verbosity
+        self._verbosity = False
+        events = self.events().keys()
+        intervals = self.intervals().keys()
+        values = np.vstack([[self.timestamps(events=e,interval=i).shape[0] for e in self.events().keys()] for i in self.intervals()])
+        df     = pd.DataFrame(values,index=intervals,columns=events).T
+        self._verbosity = user_value
+        return pd.concat((self.total,df),axis=1)
+    
     def __repr__(self):
         """Return __repr__."""
         return f"""\
@@ -58,7 +72,7 @@ GENERAL INFORMATION:
                 self.__dict__[e] = self._extract(f,i,c,v)
             if param[0] == 'simple':
                 (f,i),c = param[1:]
-                self.__dict__[e] = self.get(idtuple=(f,i))[c]
+                self.__dict__[e] = self.get((f,i))[c].to_numpy()
         # local function, translates from string to data, including special nomenclature       
         def t(inp):
             if type(inp) == str:
@@ -86,13 +100,14 @@ GENERAL INFORMATION:
             if p == 'NEAR_EVENT':    self.__dict__[e] = self._interval_is_close_to(**{k:v for k,v in zip(['intervals','events','nearness'],t([a]+b))})
             if p == 'DURATION':      self.__dict__[e] = self._select_interval_by_duration(t(a),b)
             if p == 'UNION':         self.__dict__[e] = self._union(*t(a))
-            if p == 'boundary':      self.__dict__[e] = np.array([i if i == 'start' else j for i,j in t(*b)])  
+            if p == 'boundary': 
+                self.__dict__[e] = np.array([i if a == 'start' else j for i,j in t(*b)])  
             if p == 'combination':   self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
             if p == 'indexed':       self.__dict__[e] = t(a)[b[0]-1 : b[0]]
             if p == 'iselement':     self.__dict__[e] =  self._set_element(t(a), t(*b))
-            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) < b[0][0])|(t(a) > b[0][1])]
+            if p == 'timerestricted':self.__dict__[e] = t(a)[(t(a) > b[0][0])&(t(a) < b[0][1])]
             if p == 'generative':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : t(a)[i::b[0]] for i in range(b[0])})
-            if p == 'GENERATIVE':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : n for i,n in enumerate(t(a))})
+            if p == 'GENERATIVE':    self.__dict__.update({e.replace('_n',f'_{str(i+1)}') : [n] for i,n in enumerate(t(a))})
         for e,param in self.BEHAVIOR['custom'].items(): _custom_gen(e,param)
             
  ######################################################################################################           
@@ -145,7 +160,7 @@ GENERAL INFORMATION:
     def _set_element(self,event_array,intervals,is_element=True,boolean=False):
         """Return events (inputed as list or array) that are elements (is_element=True) or not (is_element=False) of intervals (tuple list or pd.intervalarray)."""
         if type(intervals) != pd.core.arrays.interval.IntervalArray:
-            intervals = pd.arrays.IntervalArray.from_tuples(intervals,closed='left')
+            intervals = pd.arrays.IntervalArray.from_tuples(intervals,closed='both')#'left')
         if is_element:
             res = np.array([event for event in event_array if intervals.contains(event).any()])
         else:
@@ -293,18 +308,17 @@ GENERAL INFORMATION:
 
  ###################### USER FUNCTIONS ##########################
 
-    def debug_interinj(self):
+    def _debug_interinj(self):
         """Return interinfusion time (between 2 consecutive pump activations)."""
-        a = self.get(idtuple=(6,1))
+        a = self.get((6,1))
         return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
 
     def movement(self,values=False,plot=True,figsize=(20,10),cmap='seismic'):
         """Show number of crossings."""
-        if self.custom not in ['all','movement']: return
-        array = np.zeros((max(self.y),max(self.x)))
-        for i in range(len(self.x)):
-            array[ self.y[i] -1,
-                   self.x[i] - 1] += 1
+        array = np.zeros((max(self.y_coordinates),max(self.x_coordinates)))
+        for i in range(len(self.x_coordinates)):
+            array[ self.y_coordinates[i] -1,
+                   self.x_coordinates[i] - 1] += 1
         fig,ax = plt.subplots(1,figsize=figsize)
         ax.imshow(array,cmap=cmap,vmin=0,vmax=np.max(array))
         ax.invert_yaxis()
@@ -315,8 +329,11 @@ GENERAL INFORMATION:
         for k in self.SYSTEM['IMETRONIC'].keys():
             d.update(self.SYSTEM['IMETRONIC'][k])
         elements = {}
-        for k,v in d.items():
-            df = self.get(idtuple=v)
+        detected_tuples = list(set(zip(self.df.F,self.df.ID)))
+        unnamed_tuples = sorted([i for i in detected_tuples if i not in [tuple(i) for i in d.values()]])
+        unnamed_dict = {k:list(k) for k in unnamed_tuples}
+        for k,v in {**d,**unnamed_dict}.items():
+            df = self.get(v)
             if len(df):
                 elements[k] = [len(df)] + [round(np.mean(df[i]),3) if np.mean(df[i]) != 0 else '' for i in df.columns]
         data = pd.DataFrame(elements,index=['count']+list(self.df.columns)).T.sort_values('count',ascending=False)
@@ -334,17 +351,19 @@ GENERAL INFORMATION:
                 ax.set_xlim((0, max([i for i in data['TIME'] if type(i) != str])/60_000))
         return data
 
-    def get(self,name=None,idtuple=None):
+    def get(self,name):
         """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
-        if name:
+        if type(name) == str:
             nomenclature = {}
             for i in [self.SYSTEM['IMETRONIC'][d] for d in self.SYSTEM['IMETRONIC'].keys()]: nomenclature.update(i)
             if name:
                 name = name.upper()
                 if name in nomenclature.keys():
                     return self.df[(self.df['F']  == int(nomenclature[name][0])) & (self.df['ID'] == int(nomenclature[name][1]))]
-        elif idtuple: return self.df[(self.df['F']  == int(idtuple[0])) & (self.df['ID'] == int(idtuple[1]))]
-        else: return self.df
+        elif type(name) in [list,tuple]: 
+            return self.df[(self.df['F']  == int(name[0])) & (self.df['ID'] == int(name[1]))]
+        else: 
+            return self.df
 
     def figure(self,obj,
               figsize = 'default',h=0.8,hspace=0,label_list=None,color_list=None, **kwargs):
@@ -378,16 +397,17 @@ GENERAL INFORMATION:
     def timestamps(self,
                    events,
                    interval      = 'all',
+                   length        = False,
                    intersection  = [],
                    exclude       = [],
                    user_output=False):
         """events        : timestamp array, list of timestamp arrays, keyword or list of keywords (ex: 'np1')
-           interval      : selected interval or list of intervals
-           intersection  : intersection of inputed intervals
-           exclude       : array or list of arrays to exclude
-           to_csv        : True/False output csv timestamp file
-           filename      : selected filemame for csv
-           graph         : True/False visualise selection"""
+interval      : selected interval or list of intervals
+intersection  : intersection of inputed intervals
+exclude       : array or list of arrays to exclude
+to_csv        : True/False output csv timestamp file
+filename      : selected filemame for csv
+graph         : True/False visualise selection"""
         events_data = np.sort(np.concatenate(self._internal_selection(events)))
         self._print(f'Event timestamps: {events_data}')
         if interval == 'all':
@@ -408,6 +428,9 @@ GENERAL INFORMATION:
             self._print(f"Excluded intervals: {exclude}: selected {exclude_data}")
         else:
             exclude_data = []
+        if length:
+            selected_interval = [(a,a+length) for a,b in selected_interval]
+            self._print(f"Intervals restricted to {length} seconds.")
         selected_timestamps = self._set_element(events_data,selected_interval,is_element=True)
         if user_output:
             return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps
@@ -460,7 +483,7 @@ GENERAL INFORMATION:
 
     def intervals(self,recorded=False,window=(0,0)):
         """Retrieve list of intervals."""
-        intervals = {k:v for k,v in self.__dict__.items() if type(v)==list}
+        intervals = {k:v for k,v in self.__dict__.items() if type(v)==list and k[0]!='_'}
         if not recorded:
             return intervals
         else:
@@ -468,12 +491,14 @@ GENERAL INFORMATION:
             return {k: self._intersection(v,recorded_and_window) for k,v in intervals.items()}
 
 
-class MultiBehavior:
+class MultiBehavior(FiberPhotopy):
 
     _savgol = FiberPhotopy._savgol
 
     def __init__(self,folder,**kwargs):
+        super().__init__()
         self.sessions = {}
+        self.foldername = folder
         self.paths = []
         for currentpath, folders, files in os.walk(folder):
             for file in files:
@@ -484,16 +509,24 @@ class MultiBehavior:
         self.names = list(self.sessions.keys())
         self.number = len(self.sessions.items())
         event_names = list(list(self.sessions.items())[0][1].events().keys())
-        for session in self.sessions:
-            for attribute in self.sessions[session].__dict__.keys():
-                if attribute in self.__dict__.keys():
-                    self.__dict__[attribute].append(self.sessions[session].__dict__[attribute])
+        for name,obj in self.sessions.items():
+            for attr,val in obj.__dict__.items():
+                if attr in self.__dict__.keys():
+                    try:
+                        self.__dict__[attr].append(val)
+                    except AttributeError:
+                        if attr+'_all' in self.__dict__.keys():
+                            self.__dict__[attr+'_all'].append(val)
+                        else:
+                            self.__dict__[attr+'_all'] = [val]
                 else:
-                    self.__dict__[attribute] = [self.sessions[session].__dict__[attribute]]
-        for attribute in self.__dict__.keys():
-            if attribute in event_names:
-                self.__dict__[attribute] = pd.DataFrame(self.__dict__[attribute],index=self.names)
-
+                    self.__dict__[attr] = [val]
+        for attr,val in self.__dict__.items():
+            if attr in event_names:
+                self.__dict__[attr] = pd.DataFrame(val,index=self.names)
+    
+    def __repr__(self): return f"<MultiBehavior object> // {self.folder}"
+    
     def _cnt(self,attribute):
         return {k: np.histogram(self.__dict__[attribute].loc[k,:].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
 

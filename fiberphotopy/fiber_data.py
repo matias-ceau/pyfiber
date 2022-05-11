@@ -4,16 +4,8 @@ import random
 import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
-from fp_utils import FiberPhotopy
 
-def timer(ref,name):
-    now = time.time()
-    delta = now - ref
-    print(f'''\
-============================================================================
-    {name} took {delta} seconds
-============================================================================''')
-    return now
+from fp_utils import FiberPhotopy, timer
 
 
 class FiberData(FiberPhotopy):
@@ -47,13 +39,13 @@ class FiberData(FiberPhotopy):
         self.ncl = self.SYSTEM['DORIC']
         self.data = self._extract_data()
         self.columns = list(self.data.columns)
-        self.cut_time = np.array(self.data[self.ncl['Time(s)']])
-        self.sampling_rate = 1/np.median(np.diff(self.cut_time))
         #part4 = timer(part3,'a bunch of things')
         if self.split_recordings:
             self.recordings = self._split_recordings()
         else:
             self.recordings = {1: self.data}
+        self.rec_length = np.array([v.time.to_numpy()[-1]-v.time.to_numpy()[0] for k,v in self.recordings.items()])
+        self.sampling_rate = np.mean([len(df)/t for df,t in zip(self.recordings.values(),self.rec_length)])
         #part5 = timer(part4,'splitting the recording')
         self.rec_intervals  = [tuple([self.recordings[recording][self.ncl['Time(s)']].values[index] for index in [0,-1]]) for recording in range(1,self.number_of_recording+1)]
         #part6 = timer(part5,'getting record intervals')
@@ -63,7 +55,7 @@ class FiberData(FiberPhotopy):
             #try:
             data = self.norm(rec=r,add_time=True)
             t = data[:,0] ; s = data[:,1]
-            self.peaks[r] = self.detect_peaks(t,s,plot=False)
+            self.peaks[r] = self._detect_peaks(t,s,plot=False)
             #except ValueError:
             #    self.peaks[r] = 'cannot calculate peaks'
         #part7 = timer(part6,'Peak analysis')
@@ -72,48 +64,39 @@ class FiberData(FiberPhotopy):
     def __repr__(self):
         """Give general information about the recording data."""
         general_info = f"""\
-File                 : {self.filepath}
-Rat_ID               : {self.rat_ID}
-Number of recordings : {self.number_of_recording}
-Data columns         : {self.columns}
-Total lenght         : {self.full_time[-1] - self.full_time[0]} {self.user_unit}
-Kept lenght          : {self.cut_time[-1] - self.cut_time[0]} ({abs(self.full_time[0]-self.cut_time[0])} seconds trimmed)
-Global sampling rate : {self.sampling_rate} S/{self.user_unit}
+File                     : {self.filepath}
+Rat_ID                   : {self.rat_ID}
+Number of recordings     : {self.number_of_recording}
+Data columns             : {self.columns}
+Total span               : {self.full_time[-1] - self.full_time[0]} s
+Recording lengths        : {self.rec_length} ({self.trim_recording} seconds trimmed from each)
+Global sampling rate     : {self.sampling_rate} S/s
+Aligned to behavior file : {self.alignement} s
 """
         return general_info
 
     def _read_file(self,filepath,alignement=0):
-        """Read file and convert in the desired unit if needed."""
+        """Read file and align the timestamps if specified"""
         df = pd.read_csv(filepath,usecols=["AIn-1 - Demodulated(Lock-In)","AIn-2 - Demodulated(Lock-In)","Time(s)"],dtype=np.float64)#,engine='pyarrow')
-        # if not self.file_unit:
-        #     if 29 <= df['Time(s)'].iloc[-1] <= 28_740:
-        #         self.file_unit = 's'
-        #     elif df['Time(s)'].iloc[-1] > 29_000:
-        #         self.file_unit = 'ms'
-        #     else:
-        #         print('Please specify units')
-        #         return
-        # unit_values = {'s':1,'ms':1000}
-        #ratio = unit_values[self.file_unit]/unit_values[self.user_unit]
-        # df['Time(s)'] = df['Time(s)']/ratio + alignement
-        print(df,alignement)
         df['Time(s)'] = df['Time(s)'] + alignement
         return df
 
     def _extract_data(self):
         """Extract raw fiber data from Doric system."""
-        idx = len(self.full_time)-len(self.full_time[self.full_time>self.trim_recording])
-        return pd.DataFrame({self.ncl[i]: self.df[i].to_numpy()[idx:] for i in self.ncl if i in self.raw_columns})
+        return pd.DataFrame({self.ncl[i]: self.df[i].to_numpy() for i in self.ncl if i in self.raw_columns})
 
     def _split_recordings(self):
         """Cut at timestamp jumps (defined by a step greater than N times the mean sample space (defined in config.yaml)."""
-        time       = self.cut_time
+        time       = self.full_time
         jumps      = list(np.where(np.diff(time)> self.split_treshold * np.mean(np.diff(time)))[0] + 1)
         indices    = [0] + jumps + [len(time)-1]
         ind_tuples = [(indices[i],indices[i+1]) for i in range(len(indices)-1) if indices[i+1]-indices[i] > self.min_sample_per_rec ]
         self.number_of_recording = len(ind_tuples)
         self._print(f"Found {self.number_of_recording} separate recordings.")
-        return {ind_tuples.index((s,e))+1 : self.data.iloc[s:e,:] for s,e in ind_tuples}
+        rec = {ind_tuples.index((s,e))+1 : self.data.iloc[s:e,:] for s,e in ind_tuples}
+        t_ = self.ncl['Time(s)']
+        rec = {k:v[v[t_] > v[t_].to_numpy()[0]+self.trim_recording] for k,v in rec.items()}
+        return rec
 
     def to_csv(self,
                recordings   = 'all',
@@ -179,8 +162,6 @@ Global sampling rate : {self.sampling_rate} S/{self.user_unit}
         else:
             return data
 
-    def downsample(self):
-        print("I don't exist yet :(")
 
     def TTL(self,ttl,rec=1):
         """Output TTL timestamps."""
@@ -221,7 +202,7 @@ Global sampling rate : {self.sampling_rate} S/{self.user_unit}
             return normalized
 
 
-    def detect_peaks(self,t,s,window='default',distance='default',plot=True,figsize=(30,10),zscore='full',bMAD='default',pMAD='default'):
+    def _detect_peaks(self,t,s,window='default',distance='default',plot=True,figsize=(30,10),zscore='full',bMAD='default',pMAD='default'):
         """Detect peaks on segments of data:
 
         window:   window size for peak detection, the median is calculated for each bin
@@ -302,7 +283,7 @@ Global sampling rate : {self.sampling_rate} S/{self.user_unit}
     def peakFA(self,a,b):
         r = 0
         for n,i in enumerate(self.rec_intervals):
-            if (i[0]<a<i[1]) and (i[0]<b<i[1]):
+            if (i[0]<=a<i[1]) and (i[0]<b<=i[1]):
                 r = n+1
         if r == 0: return
         data = self.peaks[r][(self.peaks[r]['time'] > a) & (self.peaks[r]['time'] < b)]
