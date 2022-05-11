@@ -7,7 +7,7 @@ import time
 import os
 import shutil
 
-__all__ = ['FiberPhotopy','timer']
+__all__ = ['FiberPhotopy', 'timer']
 
 class FiberPhotopy:
     """Parent object for Behavioral, Fiber and Analysis objects."""
