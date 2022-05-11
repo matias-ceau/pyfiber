@@ -1,12 +1,13 @@
 from setuptools import find_packages, setup
+import pathlib
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+here = pathlib.Path(__file__).parent.resolve()
+long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name='pyfiber',
-    packages=['pyfiber','pyfiber.fp_utils','pyfiber.behavioral_data','pyfiber.fiber_data','pyfiber.analysis'],
-    version='0.1.6',
+    packages=find_packages(where='src'),
+    version='0.1.9',
     description='Fiber photometry and behavioral data analysis tool',
     author='Matias Ceau',
     author_email="matias@ceau.net",
@@ -19,11 +20,19 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-        "Operating System :: OS Independent",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
+        "Operating System :: MacOS",
+        "Topic :: Scientific/Engineering",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers"
     ],
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    keywords="fiber photometry, operant behavior",
+    # setup_requires=['pytest-runner'],
+    # tests_require=['pytest'],
     test_suite='tests',
-#   package_dir={"": "pyfiber"}
+    package_dir={'': 'src'}
 )

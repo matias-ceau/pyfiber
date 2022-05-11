@@ -1,1 +1,2 @@
-config.yaml
+include pyfiber/config.yaml
+graft src
