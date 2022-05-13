@@ -6,6 +6,10 @@
 Welcome to pyfiber's documentation!
 ===================================
 
+You may want to checkout :doc:`test` to see if it works and maybe also the :ref:`installation <installation>`!
+
+.. _installation:
+
 Installation
 ------------
 .. code-block:: console
@@ -15,6 +19,11 @@ Installation
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   test
+   code
+   api
+   modules
 
 
 Indices and tables
