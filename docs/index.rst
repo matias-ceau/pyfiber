@@ -6,10 +6,15 @@
 Welcome to pyfiber's documentation!
 ===================================
 
+Installation
+------------
+.. code-block:: console
+
+   $ pip install pyfiber
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
 
 
 Indices and tables

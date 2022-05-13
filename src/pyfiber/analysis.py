@@ -11,6 +11,7 @@ from .fiber import Fiber
 from ._utils import FiberPhotopy as FiberPhotopy
 __all__ = ['Session','MultiSession','Analysis','MultiAnalysis']
 
+
 class Session(FiberPhotopy):
     """Create object containing both fiber recordings and behavioral files from a single session."""
     vars().update(FiberPhotopy.FIBER)
