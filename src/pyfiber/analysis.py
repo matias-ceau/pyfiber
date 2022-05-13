@@ -8,19 +8,19 @@ import seaborn as sns
 
 from .behavior import Behavior, MultiBehavior
 from .fiber import Fiber
-from ._utils import FiberPhotopy as FiberPhotopy
+from ._utils import PyFiber as PyFiber
 __all__ = ['Session', 'MultiSession', 'Analysis', 'MultiAnalysis']
 
 
 
-class Session(FiberPhotopy):
+class Session(PyFiber):
     """Create object containing both fiber recordings and behavioral files.
     
     From a single session/subject.
     """
 
-    vars().update(FiberPhotopy.FIBER)
-    vars().update(FiberPhotopy.BEHAVIOR)
+    vars().update(PyFiber.FIBER)
+    vars().update(PyFiber.BEHAVIOR)
 
     def __init__(self, behavior, fiber, ID=None, **kwargs):
         super().__init__(**kwargs)
@@ -182,13 +182,13 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
                              label_list=list(data.keys()))
 
 
-class Analysis(FiberPhotopy):
+class Analysis(PyFiber):
     """Give results of perievent analysis.
 
     Relative to one event from a session.
     """
 
-    _savgol = FiberPhotopy._savgol
+    _savgol = PyFiber._savgol
 
     def __init__(self, ID):
         super().__init__()
@@ -282,10 +282,10 @@ class Analysis(FiberPhotopy):
         return smoothed
 
 
-class MultiSession(FiberPhotopy):
+class MultiSession(PyFiber):
     """Group analyses or multiple events for single subject."""
-    vars().update(FiberPhotopy.FIBER)
-    vars().update(FiberPhotopy.BEHAVIOR)
+    vars().update(PyFiber.FIBER)
+    vars().update(PyFiber.BEHAVIOR)
 
     def __init__(self, folder, debug=0.800, verbosity=True):
         super().__init__()
@@ -332,8 +332,8 @@ class MultiSession(FiberPhotopy):
             rats = os.listdir(folder)
             for r in rats:
                 self._print(f"\nImporting folder {r}...")
-                for file in os.listdir(folder+'/'+r):
-                    path = folder+'/'+r+'/'+file
+                for file in os.listdir(os.path.join(folder, r)):
+                    path = os.path.join(folder, r, file)
                     if '.csv' in path:
                         f = path
                     elif '.dat' in path:
@@ -482,9 +482,9 @@ class MultiSession(FiberPhotopy):
         return np.array(cumul)
 
 
-class MultiAnalysis(FiberPhotopy):
-    vars().update(FiberPhotopy.FIBER)
-    vars().update(FiberPhotopy.BEHAVIOR)
+class MultiAnalysis(PyFiber):
+    vars().update(PyFiber.FIBER)
+    vars().update(PyFiber.BEHAVIOR)
 
     def __init__(self):
         super().__init__()

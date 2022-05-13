@@ -6,10 +6,10 @@ import inspect
 import os
 import shutil
 
-__all__ = ['FiberPhotopy']
+__all__ = ['PyFiber']
 
 
-class FiberPhotopy:
+class PyFiber:
     """Parent object for Behavioral, Fiber and Analysis objects."""
     FOLDER = os.path.expanduser('~/.pyfiber')
     _config_path = os.path.expanduser('~/.pyfiber/pyfiber.yaml')

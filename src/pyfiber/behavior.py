@@ -3,14 +3,14 @@ import os
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-from ._utils import FiberPhotopy as FiberPhotopy
+from ._utils import PyFiber as PyFiber
 
 __all__ = ['Behavior', 'MultiBehavior']
 
 
-class Behavior(FiberPhotopy):
+class Behavior(PyFiber):
     """Input : imetronic behavioral data file path."""
-    vars().update(FiberPhotopy.BEHAVIOR)
+    vars().update(PyFiber.BEHAVIOR)
 
     def __init__(self,
                  filepath,
@@ -553,7 +553,8 @@ graph         : True/False visualise selection"""
                 if filename[-3:] != 'csv':
                     filename += f'{self.rat_ID}.csv'
             pd.DataFrame({'timestamps': result}).to_csv(
-                os.tah.join(Behavior.FOLDER, filename), index=False)
+                os.path.join(Behavior.FOLDER, filename), index=False
+                )
         return result
 
     def events(self, recorded=False, window=(0, 0)):
@@ -580,9 +581,9 @@ graph         : True/False visualise selection"""
             return {k: self._intersection(v, recorded_and_window) for k, v in intervals.items()}
 
 
-class MultiBehavior(FiberPhotopy):
+class MultiBehavior(PyFiber):
 
-    _savgol = FiberPhotopy._savgol
+    _savgol = PyFiber._savgol
 
     def __init__(self, folder, **kwargs):
         super().__init__()
@@ -614,7 +615,7 @@ class MultiBehavior(FiberPhotopy):
             if attr in event_names:
                 self.__dict__[attr] = pd.DataFrame(val, index=self.names)
 
-    def __repr__(self): return f"<MultiBehavior object> // {self.folder}"
+    def __repr__(self): return f"<MultiBehavior object> // {self.foldername}"
 
     def _cnt(self, attribute):
         return {k: np.histogram(self.__dict__[attribute].loc[k, :].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
@@ -627,6 +628,7 @@ class MultiBehavior(FiberPhotopy):
                              for k, v in self._cnt(attribute).items()})
         if plot:
             cumul.plot(figsize=figsize, **kwargs)
+            plt.show()
         return cumul.T
 
     def show_rate(self, attribute, interval='HLED_ON', binsize=120, percentiles=[15, 50, 85], figsize=(20, 10), interval_alpha=0.3):
@@ -665,6 +667,7 @@ class MultiBehavior(FiberPhotopy):
             if len(interval):
                 for a, b in interval:
                     plt.axvspan(a-binsize, b-binsize, alpha=interval_alpha)
+        plt.show()
 
     def summary(self):
         for r in self.sessions.keys():

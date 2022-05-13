@@ -6,20 +6,19 @@ import scipy.signal as signal
 import matplotlib.pyplot as plt
 import os
 
-from ._utils import FiberPhotopy as FiberPhotopy
+from ._utils import PyFiber as PyFiber
 __all__ = ['Fiber']
 
 
-class Fiber(FiberPhotopy):
+class Fiber(PyFiber):
     """Extract fiberphotometry data from Doric system."""
-    vars().update(FiberPhotopy.FIBER)
+    vars().update(PyFiber.FIBER)
 
     def __init__(self,
                  filepath,
                  name='default',
                  ID=None,
                  alignement=0,
-                 autoinherit=False,
                  **kwargs):
         start = time.time()
         super().__init__(**kwargs)
@@ -301,15 +300,17 @@ Aligned to behavior file : {self.alignement} s
             axes.grid(which='both')
             data = self.peaks[1]
             for i in data.index:
-                axes.vlines(data.loc[i, 'time'], ymin=0, ymax=data.loc[i,
-                            value], colors=colors, alpha=alpha, **kwargs)
+                axes.vlines(data.loc[i, 'time'],
+                            ymin=0, ymax=data.loc[i, value],
+                            colors=colors, alpha=alpha, **kwargs)
         else:
             for n, ax in enumerate(axes):
                 ax.grid(which='both')
                 data = self.peaks[n+1]
                 for i in data.index:
-                    ax.vlines(data.loc[i, 'time'], ymin=0, ymax=data.loc[i,
-                              value], colors=colors, alpha=alpha, **kwargs)
+                    ax.vlines(data.loc[i, 'time'],
+                              ymin=0, ymax=data.loc[i, value],
+                              colors=colors, alpha=alpha, **kwargs)
         plt.show()
 
     def peakFA(self, a, b):
