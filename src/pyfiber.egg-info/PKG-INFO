@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyfiber
-Version: 0.1.9
+Version: 0.2.0
 Summary: Fiber photometry and behavioral data analysis tool
 Home-page: https://github.com/matias-ceau/pyfiber
 Author: Matias Ceau
