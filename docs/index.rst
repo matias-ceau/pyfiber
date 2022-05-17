@@ -26,6 +26,16 @@ Installation
    modules
 
 
+Modules
+-------
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Modules
+
+   generated/pyfiber.analysis
+
+
 Indices and tables
 ==================
 
