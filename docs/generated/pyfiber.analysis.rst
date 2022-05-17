@@ -17,12 +17,10 @@
 
    .. autosummary::
    
-      Session
       Analysis
-      MultiSession
       MultiAnalysis
-      
-      
+      MultiSession
+      Session
    
    
 
