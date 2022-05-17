@@ -1,4 +1,4 @@
-src/pyfiber
+pyfiber
 sphinx
 sphinx-rtd-theme
 numpy
