@@ -1,5 +1,5 @@
-Code
-====
+Usage
+=====
 
 The less important function is .. py:function:: ``pyfiber.this_is_a_function()`` function:
 

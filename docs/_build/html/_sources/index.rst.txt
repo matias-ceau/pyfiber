@@ -16,13 +16,15 @@ Installation
 
    $ pip install pyfiber
 
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   test
-   code
-   api
+   getstarted
+   usage
+   tutorial
+   package
    modules
 
 

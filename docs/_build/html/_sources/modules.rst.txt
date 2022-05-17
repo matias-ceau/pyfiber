@@ -1,7 +1,37 @@
-pyfiber
-=======
+modules
+========
 
-.. toctree::
-   :maxdepth: 4
+pyfiber.behavior module
+-----------------------
 
-   pyfiber
+.. automodule:: pyfiber.behavior
+   :members:
+   :undoc-members:
+   :show-inheritance: False
+
+
+pyfiber.fiber module
+--------------------
+
+.. automodule:: pyfiber.fiber
+   :members:
+   :undoc-members:
+   :show-inheritance: False
+
+
+pyfiber.analysis module
+-----------------------
+
+.. automodule:: pyfiber.analysis
+   :members:
+   :undoc-members:
+   :show-inheritance: False
+
+
+pyfiber._utils module
+---------------------
+
+.. automodule:: pyfiber._utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

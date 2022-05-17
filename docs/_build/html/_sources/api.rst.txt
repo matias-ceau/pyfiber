@@ -3,6 +3,7 @@ API
 
 .. autosummary::
    :toctree: generated
+   :maxdepth: 2
 
    pyfiber.behavior
    pyfiber.fiber
