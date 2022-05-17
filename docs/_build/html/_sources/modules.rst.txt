@@ -7,7 +7,6 @@ pyfiber.behavior module
 .. automodule:: pyfiber.behavior
    :members:
    :undoc-members:
-   :show-inheritance: False
 
 
 pyfiber.fiber module
@@ -16,7 +15,6 @@ pyfiber.fiber module
 .. automodule:: pyfiber.fiber
    :members:
    :undoc-members:
-   :show-inheritance: False
 
 
 pyfiber.analysis module
@@ -25,7 +23,6 @@ pyfiber.analysis module
 .. automodule:: pyfiber.analysis
    :members:
    :undoc-members:
-   :show-inheritance: False
 
 
 pyfiber._utils module
@@ -35,3 +32,4 @@ pyfiber._utils module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:
