@@ -286,7 +286,7 @@ class MultiSession(PyFiber):
     """Group analyses or multiple events for single subject."""
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
-
+#TODO CHANGE DEBUG
     def __init__(self, folder, debug=0.800, verbosity=True):
         super().__init__()
         print('folder', folder)

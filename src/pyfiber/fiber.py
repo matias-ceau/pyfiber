@@ -19,34 +19,45 @@ class Fiber(PyFiber):
                  name='default',
                  ID=None,
                  alignement=0,
+                 filetype=None,
                  **kwargs):
         start = time.time()
         super().__init__(**kwargs)
+        
         self.alignement = alignement
         self.filepath = filepath
         self._print(f'Importing {filepath}...')
         self.ID = ID
+        
         if name == 'default':
             self.name = self.filepath.split('/')[-1].split('.csv')[0]
             if self.ID:
                 self.name += ID
         self.number_of_recording = 0
+        
+        if filetype:
+            self.ncl = self.SYSTEM[filetype.upper()]
+        else:
+            self.ncl = self.SYSTEM['DORIC']
+
         self.df = self._read_file(filepath, alignement=alignement)
-        self.full_time = np.array(self.df['Time(s)'])
+        self.full_time = np.array(self.df[ [k for k,v in self.ncl.items() if v == 'time'][0] ])
         self.raw_columns = list(self.df.columns)
-        self.ncl = self.SYSTEM['DORIC']
         self.data = self._extract_data()
         self.columns = list(self.data.columns)
+        
         if self.split_recordings:
             self.recordings = self._split_recordings()
         else:
             self.recordings = {1: self.data}
+        
         self.rec_length = np.array(
             [v.time.to_numpy()[-1]-v.time.to_numpy()[0] for k, v in self.recordings.items()])
         self.sampling_rate = np.mean(
             [len(df)/t for df, t in zip(self.recordings.values(), self.rec_length)])
         self.rec_intervals = [tuple([self.recordings[recording]['time'].values[index] for index in [
                                     0, -1]]) for recording in range(1, self.number_of_recording+1)]
+        
         self.peaks = {}
         self._print('Analyzing peaks...')
         for r in self.recordings.keys():
@@ -54,6 +65,7 @@ class Fiber(PyFiber):
             t = data[:, 0]
             s = data[:, 1]
             self.peaks[r] = self._detect_peaks(t, s, plot=False)
+        
         self._print(
             f'Importing of {filepath} finished in {time.time() - start} seconds')
 
@@ -73,9 +85,9 @@ Aligned to behavior file : {self.alignement} s
 
     def _read_file(self, filepath, alignement=0):
         """Read file and align the timestamps if specified"""
-        df = pd.read_csv(filepath, usecols=[
-                         "AIn-1 - Demodulated(Lock-In)", "AIn-2 - Demodulated(Lock-In)", "Time(s)"], dtype=np.float64)  # ,engine='pyarrow')
-        df['Time(s)'] = df['Time(s)'] + alignement
+        df = pd.read_csv(filepath, usecols=[k for k,v in self.ncl.items() if v in ['signal','control','time']], dtype=np.float64)  # ,engine='pyarrow')
+        time_nom = [k for k,v in self.ncl.items() if v == 'time'][0]
+        df[time_nom] = df[time_nom] + alignement
         return df
 
     def _extract_data(self):
@@ -166,18 +178,18 @@ Aligned to behavior file : {self.alignement} s
         else:
             return data
 
-    def TTL(self, ttl, rec=1):
-        """Output TTL timestamps."""
-        ttl = self.get(f"TTL{ttl}", rec)
-        time = self.get('time', rec)
-        ttl[ttl < 0.01] = 0
-        ttl[ttl >= 0.01] = 1
-        if (ttl == 1).all():
-            return [time[0]]
-        if (ttl == 0).all():
-            return []
-        index = np.where(np.diff(ttl) == 1)[0]
-        return [time[i] for i in index]
+    # def TTL(self, ttl, rec=1):
+    #     """Output TTL timestamps."""
+    #     ttl = self.get(f"TTL{ttl}", rec)
+    #     time = self.get('time', rec)
+    #     ttl[ttl < 0.01] = 0
+    #     ttl[ttl >= 0.01] = 1
+    #     if (ttl == 1).all():
+    #         return [time[0]]
+    #     if (ttl == 0).all():
+    #         return []
+    #     index = np.where(np.diff(ttl) == 1)[0]
+    #     return [time[i] for i in index]
 
     def norm(self,
              rec=1,

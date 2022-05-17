@@ -14,23 +14,41 @@ class Behavior(PyFiber):
 
     def __init__(self,
                  filepath,
+                 filetype=None,
                  **kwargs):
         """Initialize Behavior object, timestamp arrays are lowercase, periods are uppercase."""
         self.__dict__.update(
             {k: v for k, v in locals().items() if k not in ('self', '__class__', 'kwargs')})
         super().__init__(**kwargs)
+
+        if filetype:
+            self.filetype = filetype
+        else:
+            self.filetype = self.BEHAVIOR_FILE_TYPE
+
         self._print(f'IMPORTING {filepath}...')
         start = time.time()
-        self.df = pd.read_csv(filepath, skiprows=12, delimiter='\t', header=None, names=[
-                              'TIME', 'F', 'ID', '_P', '_V', '_L', '_R', '_T', '_W', '_X', '_Y', '_Z'])
-        self.df['TIME'] /= self.behavior_time_ratio
-        self.start = self.df.iloc[0, 0]
-        # last timestamp (in ms) automatically changed to user_unit (see _utils.py)
-        self.end = self.df.iloc[-1, 0]
-        self.rec_start = None
-        self._create_attributes()
+
+        if self.filetype == 'IMETRONIC':
+            self.df = pd.read_csv(filepath, skiprows=12, delimiter='\t', header=None, names=[
+                                  'TIME', 'F', 'ID', '_P', '_V', '_L', '_R', '_T', '_W', '_X', '_Y', '_Z'])
+            self.df['TIME'] /= self.behavior_time_ratio
+            self.start = self.df.iloc[0, 0]
+            # last timestamp (in ms) automatically changed to user_unit (see _utils.py)
+            self.end = self.df.iloc[-1, 0]
+            self.rec_start = None
+            self._create_imetronic_attributes()
+
+        else:
+            self.df = pd.read_csv(filepath)
+            for c in self.df.columns:
+                c_ = ''.join(''.join(''.join(('_'.join(('_'.join(c.split('-'))).split(' '))).split('/')).split('(')).split(')'))
+                self.__dict__[c_] = self.df[c].to_numpy()
+
+        self._compute_attributes()
         self._print(
-            f'Importing finished in {np.round(time.time() - start,3)} seconds\n')
+            f'Importing finished in {np.round(time.time() - start,3)} seconds\n'
+                     )
 
     @property
     def raw(self):
@@ -69,7 +87,7 @@ GENERAL INFORMATION:
 
 ######################################################################################################
         # RAW EVENT TIMESTAMP
-    def _create_attributes(self):
+    def _create_imetronic_attributes(self):
         # simple events
         for e, param in self.BEHAVIOR['imetronic_events'].items():
             self._print(f"Detecting {e+'...':<30}  {param})")
@@ -81,6 +99,8 @@ GENERAL INFORMATION:
                 self.__dict__[e] = self.get((f, i))[c].to_numpy()
         # local function, translates from string to data, including special nomenclature
 
+    
+    def _compute_attributes(self):
         def t(inp):
             if type(inp) == str:
                 return self._translate(inp)
@@ -92,48 +112,49 @@ GENERAL INFORMATION:
                 print('inp', inp)
 
         # simple intervals, only need events
-        for e, param in self.BEHAVIOR['basic_intervals'].items():
-            self._print(f"Detecting {e+'...':<30}  {param})")
-            if param[0] == 'ON_OFF':
-                w, (a, b) = param[1:]
-                ON = self._interval(t(a), t(b), self.end)
-                if w == 'on' or w == 'both':
-                    self.__dict__[e+'_ON'] = ON
-                if w == 'off' or w == 'both':
-                    self.__dict__[e+'_OFF'] = self._non(ON, self.end)
-        # custom events an intervals, function defined first as generation is sequential and depend on a specific order
+        if bool(self.BEHAVIOR['basic_intervals']):
+            for e, param in self.BEHAVIOR['basic_intervals'].items():
+                self._print(f"Detecting {e+'...':<30}  {param})")
+                if param[0] == 'ON_OFF':
+                    w, (a, b) = param[1:]
+                    ON = self._interval(t(a), t(b), self.end)
+                    if w == 'on' or w == 'both':
+                        self.__dict__[e+'_ON'] = ON
+                    if w == 'off' or w == 'both':
+                        self.__dict__[e+'_OFF'] = self._non(ON, self.end)
 
-        def _custom_gen(e, param):
-            p, a, *b = param
-            self._print(f"Detecting {e+'...':<30}  {param})")
-            if p == 'INTERSECTION':
-                self.__dict__[e] = self._intersection(*t(a))
-            if p == 'NEAR_EVENT':
-                self.__dict__[e] = self._interval_is_close_to(
-                    **{k: v for k, v in zip(['intervals', 'events', 'nearness'], t([a]+b))})
-            if p == 'DURATION':
-                self.__dict__[e] = self._select_interval_by_duration(t(a), b)
-            if p == 'UNION':
-                self.__dict__[e] = self._union(*t(a))
-            if p == 'boundary':
-                self.__dict__[e] = np.array(
-                    [i if a == 'start' else j for i, j in t(*b)])
-            if p == 'combination':
-                self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
-            if p == 'indexed':
-                self.__dict__[e] = t(a)[b[0]-1: b[0]]
-            if p == 'iselement':
-                self.__dict__[e] = self._set_element(t(a), t(*b))
-            if p == 'timerestricted':
-                self.__dict__[e] = t(a)[(t(a) > b[0][0]) & (t(a) < b[0][1])]
-            if p == 'generative':
-                self.__dict__.update(
-                    {e.replace('_n', f'_{str(i+1)}'): t(a)[i::b[0]] for i in range(b[0])})
-            if p == 'GENERATIVE':
-                self.__dict__.update(
-                    {e.replace('_n', f'_{str(i+1)}'): [n] for i, n in enumerate(t(a))})
-        for e, param in self.BEHAVIOR['custom'].items():
-            _custom_gen(e, param)
+        # custom events an intervals, function defined first as generation is sequential and depend on a specific order
+        if bool(self.BEHAVIOR['custom']):
+            for e, param in self.BEHAVIOR['custom'].items():
+                p, a, *b = param
+                self._print(f"Detecting {e+'...':<30}  {param})")
+                if p == 'INTERSECTION':
+                    self.__dict__[e] = self._intersection(*t(a))
+                if p == 'NEAR_EVENT':
+                    self.__dict__[e] = self._interval_is_close_to(
+                        **{k: v for k, v in zip(['intervals', 'events', 'nearness'], t([a]+b))})
+                if p == 'DURATION':
+                    self.__dict__[e] = self._select_interval_by_duration(t(a), b)
+                if p == 'UNION':
+                    self.__dict__[e] = self._union(*t(a))
+                if p == 'boundary':
+                    self.__dict__[e] = np.array(
+                        [i if a == 'start' else j for i, j in t(*b)])
+                if p == 'combination':
+                    self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
+                if p == 'indexed':
+                    self.__dict__[e] = t(a)[b[0]-1: b[0]]
+                if p == 'iselement':
+                    self.__dict__[e] = self._set_element(t(a), t(*b))
+                if p == 'timerestricted':
+                    self.__dict__[e] = t(a)[(t(a) > b[0][0]) & (t(a) < b[0][1])]
+                if p == 'generative':
+                    self.__dict__.update(
+                        {e.replace('_n', f'_{str(i+1)}'): t(a)[i::b[0]] for i in range(b[0])})
+                if p == 'GENERATIVE':
+                    self.__dict__.update(
+                        {e.replace('_n', f'_{str(i+1)}'): [n] for i, n in enumerate(t(a))})
+            
 
  ######################################################################################################
     def _extract(self, family, subtype, column, value):
@@ -155,14 +176,13 @@ GENERAL INFORMATION:
     def _interval(self, on, off, end):
         on = list(set([i for i in on if i not in off]))
         off = list(set([i for i in off if i not in on]))
-        # if not len(on): return []
-        # if not len(off): return [(on[0]),end]
-        # while off[0] < on[0]:
-        #     off = off[1:]
+
         on_series = pd.Series([1]*len(set(on)), index=on, dtype='float64')
         off_series = pd.Series([0]*len(set(off)), index=off, dtype='float64')
+       
         s = pd.concat((on_series, off_series)).sort_index()
         status, intervals, current = 0, [], [None, None]
+      
         for n in s.index:
             if status == 0 and s[n] == 1:
                 status = 1
@@ -175,6 +195,7 @@ GENERAL INFORMATION:
         if current != [None, None]:
             current[1] = end
             intervals.append(current)
+
         return [tuple(i) for i in intervals if i[0]-i[1] != 0]
 
     def _interval_is_close_to(self, intervals, events, nearness, closed='right'):
@@ -553,8 +574,7 @@ graph         : True/False visualise selection"""
                 if filename[-3:] != 'csv':
                     filename += f'{self.rat_ID}.csv'
             pd.DataFrame({'timestamps': result}).to_csv(
-                os.path.join(Behavior.FOLDER, filename), index=False
-                )
+                os.path.join(Behavior.FOLDER, filename), index=False)
         return result
 
     def events(self, recorded=False, window=(0, 0)):

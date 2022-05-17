@@ -1,7 +1,6 @@
 # USER CONFIG
 GENERAL:
     ID: 'Not specified'                # DEFAULT ID when not specified at file creation
-    behavior_time_ratio:  1000         #1000 if behavior file in milliseconds
     folder_nomenclature:
     # used to autodetect metadata from a folder containing sessions (as a collection fo folders including a behavioral data and a fiberphotometry file)
         separator: '_'
@@ -9,7 +8,9 @@ GENERAL:
         meanings:  ['experiment','','rat_number','experiment_type','session_number']
         ID:        ['experiment','rat_number']
     
-BEHAVIOR:   
+BEHAVIOR:  
+    BEHAVIOR_FILE_TYPE: IMETRONIC 
+    behavior_time_ratio:  1000         # 1000 if behavior file in milliseconds
 # for clarity, events should be in lowercase and intervals in upper case 
     imetronic_events:  
     # events directly accessible from imetronic raw file, extracted first
@@ -29,8 +30,7 @@ BEHAVIOR:
         x_coordinates:    ['simple', [9, 1], '_X']
         y_coordinates:    ['simple', [9, 1], '_Y'] 
         xy_timestamps:    ['simple', [9, 1], 'TIME'] 
-
-    
+   
     csv_events:
     # events extracted from a csv file with one event per columns
         # event1:        ['timestamp',  data column name 1, time column name]
@@ -40,8 +40,6 @@ BEHAVIOR:
         TTL2:           ['timestamp', DI/O-2, Time(s)]
         TTL3:           ['timestamp', DI/O-3, Time(s)]
         TTL4:           ['timestamp', DI/O-4, Time(s)]
-
-
 
     basic_intervals:
     # intervals directly computable with events above
@@ -84,6 +82,8 @@ BEHAVIOR:
         ND_first:         ['NEAR_EVENT'     ,  HLED_ON                        ,switch_1, 1]
                
     elements:
+        # Long name and plotting color for any event
+        #event/interval - show (True/False) - long name  - color
         HLED_OFF:     [True, 'Drug Period'                ,            '#069AF3']
         HLED_ON:      [True, 'No Drug Period'             ,                 gold]
         TTL1_ON:      [True, 'Fiber Photometry Recordings',                    g]
@@ -103,6 +103,7 @@ BEHAVIOR:
         switch_nd_d:  [False, 'Switch from ND to D'       ,                    b]
 
 FIBER:
+    FIBER_FILE_TYPE: DORIC
     split_recordings:  True
     split_treshold:    10       #ie 10 times the mean intersample space
     min_sample_per_rec: 5       # used when splitting recordings groupped to the same datafile, ignores recording if less than specified samples
@@ -145,4 +146,8 @@ SYSTEM:
         DI/O-3: TTL3
         DI/O-4: TTL4
 
-        
+    EXAMPLE_NOMENCLATURE:
+        time_column: time
+        signal_column: signal
+        control_column: control
+        ttl1: TTL1

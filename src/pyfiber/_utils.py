@@ -87,14 +87,3 @@ class PyFiber:
         self.log = thing
         if self._verbosity:
             print(self._log[-1])
-
-    def _imetronic(self):
-        """Extract Imetronic behavioral data files and extract events."""
-        pass
-
-    def _doric(self):
-        """Extract Doric fiberphotometry files and """
-        pass
-
-    def _generic_csv_behavior(self):
-        """Read """
