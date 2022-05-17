@@ -1,5 +1,5 @@
-modules
-========
+Modules Details
+===============
 
 pyfiber.behavior module
 -----------------------
@@ -7,6 +7,7 @@ pyfiber.behavior module
 .. automodule:: pyfiber.behavior
    :members:
    :undoc-members:
+   :private-members:
 
 
 pyfiber.fiber module
@@ -15,6 +16,7 @@ pyfiber.fiber module
 .. automodule:: pyfiber.fiber
    :members:
    :undoc-members:
+   :private-members:
 
 
 pyfiber.analysis module
@@ -23,6 +25,7 @@ pyfiber.analysis module
 .. automodule:: pyfiber.analysis
    :members:
    :undoc-members:
+   :private-members:
 
 
 pyfiber._utils module

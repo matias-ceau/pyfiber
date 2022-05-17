@@ -10,7 +10,9 @@ __all__ = ['PyFiber']
 
 
 class PyFiber:
-    """Parent object for Behavioral, Fiber and Analysis objects."""
+    """Parent object for Behavioral, Fiber and Analysis objects.
+
+    Contains"""
     FOLDER = os.path.expanduser('~/.pyfiber')
     _config_path = os.path.expanduser('~/.pyfiber/pyfiber.yaml')
     _sample_config = os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),

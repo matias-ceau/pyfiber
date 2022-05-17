@@ -12,3 +12,15 @@ The less important function is .. py:function:: ``pyfiber.this_is_a_function()``
     :return: Nothing at all.
     :rtype: None
 
+
+Behavioral data
+---------------
+
+
+Fiber photometry
+----------------
+
+
+
+Combination
+-----------

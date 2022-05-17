@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>modules &mdash; pyfiber 0.1.0 documentation</title>
+  <title>Modules Details &mdash; pyfiber 0.1.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="pyfiber" href="package.html" /> 
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,8 +41,9 @@
 <li class="toctree-l1"><a class="reference internal" href="getstarted.html">Get Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="package.html">pyfiber</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">modules</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="package.html">Main Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Modules Details</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-pyfiber.behavior">pyfiber.behavior module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-pyfiber.fiber">pyfiber.fiber module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-pyfiber.analysis">pyfiber.analysis module</a></li>
@@ -65,7 +66,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>modules</li>
+      <li>Modules Details</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -75,45 +76,100 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="modules">
-<h1>modules<a class="headerlink" href="#modules" title="Permalink to this headline"></a></h1>
+  <section id="modules-details">
+<h1>Modules Details<a class="headerlink" href="#modules-details" title="Permalink to this headline"></a></h1>
 <section id="module-pyfiber.behavior">
 <span id="pyfiber-behavior-module"></span><h2>pyfiber.behavior module<a class="headerlink" href="#module-pyfiber.behavior" title="Permalink to this headline"></a></h2>
+<p>The pyfiber.behavior module define two classes: Behavior and MultiBehavior,
+that extracts behavioral events from raw files. They possess a number of methods that are useful when dealing
+with complex experimental paradigm. Intervals corresponding to periods between specified timestamps can be 
+automatically calculated by defining them in the configuration file.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">Behavior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior" title="Permalink to this definition"></a></dt>
-<dd><p>Input : imetronic behavioral data file path.</p>
+<dd><p>Class extracting and analyzing behavioral data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – filepath (by default must be a .dat file)</p></li>
+<li><p><strong>filetype</strong> – must be set to user-defined format (by default takes the value of ‘BEHAVIOR_FILE_TYPE’ in the configuration file</p></li>
+<li><p><strong>kwargs</strong> – arguments passed to _utils.PyFiber, the parent class (ex: verbosity=False)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.raw">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">raw</span></span><a class="headerlink" href="#pyfiber.behavior.Behavior.raw" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Output the unprocessed data file.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.total">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">total</span></span><a class="headerlink" href="#pyfiber.behavior.Behavior.total" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Return the count for a all extracted event.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.data">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#pyfiber.behavior.Behavior.data" title="Permalink to this definition"></a></dt>
+<dd><p>Return the count for all extracted event for all calculated intervals.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._extract">
+<span class="sig-name descname"><span class="pre">_extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#pyfiber.behavior.Behavior._extract" title="Permalink to this definition"></a></dt>
+<dd><p>Extract timestamps for counters from Imetronic file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>family</strong> (<em>int</em>) – data family (see Imetronic nomenclature)</p></li>
+<li><p><strong>subtype</strong> – data subtype</p></li>
+<li><p><strong>column</strong> (<em>str</em>) – additional column precising event of interest</p></li>
+<li><p><strong>value</strong> – value needed in column to extract it</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data corresponding to input parameters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._create_imetronic_attributes">
+<span class="sig-name descname"><span class="pre">_create_imetronic_attributes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior._create_imetronic_attributes" title="Permalink to this definition"></a></dt>
+<dd><p>Extract event specified in the configuration file, in the <strong>imetronic_events</strong> section.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._compute_attributes">
+<span class="sig-name descname"><span class="pre">_compute_attributes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior._compute_attributes" title="Permalink to this definition"></a></dt>
+<dd><p>Create rule-based intervals and events as specified in the configuration file (in sections <strong>basic_intervals</strong> and <strong>custom</strong>)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._translate">
+<span class="sig-name descname"><span class="pre">_translate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior._translate" title="Permalink to this definition"></a></dt>
+<dd><p>Translate strings into corresponding arrays.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._internal_selection">
+<span class="sig-name descname"><span class="pre">_internal_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior._internal_selection" title="Permalink to this definition"></a></dt>
+<dd><p>Transform string into corresponding data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._graph">
+<span class="sig-name descname"><span class="pre">_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">demo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_lim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior._graph" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.behavior.Behavior.movement">
-<span class="sig-name descname"><span class="pre">movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seismic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.movement" title="Permalink to this definition"></a></dt>
-<dd><p>Show number of crossings.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.behavior.Behavior.what_data">
-<span class="sig-name descname"><span class="pre">what_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">40)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.what_data" title="Permalink to this definition"></a></dt>
-<dd><p>Return dataframe summarizing the imetronic dat file.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.behavior.Behavior.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.get" title="Permalink to this definition"></a></dt>
-<dd><p>Extract dataframe section corresponding to selected counter name (‘name’) or tuple (‘idtuple’).</p>
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior._debug_interinj">
+<span class="sig-name descname"><span class="pre">_debug_interinj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior._debug_interinj" title="Permalink to this definition"></a></dt>
+<dd><p>Return interinfusion time (between 2 consecutive pump activations).</p>
 </dd></dl>
 
 <dl class="py method">
@@ -158,6 +214,24 @@ graph         : True/False visualise selection</p>
 <dd><p>Retrieve list of intervals.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior.what_data">
+<span class="sig-name descname"><span class="pre">what_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">40)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.what_data" title="Permalink to this definition"></a></dt>
+<dd><p>Return dataframe summarizing the imetronic dat file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.get" title="Permalink to this definition"></a></dt>
+<dd><p>Extract dataframe section corresponding to selected counter name (‘name’) or tuple (‘idtuple’).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.Behavior.movement">
+<span class="sig-name descname"><span class="pre">movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seismic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.movement" title="Permalink to this definition"></a></dt>
+<dd><p>Show number of crossings.</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.BEHAVIOR_FILE_TYPE">
 <span class="sig-name descname"><span class="pre">BEHAVIOR_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'IMETRONIC'</span></em><a class="headerlink" href="#pyfiber.behavior.Behavior.BEHAVIOR_FILE_TYPE" title="Permalink to this definition"></a></dt>
@@ -199,6 +273,16 @@ graph         : True/False visualise selection</p>
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">MultiBehavior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior" title="Permalink to this definition"></a></dt>
 <dd><dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior._savgol">
+<span class="sig-name descname"><span class="pre">_savgol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nosmoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior._savgol" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior._cnt">
+<span class="sig-name descname"><span class="pre">_cnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior._cnt" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior.count">
 <span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.count" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -220,6 +304,148 @@ graph         : True/False visualise selection</p>
 
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyfiber.behavior.Events">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">Events</span></span><a class="headerlink" href="#pyfiber.behavior.Events" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.select_interval_by_duration">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">select_interval_by_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pyfiber.behavior.select_interval_by_duration" title="Permalink to this definition"></a></dt>
+<dd><p>Select interval based on their duration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interval</strong> (<code class="docutils literal notranslate"><span class="pre">Intervals</span></code>) – interval as a list of tuples</p></li>
+<li><p><strong>condition</strong> – user inputed condition (<em>e.g.</em> <code class="docutils literal notranslate"><span class="pre">['&lt;',25]</span></code>)</p></li>
+<li><p><strong>type</strong> – <code class="docutils literal notranslate"><span class="pre">list</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filtered intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Intervals</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.generate_interval">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">generate_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">off</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pyfiber.behavior.generate_interval" title="Permalink to this definition"></a></dt>
+<dd><p>Compute intervals based on a two lists of right and left limits. Discards redundant values (i.e. if two consecutive right limits are provided).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>on</strong> (<code class="docutils literal notranslate"><span class="pre">Events</span></code>) – left limits of desired intervals.</p></li>
+<li><p><strong>off</strong> (<code class="docutils literal notranslate"><span class="pre">Events</span></code>) – right limits of desired intervals.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>computed intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Intervals</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.interval_is_close_to">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">interval_is_close_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nearness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'right'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pyfiber.behavior.interval_is_close_to" title="Permalink to this definition"></a></dt>
+<dd><p>Return a list of intervals each near of at least one event from the specified event array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>intervals</strong> (<code class="docutils literal notranslate"><span class="pre">Intervals</span></code>) – evaluated intervals</p></li>
+<li><p><strong>events</strong> (<code class="docutils literal notranslate"><span class="pre">Events</span></code>) – events of which intervals must be near</p></li>
+<li><p><strong>nearness</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – maximum distance from interval to events (in seconds)</p></li>
+<li><p><strong>closed</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – see <code class="docutils literal notranslate"><span class="pre">pandas.IntervalArray</span></code> for details</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>selected intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Intervals</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.element_of">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">element_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boolean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pyfiber.behavior.element_of" title="Permalink to this definition"></a></dt>
+<dd><p>Return events that are elements (or are not) of specified intervals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_array</strong> (<code class="docutils literal notranslate"><span class="pre">Events</span></code>) – input list of event timestamps</p></li>
+<li><p><strong>intervals</strong> (<code class="docutils literal notranslate"><span class="pre">Intervals</span></code>) – intervals that should (or shouldn’t) include events</p></li>
+<li><p><strong>is_element</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – <code class="docutils literal notranslate"><span class="pre">True</span></code> if intervals should be in intervals, <code class="docutils literal notranslate"><span class="pre">False</span></code> if they should’t</p></li>
+<li><p><strong>boolean</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function return type is a boolean, else it is the list of timestamps that pass the condition</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Either the timestamps or a boolean</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Events</span></code> or <code class="docutils literal notranslate"><span class="pre">bool</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.set_intersection">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">set_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">sets</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.set_intersection" title="Permalink to this definition"></a></dt>
+<dd><p>Find intersection of any number of Intervals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sets</strong> (<code class="docutils literal notranslate"><span class="pre">Intervals</span></code>) – intervals to be united.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Intersection of all inputed Intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Intervals</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.set_union">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">set_union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">sets</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.set_union" title="Permalink to this definition"></a></dt>
+<dd><p>Find union of any number of Intervals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sets</strong> (<code class="docutils literal notranslate"><span class="pre">Intervals</span></code>) – intervals to be united.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Union of all inputed Intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Intervals</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyfiber.behavior.set_non">
+<span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">set_non</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.set_non" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the complement of a collection of sets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>A</strong> (<code class="docutils literal notranslate"><span class="pre">Intervals</span></code>) – Intervals of which to compute the complement</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Complement of A</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Intervals</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-pyfiber.fiber">
 <span id="pyfiber-fiber-module"></span><h2>pyfiber.fiber module<a class="headerlink" href="#module-pyfiber.fiber" title="Permalink to this headline"></a></h2>
@@ -227,6 +453,24 @@ graph         : True/False visualise selection</p>
 <dt class="sig sig-object py" id="pyfiber.fiber.Fiber">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.fiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber" title="Permalink to this definition"></a></dt>
 <dd><p>Extract fiberphotometry data from Doric system.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.fiber.Fiber._read_file">
+<span class="sig-name descname"><span class="pre">_read_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber._read_file" title="Permalink to this definition"></a></dt>
+<dd><p>Read file and align the timestamps if specified</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.fiber.Fiber._extract_data">
+<span class="sig-name descname"><span class="pre">_extract_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber._extract_data" title="Permalink to this definition"></a></dt>
+<dd><p>Extract raw fiber data from Doric system.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.fiber.Fiber._split_recordings">
+<span class="sig-name descname"><span class="pre">_split_recordings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber._split_recordings" title="Permalink to this definition"></a></dt>
+<dd><p>Cut at timestamp jumps (defined by a step greater than N times the mean sample space (defined in config.yaml).</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.fiber.Fiber.to_csv">
 <span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recordings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber.to_csv" title="Permalink to this definition"></a></dt>
@@ -241,6 +485,12 @@ graph         : True/False visualise selection</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.fiber.Fiber._find_rec">
+<span class="sig-name descname"><span class="pre">_find_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber._find_rec" title="Permalink to this definition"></a></dt>
+<dd><p>Find recording number corresponding to inputed timestamp.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.fiber.Fiber.get">
 <span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recording</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber.get" title="Permalink to this definition"></a></dt>
 <dd><p>Extracts a data array from a specific column of a recording (default is first recording)
@@ -252,6 +502,16 @@ graph         : True/False visualise selection</p>
 <dt class="sig sig-object py" id="pyfiber.fiber.Fiber.norm">
 <span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber.norm" title="Permalink to this definition"></a></dt>
 <dd><p>Normalize data with specified method</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.fiber.Fiber._detect_peaks">
+<span class="sig-name descname"><span class="pre">_detect_peaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(30,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zscore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bMAD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pMAD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber._detect_peaks" title="Permalink to this definition"></a></dt>
+<dd><p>Detect peaks on segments of data:</p>
+<p>window:   window size for peak detection, the median is calculated for each bin
+distance: minimun distance between peaks, limits peak over detection
+zscore:   full if zscore is to be computed on the whole recording before splitting in bins, or bins if after
+plot,figsize: parameters for plotting</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -335,6 +595,21 @@ graph         : True/False visualise selection</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.analysis.</span></span><span class="sig-name descname"><span class="pre">Session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">behavior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Session" title="Permalink to this definition"></a></dt>
 <dd><p>Create object containing both fiber recordings and behavioral files.</p>
 <p>From a single session/subject.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.analysis.Session._sample">
+<span class="sig-name descname"><span class="pre">_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Session._sample" title="Permalink to this definition"></a></dt>
+<dd><p>Take a sample of the recording.</p>
+<p>Based on one event and desired preevent and postevent duration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.analysis.Session._recorded_timestamps">
+<span class="sig-name descname"><span class="pre">_recorded_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Session._recorded_timestamps" title="Permalink to this definition"></a></dt>
+<dd><p>Return timestamps.</p>
+<p>Uses Behavior objecys timestamps method function
+and applying it to analyzable_events.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.analysis.Session.events">
 <span class="sig-name descname"><span class="pre">events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Session.events" title="Permalink to this definition"></a></dt>
@@ -468,6 +743,16 @@ graph         : True/False visualise selection</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.analysis.</span></span><span class="sig-name descname"><span class="pre">MultiSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.MultiSession" title="Permalink to this definition"></a></dt>
 <dd><p>Group analyses or multiple events for single subject.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.analysis.MultiSession._import_folder">
+<span class="sig-name descname"><span class="pre">_import_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.MultiSession._import_folder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.analysis.MultiSession._getID">
+<span class="sig-name descname"><span class="pre">_getID</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.MultiSession._getID" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.analysis.MultiSession.show_rates">
 <span class="sig-name descname"><span class="pre">show_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.MultiSession.show_rates" title="Permalink to this definition"></a></dt>
 <dd><p>Show rates for specified events.</p>
@@ -592,12 +877,22 @@ norm=’default’    : normalization method used</p>
 <dd><p>Give results of perievent analysis.</p>
 <p>Relative to one event from a session.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.analysis.Analysis._savgol">
+<span class="sig-name descname"><span class="pre">_savgol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nosmoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Analysis._savgol" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.analysis.Analysis.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'event'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'savgol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsmoothed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smth_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Analysis.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Visualize data.</p>
 <p>By default smoothes data with Savitski Golay filter
 (window size 250ms).</p>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.analysis.Analysis._possible_data">
+<span class="sig-name descname"><span class="pre">_possible_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Analysis._possible_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.analysis.Analysis.smooth">
@@ -755,6 +1050,7 @@ norm=’default’    : normalization method used</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber._utils.</span></span><span class="sig-name descname"><span class="pre">PyFiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber._utils.PyFiber" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Parent object for Behavioral, Fiber and Analysis objects.</p>
+<p>Contains</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pyfiber._utils.PyFiber.FOLDER">
 <span class="sig-name descname"><span class="pre">FOLDER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'C:\\Users\\mceau/.pyfiber'</span></em><a class="headerlink" href="#pyfiber._utils.PyFiber.FOLDER" title="Permalink to this definition"></a></dt>
@@ -870,7 +1166,7 @@ norm=’default’    : normalization method used</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="package.html" class="btn btn-neutral float-left" title="pyfiber" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

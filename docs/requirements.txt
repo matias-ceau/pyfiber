@@ -5,3 +5,4 @@ pyyaml
 datetime
 seaborn
 matplotlib
+typing

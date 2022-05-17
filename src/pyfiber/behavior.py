@@ -1,22 +1,253 @@
+"""The pyfiber.behavior module define two classes: Behavior and MultiBehavior,
+that extracts behavioral events from raw files. They possess a number of methods that are useful when dealing
+with complex experimental paradigm. Intervals corresponding to periods between specified timestamps can be 
+automatically calculated by defining them in the configuration file.
+"""
+
 import pandas as pd
 import os
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 from ._utils import PyFiber as PyFiber
+import typing
+from typing import List, Tuple, Union
 
-__all__ = ['Behavior', 'MultiBehavior']
+__all__ = [
+        'Behavior',
+        'MultiBehavior',
+        'Intervals',
+        'Events',
+        'select_interval_by_duration',
+        'generate_interval',
+        'interval_is_close_to',
+        'element_of',
+        'set_operation',
+        'set_intersection',
+        'set_union',
+        'set_non'
+        ]
+
+Intervals = List[Tuple[float,float]]
+Events = np.ndarray
+# FUNCTIONS
+
+def select_interval_by_duration(interval: Intervals, condition: list) -> Intervals:
+    """Select interval based on their duration.
+
+    :param interval: interval as a list of tuples
+    :type interval: ``Intervals``
+    :param condition: user inputed condition (*e.g.* ``['<',25]``)
+    :param type: ``list``
+    :return: Filtered intervals
+    :rtype: ``Intervals``"""
+    if condition[0] == '<':
+        return [(a, b) for a, b in interval if (b-a) < condition[1]]
+    elif condition[0] == '>':
+        [(a, b) for a, b in interval if (b-a) > condition[1]]
+    elif condition[0] == '=':
+        [(a, b) for a, b in interval if (b-a) == condition[1]]
+    else:
+        print('Invalid input for select by interval duration.')
+
+def generate_interval(on : Events, off: Events, end: float) -> Intervals:
+    """Compute intervals based on a two lists of right and left limits. Discards redundant values (i.e. if two consecutive right limits are provided).
+
+    :param on: left limits of desired intervals.
+    :type on: ``Events``
+    :param off: right limits of desired intervals.
+    :type off: ``Events``
+    :return: computed intervals
+    :rtype: ``Intervals``"""
+    on = list(set([i for i in on if i not in off]))
+    off = list(set([i for i in off if i not in on]))
+
+    on_series = pd.Series([1]*len(set(on)), index=on, dtype='float64')
+    off_series = pd.Series([0]*len(set(off)), index=off, dtype='float64')
+   
+    s = pd.concat((on_series, off_series)).sort_index()
+    status, intervals, current = 0, [], [None, None]
+  
+    for n in s.index:
+        if status == 0 and s[n] == 1:
+            status = 1
+            current[0] = n
+        if status == 1 and s[n] == 0:
+            status = 0
+            current[1] = n
+            intervals.append(current)
+            current = [None, None]
+    if current != [None, None]:
+        current[1] = end
+        intervals.append(current)
+
+    return [tuple(i) for i in intervals if i[0]-i[1] != 0]
+
+def interval_is_close_to(intervals : Intervals,
+                         events : Events,
+                         nearness : float,
+                         closed : str='right') -> Intervals:
+    """Return a list of intervals each near of at least one event from the specified event array.
+
+    :param intervals: evaluated intervals
+    :type intervals: ``Intervals``
+    :param events: events of which intervals must be near
+    :type events: ``Events``
+    :param nearness: maximum distance from interval to events (in seconds)
+    :type nearness: ``float``
+    :param closed: see ``pandas.IntervalArray`` for details
+    :type closed: ``str``
+    :return: selected intervals
+    :rtype: ``Intervals``"""
+    result = []
+    intervals = pd.arrays.IntervalArray.from_tuples(
+        intervals, closed=closed)
+    for n in range(len(intervals)):
+        if (abs(events - intervals[n].left) < nearness).any():
+            result.append((intervals[n].left, intervals[n].right))
+    return result
+
+def element_of(event_array : Events,
+               intervals : Intervals,
+               is_element : bool =True,
+               boolean : bool =False) -> Union[bool,Events]:
+    """Return events that are elements (or are not) of specified intervals.
+
+    :param event_array: input list of event timestamps
+    :type event_array: ``Events``
+    :param intervals: intervals that should (or shouldn't) include events
+    :type intervals: ``Intervals``
+    :param is_element: ``True`` if intervals should be in intervals, ``False`` if they should't
+    :type is_element: ``bool``
+    :param boolean: if ``True``, the function return type is a boolean, else it is the list of timestamps that pass the condition
+    :type boolean: ``bool``
+    :return: Either the timestamps or a boolean
+    :rtype: ``Events`` or ``bool``"""
+    if type(intervals) != pd.core.arrays.interval.IntervalArray:
+        intervals = pd.arrays.IntervalArray.from_tuples(
+            intervals, closed='both')  # 'left')
+    if is_element:
+        res = np.array(
+            [event for event in event_array if intervals.contains(event).any()])
+    else:
+        res = np.array(
+            [event for event in event_array if not intervals.contains(event).any()])
+    if not boolean:
+        return res
+    if boolean and is_element:
+        return len(res) > 0
+    if boolean and not is_element:
+        return len(res) == 0
+
+def set_operations(A, B, operation):
+    """Compute the union or the intersection of list of sets.
+    
+    :param A: Intervals A
+    :param B: Intervals B
+    :type A: ``Intervals``
+    :type B: ``Intervals``
+
+    Operation :
+    - union               A U B
+    - intersection        A n B
+    """
+    if (A == []) or (B == []):
+        if operation == 'intersection':
+            return []
+        if operation == 'union':
+            if A == []:
+                return B
+            if B == []:
+                return A
+    if A == B:
+        return A
+    left = np.sort(list(set([i[0] for i in A] + [i[0] for i in B])))
+    right = np.sort(list(set([i[1] for i in A] + [i[1] for i in B])))
+    pA = pd.arrays.IntervalArray.from_tuples(A, closed="both")
+    pB = pd.arrays.IntervalArray.from_tuples(B, closed="both")
+    if operation == 'intersection':
+        result = list(zip([l for l in left if (pA.contains(l).any() and pB.contains(l).any())],
+                          [r for r in right if (pA.contains(r).any() and pB.contains(r).any())]))
+    if operation == 'union':
+        result = list(zip([l for l in left if not(pA.contains(l).any() and pB.contains(l).any())],
+                          [r for r in right if not(pA.contains(r).any() and pB.contains(r).any())]))
+    return [(left, right) for left, right in result if left-right != 0]
+
+def set_union(*sets):
+    """Find union of any number of Intervals.
+
+    :param sets: intervals to be united.
+    :type sets: ``Intervals``
+    :return: Union of all inputed Intervals
+    :rtype: ``Intervals``
+    """
+    if len(sets) == 1:
+        return sets[0]  # intersection of an ensemble with itself is itself
+    union = set_operations(sets[0], sets[1], 'union')
+    if len(sets) == 2:
+        return union
+    else:
+        for i in range(2, len(sets)):
+            union = set_operations(union, sets[i], 'union')
+    return union
+
+def set_intersection(*sets):
+    """Find intersection of any number of Intervals.
+
+    :param sets: intervals to be united.
+    :type sets: ``Intervals``
+    :return: Intersection of all inputed Intervals
+    :rtype: ``Intervals``
+    """
+    if len(sets) == 1:
+        return sets[0]  # intersection of an ensemble with itself is itself
+    intersection = set_operations(sets[0], sets[1], 'intersection')
+    if len(sets) == 2:
+        return intersection
+    else:
+        for i in range(2, len(sets)):
+            intersection = set_operations(
+                intersection, sets[i], 'intersection')
+    return intersection
+
+def set_non(A, end):
+    """Returns the complement of a collection of sets.
+
+    :param A: Intervals of which to compute the complement
+    :type A: ``Intervals``
+    :return: Complement of A
+    :rtype: ``Intervals``
+    """
+    start = 0
+    if len(A) == 0:
+        return [(0, end)]
+    if A == [(0, end)]:
+        return []
+    sides = [i for a in A for i in a]
+    if sides[-1] < end:
+        sides.append(end)
+    if sides[0] != 0:
+        sides.insert(0, 0)
+        return list(zip(sides[::2], sides[1::2]))
+    else:
+        return list(zip(sides[1::2], sides[2::2]))
+
 
 
 class Behavior(PyFiber):
-    """Input : imetronic behavioral data file path."""
+    """Class extracting and analyzing behavioral data.
+
+    :param filepath: filepath (by default must be a .dat file)
+    :type filepath: str
+    :param filetype: must be set to user-defined format (by default takes the value of 'BEHAVIOR_FILE_TYPE' in the configuration file
+    :param kwargs: arguments passed to _utils.PyFiber, the parent class (ex: verbosity=False)
+    """
     vars().update(PyFiber.BEHAVIOR)
 
     def __init__(self,
                  filepath,
                  filetype=None,
                  **kwargs):
-        """Initialize Behavior object, timestamp arrays are lowercase, periods are uppercase."""
         self.__dict__.update(
             {k: v for k, v in locals().items() if k not in ('self', '__class__', 'kwargs')})
         super().__init__(**kwargs)
@@ -52,15 +283,18 @@ class Behavior(PyFiber):
 
     @property
     def raw(self):
+        """Output the unprocessed data file."""
         with open(self.filepath) as f:
             print(''.join(f.readlines()))
 
     @property
     def total(self):
+        """Return the count for a all extracted event."""
         return pd.DataFrame({k: v.shape[0] for k, v in self.events().items()}, index=['count']).T
 
     @property
     def data(self):
+        """Return the count for all extracted event for all calculated intervals."""
         user_value = self._verbosity
         self._verbosity = False
         events = self.events().keys()
@@ -86,9 +320,26 @@ GENERAL INFORMATION:
 ######################### HELPER FUNCTIONS ###########################
 
 ######################################################################################################
+    def _extract(self, family : int, subtype: int, column: str, value: int) -> pd.DataFrame:
+        """Extract timestamps for counters from Imetronic file.
+
+        :param family: data family (see Imetronic nomenclature)
+        :type family: int
+        :param subtype: data subtype
+        :type family: int
+        :param column: additional column precising event of interest
+        :type column: str
+        :param value: value needed in column to extract it
+        :return: data corresponding to input parameters
+        :rtype: ``pd.DataFrame``
+        """
+        return self.df[(self.df['F'] == family) &
+                       (self.df['ID'] == subtype) &
+                       (self.df[column] == value)]['TIME'].to_numpy()
+
         # RAW EVENT TIMESTAMP
     def _create_imetronic_attributes(self):
-        # simple events
+        """Extract event specified in the configuration file, in the **imetronic_events** section."""
         for e, param in self.BEHAVIOR['imetronic_events'].items():
             self._print(f"Detecting {e+'...':<30}  {param})")
             if param[0] == 'conditional':
@@ -101,6 +352,7 @@ GENERAL INFORMATION:
 
     
     def _compute_attributes(self):
+        """Create rule-based intervals and events as specified in the configuration file (in sections **basic_intervals** and **custom**)"""
         def t(inp):
             if type(inp) == str:
                 return self._translate(inp)
@@ -117,11 +369,11 @@ GENERAL INFORMATION:
                 self._print(f"Detecting {e+'...':<30}  {param})")
                 if param[0] == 'ON_OFF':
                     w, (a, b) = param[1:]
-                    ON = self._interval(t(a), t(b), self.end)
+                    ON = generate_interval(t(a), t(b), self.end)
                     if w == 'on' or w == 'both':
                         self.__dict__[e+'_ON'] = ON
                     if w == 'off' or w == 'both':
-                        self.__dict__[e+'_OFF'] = self._non(ON, self.end)
+                        self.__dict__[e+'_OFF'] = set_non(ON, self.end)
 
         # custom events an intervals, function defined first as generation is sequential and depend on a specific order
         if bool(self.BEHAVIOR['custom']):
@@ -129,14 +381,14 @@ GENERAL INFORMATION:
                 p, a, *b = param
                 self._print(f"Detecting {e+'...':<30}  {param})")
                 if p == 'INTERSECTION':
-                    self.__dict__[e] = self._intersection(*t(a))
+                    self.__dict__[e] = set_intersection(*t(a))
                 if p == 'NEAR_EVENT':
-                    self.__dict__[e] = self._interval_is_close_to(
+                    self.__dict__[e] = interval_is_close_to(
                         **{k: v for k, v in zip(['intervals', 'events', 'nearness'], t([a]+b))})
                 if p == 'DURATION':
-                    self.__dict__[e] = self._select_interval_by_duration(t(a), b)
+                    self.__dict__[e] = select_interval_by_duration(t(a), b)
                 if p == 'UNION':
-                    self.__dict__[e] = self._union(*t(a))
+                    self.__dict__[e] = set_union(*t(a))
                 if p == 'boundary':
                     self.__dict__[e] = np.array(
                         [i if a == 'start' else j for i, j in t(*b)])
@@ -145,7 +397,7 @@ GENERAL INFORMATION:
                 if p == 'indexed':
                     self.__dict__[e] = t(a)[b[0]-1: b[0]]
                 if p == 'iselement':
-                    self.__dict__[e] = self._set_element(t(a), t(*b))
+                    self.__dict__[e] = element_of(t(a), t(*b))
                 if p == 'timerestricted':
                     self.__dict__[e] = t(a)[(t(a) > b[0][0]) & (t(a) < b[0][1])]
                 if p == 'generative':
@@ -157,146 +409,6 @@ GENERAL INFORMATION:
             
 
  ######################################################################################################
-    def _extract(self, family, subtype, column, value):
-        """Extract timestamps for counters from imetronic file, first and second values indentify datatype, additional column precise event of interest (start,end, etc.)."""
-        return self.df[(self.df['F'] == family) &
-                       (self.df['ID'] == subtype) &
-                       (self.df[column] == value)]['TIME'].to_numpy()
-
-    def _select_interval_by_duration(self, interval, condition):
-        if condition[0] == '<':
-            return [(a, b) for a, b in interval if (b-a) < condition[1]]
-        elif condition[0] == '>':
-            [(a, b) for a, b in interval if (b-a) > condition[1]]
-        elif condition[0] == '=':
-            [(a, b) for a, b in interval if (b-a) == condition[1]]
-        else:
-            print('Invalid input for select by interval duration.')
-
-    def _interval(self, on, off, end):
-        on = list(set([i for i in on if i not in off]))
-        off = list(set([i for i in off if i not in on]))
-
-        on_series = pd.Series([1]*len(set(on)), index=on, dtype='float64')
-        off_series = pd.Series([0]*len(set(off)), index=off, dtype='float64')
-       
-        s = pd.concat((on_series, off_series)).sort_index()
-        status, intervals, current = 0, [], [None, None]
-      
-        for n in s.index:
-            if status == 0 and s[n] == 1:
-                status = 1
-                current[0] = n
-            if status == 1 and s[n] == 0:
-                status = 0
-                current[1] = n
-                intervals.append(current)
-                current = [None, None]
-        if current != [None, None]:
-            current[1] = end
-            intervals.append(current)
-
-        return [tuple(i) for i in intervals if i[0]-i[1] != 0]
-
-    def _interval_is_close_to(self, intervals, events, nearness, closed='right'):
-        """Return a list of intervals each near of at least one event from the specified event array (near being defined by treshold)."""
-        result = []
-        intervals = pd.arrays.IntervalArray.from_tuples(
-            intervals, closed=closed)
-        for n in range(len(intervals)):
-            if (abs(events - intervals[n].left) < nearness).any():
-                result.append((intervals[n].left, intervals[n].right))
-        return result
-
-    def _set_element(self, event_array, intervals, is_element=True, boolean=False):
-        """Return events (inputed as list or array) that are elements (is_element=True) or not (is_element=False) of intervals (tuple list or pd.intervalarray)."""
-        if type(intervals) != pd.core.arrays.interval.IntervalArray:
-            intervals = pd.arrays.IntervalArray.from_tuples(
-                intervals, closed='both')  # 'left')
-        if is_element:
-            res = np.array(
-                [event for event in event_array if intervals.contains(event).any()])
-        else:
-            res = np.array(
-                [event for event in event_array if not intervals.contains(event).any()])
-        if not boolean:
-            return res
-        if boolean and is_element:
-            return len(res) > 0
-        if boolean and not is_element:
-            return len(res) == 0
-        else:
-            self._print(
-                f'Something went wrong with _set_element method ({self.__class__})')
-
-    def _set_operations(self, A, B, operation):
-        """Do basic set operations with two sets lits, A and B, given as list of interval limits.
-
-        Operation :
-        - union               A U B
-        - intersection        A n B
-        """
-        if (A == []) or (B == []):
-            if operation == 'intersection':
-                return []
-            if operation == 'union':
-                if A == []:
-                    return B
-                if B == []:
-                    return A
-        if A == B:
-            return A
-        left = np.sort(list(set([i[0] for i in A] + [i[0] for i in B])))
-        right = np.sort(list(set([i[1] for i in A] + [i[1] for i in B])))
-        pA = pd.arrays.IntervalArray.from_tuples(A, closed="both")
-        pB = pd.arrays.IntervalArray.from_tuples(B, closed="both")
-        if operation == 'intersection':
-            result = list(zip([l for l in left if (pA.contains(l).any() and pB.contains(l).any())],
-                              [r for r in right if (pA.contains(r).any() and pB.contains(r).any())]))
-        if operation == 'union':
-            result = list(zip([l for l in left if not(pA.contains(l).any() and pB.contains(l).any())],
-                              [r for r in right if not(pA.contains(r).any() and pB.contains(r).any())]))
-        return [(left, right) for left, right in result if left-right != 0]
-
-    def _union(self, *sets):
-        """Find union of sets, using self._set_operations(union)."""
-        if len(sets) == 1:
-            return sets[0]  # intersection of an ensemble with itself is itself
-        union = self._set_operations(sets[0], sets[1], 'union')
-        if len(sets) == 2:
-            return union
-        else:
-            for i in range(2, len(sets)):
-                union = self._set_operations(union, sets[i], 'union')
-        return union
-
-    def _intersection(self, *sets):
-        """Find intersection of sets, using self._set_operations(intersection)."""
-        if len(sets) == 1:
-            return sets[0]  # intersection of an ensemble with itself is itself
-        intersection = self._set_operations(sets[0], sets[1], 'intersection')
-        if len(sets) == 2:
-            return intersection
-        else:
-            for i in range(2, len(sets)):
-                intersection = self._set_operations(
-                    intersection, sets[i], 'intersection')
-        return intersection
-
-    def _non(self, A, end):
-        """Return non A for any set A inputed as list of tuples defining time interval limits."""
-        if len(A) == 0:
-            return [(self.start, self.end)]
-        if A == [(self.start, self.end)]:
-            return []
-        sides = [i for a in A for i in a]
-        if sides[-1] < end:
-            sides.append(end)
-        if sides[0] != 0:
-            sides.insert(0, 0)
-            return list(zip(sides[::2], sides[1::2]))
-        else:
-            return list(zip(sides[1::2], sides[2::2]))
 
     def _translate(self, obj):
         """Translate strings into corresponding arrays."""
@@ -308,7 +420,7 @@ GENERAL INFORMATION:
                 non = False
             try:
                 if non:
-                    return self._non(self.__dict__[obj], self.end)
+                    return set_non(self.__dict__[obj], self.end)
                 else:
                     return self.__dict__[obj]
             except KeyError:
@@ -394,63 +506,6 @@ GENERAL INFORMATION:
         a = self.get((6, 1))
         return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
 
-    def movement(self, values=False, plot=True, figsize=(20, 10), cmap='seismic'):
-        """Show number of crossings."""
-        array = np.zeros((max(self.y_coordinates), max(self.x_coordinates)))
-        for i in range(len(self.x_coordinates)):
-            array[self.y_coordinates[i] - 1,
-                  self.x_coordinates[i] - 1] += 1
-        fig, ax = plt.subplots(1, figsize=figsize)
-        ax.imshow(array, cmap=cmap, vmin=0, vmax=np.max(array))
-        ax.invert_yaxis()
-        plt.show()
-
-    def what_data(self, plot=True, figsize=(20, 40)):
-        """Return dataframe summarizing the imetronic dat file."""
-        d = {}
-        for k in self.SYSTEM['IMETRONIC'].keys():
-            d.update(self.SYSTEM['IMETRONIC'][k])
-        elements = {}
-        detected_tuples = list(set(zip(self.df.F, self.df.ID)))
-        unnamed_tuples = sorted([i for i in detected_tuples if i not in [
-                                tuple(i) for i in d.values()]])
-        unnamed_dict = {k: list(k) for k in unnamed_tuples}
-        for k, v in {**d, **unnamed_dict}.items():
-            df = self.get(v)
-            if len(df):
-                elements[k] = [len(df)] + [round(np.mean(df[i]), 3)
-                                           if np.mean(df[i]) != 0 else '' for i in df.columns]
-        data = pd.DataFrame(elements, index=[
-                            'count']+list(self.df.columns)).T.sort_values('count', ascending=False)
-        if plot:
-            names = data.index.values
-            columns = data.columns.values[4:]
-            fig, axes = plt.subplots(len(names), figsize=figsize)
-            for n, ax in enumerate(axes):
-                name = names[n]
-                df = self.get(name)
-                for c in columns:
-                    ax.scatter(df['TIME']/60_000, df[c], label=c.split('_')[1])
-                ax.legend()
-                ax.title.set_text(name)
-                ax.set_xlim(
-                    (0, max([i for i in data['TIME'] if type(i) != str])/60_000))
-        return data
-
-    def get(self, name):
-        """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
-        if type(name) == str:
-            nomenclature = {}
-            for i in [self.SYSTEM['IMETRONIC'][d] for d in self.SYSTEM['IMETRONIC'].keys()]:
-                nomenclature.update(i)
-            if name:
-                name = name.upper()
-                if name in nomenclature.keys():
-                    return self.df[(self.df['F'] == int(nomenclature[name][0])) & (self.df['ID'] == int(nomenclature[name][1]))]
-        elif type(name) in [list, tuple]:
-            return self.df[(self.df['F'] == int(name[0])) & (self.df['ID'] == int(name[1]))]
-        else:
-            return self.df
 
     def figure(self, obj,
                figsize='default', h=0.8, hspace=0, label_list=None, color_list=None, **kwargs):
@@ -508,20 +563,20 @@ graph         : True/False visualise selection"""
             interval_data = [(self.start, self.end)]
             self._print(f'Choosen interval: {interval_data} (all)')
         else:
-            interval_data = self._union(*self._internal_selection(interval))
+            interval_data = set_union(*self._internal_selection(interval))
         selected_interval = interval_data
         if intersection != []:
-            intersection_data = self._intersection(
+            intersection_data = set_intersection(
                 *self._internal_selection(intersection))
-            selected_interval = self._intersection(
+            selected_interval = set_intersection(
                 selected_interval, intersection_data)
             self._print(f'Intersection of {intersection}: {intersection_data}')
         else:
             intersection_data = []
         if exclude != []:
-            exclude_data = self._union(*self._internal_selection(exclude))
-            selected_interval = self._intersection(
-                selected_interval, self._non(exclude_data, end=self.end))
+            exclude_data = set_union(*self._internal_selection(exclude))
+            selected_interval = set_intersection(
+                selected_interval, set_non(exclude_data, end=self.end))
             self._print(
                 f"Excluded intervals: {exclude}: selected {exclude_data}")
         else:
@@ -529,7 +584,7 @@ graph         : True/False visualise selection"""
         if length:
             selected_interval = [(a, a+length) for a, b in selected_interval]
             self._print(f"Intervals restricted to {length} seconds.")
-        selected_timestamps = self._set_element(
+        selected_timestamps = element_of(
             events_data, selected_interval, is_element=True)
         if user_output:
             return events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps
@@ -587,7 +642,7 @@ graph         : True/False visualise selection"""
         else:
             recorded_and_window = [(a+window[0], b-window[1])
                                    for a, b in self.TTL1_ON]
-            return {k: self._set_element(v, recorded_and_window, is_element=True) for k, v in events.items()}
+            return {k: element_of(v, recorded_and_window, is_element=True) for k, v in events.items()}
 
     def intervals(self, recorded=False, window=(0, 0)):
         """Retrieve list of intervals."""
@@ -598,8 +653,65 @@ graph         : True/False visualise selection"""
         else:
             recorded_and_window = [(a+window[0], b-window[1])
                                    for a, b in self.TTL1_ON]
-            return {k: self._intersection(v, recorded_and_window) for k, v in intervals.items()}
+            return {k: set_intersection(v, recorded_and_window) for k, v in intervals.items()}
 
+    def what_data(self, plot=True, figsize=(20, 40)):
+        """Return dataframe summarizing the imetronic dat file."""
+        d = {}
+        for k in self.SYSTEM['IMETRONIC'].keys():
+            d.update(self.SYSTEM['IMETRONIC'][k])
+        elements = {}
+        detected_tuples = list(set(zip(self.df.F, self.df.ID)))
+        unnamed_tuples = sorted([i for i in detected_tuples if i not in [
+                                tuple(i) for i in d.values()]])
+        unnamed_dict = {k: list(k) for k in unnamed_tuples}
+        for k, v in {**d, **unnamed_dict}.items():
+            df = self.get(v)
+            if len(df):
+                elements[k] = [len(df)] + [round(np.mean(df[i]), 3)
+                                           if np.mean(df[i]) != 0 else '' for i in df.columns]
+        data = pd.DataFrame(elements, index=[
+                            'count']+list(self.df.columns)).T.sort_values('count', ascending=False)
+        if plot:
+            names = data.index.values
+            columns = data.columns.values[4:]
+            fig, axes = plt.subplots(len(names), figsize=figsize)
+            for n, ax in enumerate(axes):
+                name = names[n]
+                df = self.get(name)
+                for c in columns:
+                    ax.scatter(df['TIME']/60_000, df[c], label=c.split('_')[1])
+                ax.legend()
+                ax.title.set_text(name)
+                ax.set_xlim(
+                    (0, max([i for i in data['TIME'] if type(i) != str])/60_000))
+        return data
+
+    def get(self, name):
+        """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
+        if type(name) == str:
+            nomenclature = {}
+            for i in [self.SYSTEM['IMETRONIC'][d] for d in self.SYSTEM['IMETRONIC'].keys()]:
+                nomenclature.update(i)
+            if name:
+                name = name.upper()
+                if name in nomenclature.keys():
+                    return self.df[(self.df['F'] == int(nomenclature[name][0])) & (self.df['ID'] == int(nomenclature[name][1]))]
+        elif type(name) in [list, tuple]:
+            return self.df[(self.df['F'] == int(name[0])) & (self.df['ID'] == int(name[1]))]
+        else:
+            return self.df
+
+    def movement(self, values=False, plot=True, figsize=(20, 10), cmap='seismic'):
+        """Show number of crossings."""
+        array = np.zeros((max(self.y_coordinates), max(self.x_coordinates)))
+        for i in range(len(self.x_coordinates)):
+            array[self.y_coordinates[i] - 1,
+                  self.x_coordinates[i] - 1] += 1
+        fig, ax = plt.subplots(1, figsize=figsize)
+        ax.imshow(array, cmap=cmap, vmin=0, vmax=np.max(array))
+        ax.invert_yaxis()
+        plt.show()
 
 class MultiBehavior(PyFiber):
 

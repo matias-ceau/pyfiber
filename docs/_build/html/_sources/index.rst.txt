@@ -22,13 +22,14 @@ Installation
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    getstarted
    usage
    tutorial
    package
+   configuration
    modules
 
 

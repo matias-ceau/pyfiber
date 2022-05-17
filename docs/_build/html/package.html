@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pyfiber &mdash; pyfiber 0.1.0 documentation</title>
+  <title>Main Classes &mdash; pyfiber 0.1.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="modules" href="modules.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
     <link rel="prev" title="Tutorial" href="tutorial.html" /> 
 </head>
 
@@ -42,8 +42,24 @@
 <li class="toctree-l1"><a class="reference internal" href="getstarted.html">Get Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">pyfiber</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">modules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Main Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#behavior-and-multibehavior">Behavior and MultiBehavior</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#behavior">Behavior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multibehavior">MultiBehavior</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fiber">Fiber</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#session-and-multisession">Session and MultiSession</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-and-multianalysis">Analysis and MultiAnalysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#analysis">Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multianalysis">MultiAnalysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules Details</a></li>
 </ul>
 
         </div>
@@ -60,7 +76,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>pyfiber</li>
+      <li>Main Classes</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/package.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,44 +86,94 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-pyfiber">
-<span id="pyfiber"></span><h1>pyfiber<a class="headerlink" href="#module-pyfiber" title="Permalink to this headline"></a></h1>
+  <section id="main-classes">
+<h1><a class="toc-backref" href="#id1">Main Classes</a><a class="headerlink" href="#main-classes" title="Permalink to this headline"></a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#main-classes" id="id1">Main Classes</a></p>
+<ul>
+<li><p><a class="reference internal" href="#overview" id="id2">Overview</a></p></li>
+<li><p><a class="reference internal" href="#behavior-and-multibehavior" id="id3">Behavior and MultiBehavior</a></p>
+<ul>
+<li><p><a class="reference internal" href="#behavior" id="id4">Behavior</a></p></li>
+<li><p><a class="reference internal" href="#multibehavior" id="id5">MultiBehavior</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#fiber" id="id6">Fiber</a></p></li>
+<li><p><a class="reference internal" href="#session-and-multisession" id="id7">Session and MultiSession</a></p></li>
+<li><p><a class="reference internal" href="#analysis-and-multianalysis" id="id8">Analysis and MultiAnalysis</a></p>
+<ul>
+<li><p><a class="reference internal" href="#analysis" id="id9">Analysis</a></p></li>
+<li><p><a class="reference internal" href="#multianalysis" id="id10">MultiAnalysis</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="overview">
+<h2><a class="toc-backref" href="#id2">Overview</a><a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<p>All classes are defined in submodules but directly imported in the main package, which means they are directly accessible in the pyfiber namespace.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyfiber</span> <span class="k">as</span> <span class="nn">pf</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Behavior</span><span class="p">(</span><span class="s1">&#39;&lt;filepath&gt;&#39;</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Fiber</span><span class="p">(</span><span class="s1">&#39;&lt;filepath&gt;&#39;</span><span class="p">)</span>
+<span class="n">mb</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">MultiBehavior</span><span class="p">(</span><span class="s1">&#39;&lt;folder&gt;&#39;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="s1">&#39;&lt;folder&gt;&#39;</span><span class="p">)</span>
+<span class="n">ms</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">MultiSession</span><span class="p">(</span><span class="s1">&#39;&lt;folder&gt;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Analysis and MultiAnalysis instances are not directly created by users but returned by Session and MultiSession instances when analyzing peri-events.</p>
+</div>
+<p>Four main categories of objects exist:</p>
+<dl class="simple">
+<dt><strong>Behavior</strong> and <strong>MultiBehavior</strong></dt><dd><p>As the name suggest, these classes extract and describe single or multiple behavioral data files. Currently, Imetronic ‘.dat’ files are the default, but <em>csv</em> files can also be inputed (In that case they, should follow a specific structure, see ??).</p>
+</dd>
+<dt><strong>Fiber</strong></dt><dd><p>This class is used to extract and analyze fiber photometry data. Currently it accepts by default Doric systems <em>csv</em> files. Other file formats may be extracted, by providing the columns labels in the configuration file (see <a class="reference internal" href="configuration.html"><span class="doc">Configuration</span></a>)</p>
+</dd>
+<dt><strong>Session</strong> and <strong>MultiSession</strong></dt><dd><p>Theses classes read data from both behavioral data files and fiber photometry files. Their main purpose is to allow precise peri-event analysis, around one or many defined types of events, respectively for one session or many.
+The analysis result is returned as an Analysis or MultiAnalysis instance, for convenience.</p>
+</dd>
+<dt><strong>Analysis</strong> and <strong>MultiAnalysis</strong></dt><dd><p>Analysis result outputted by Session or MultiSession objects. They contain data, stored in attributes (for example, pre-event and post event standard scores or robust standard scores), optionnally outputted as dataframe. Finally, they can plot the traces around the event of interest.</p>
+</dd>
+</dl>
+</section>
+<section id="behavior-and-multibehavior">
+<h2><a class="toc-backref" href="#id3">Behavior and MultiBehavior</a><a class="headerlink" href="#behavior-and-multibehavior" title="Permalink to this headline"></a></h2>
+<section id="behavior">
+<h3><a class="toc-backref" href="#id4">Behavior</a><a class="headerlink" href="#behavior" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Behavior">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Behavior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<p>Input : imetronic behavioral data file path.</p>
+<dd><p>Class extracting and analyzing behavioral data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – filepath (by default must be a .dat file)</p></li>
+<li><p><strong>filetype</strong> – must be set to user-defined format (by default takes the value of ‘BEHAVIOR_FILE_TYPE’ in the configuration file</p></li>
+<li><p><strong>kwargs</strong> – arguments passed to _utils.PyFiber, the parent class (ex: verbosity=False)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.Behavior.raw">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">raw</span></span><a class="headerlink" href="#pyfiber.Behavior.raw" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Output the unprocessed data file.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.Behavior.total">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">total</span></span><a class="headerlink" href="#pyfiber.Behavior.total" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Return the count for a all extracted event.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.Behavior.data">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#pyfiber.Behavior.data" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.Behavior.movement">
-<span class="sig-name descname"><span class="pre">movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seismic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior.movement" title="Permalink to this definition"></a></dt>
-<dd><p>Show number of crossings.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.Behavior.what_data">
-<span class="sig-name descname"><span class="pre">what_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">40)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior.what_data" title="Permalink to this definition"></a></dt>
-<dd><p>Return dataframe summarizing the imetronic dat file.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.Behavior.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior.get" title="Permalink to this definition"></a></dt>
-<dd><p>Extract dataframe section corresponding to selected counter name (‘name’) or tuple (‘idtuple’).</p>
+<dd><p>Return the count for all extracted event for all calculated intervals.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -152,74 +218,42 @@ graph         : True/False visualise selection</p>
 <dd><p>Retrieve list of intervals.</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.BEHAVIOR_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">BEHAVIOR_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'IMETRONIC'</span></em><a class="headerlink" href="#pyfiber.Behavior.BEHAVIOR_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.Behavior.what_data">
+<span class="sig-name descname"><span class="pre">what_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">40)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior.what_data" title="Permalink to this definition"></a></dt>
+<dd><p>Return dataframe summarizing the imetronic dat file.</p>
+</dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.basic_intervals">
-<span class="sig-name descname"><span class="pre">basic_intervals</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'HLED':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['hled_on',</span> <span class="pre">'hled_off']],</span> <span class="pre">'LED1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led1_on',</span> <span class="pre">'led1_off']],</span> <span class="pre">'LED2':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led2_on',</span> <span class="pre">'led2_off']],</span> <span class="pre">'TTL1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['ttl1_on',</span> <span class="pre">'ttl1_off']]}</span></em><a class="headerlink" href="#pyfiber.Behavior.basic_intervals" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.Behavior.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior.get" title="Permalink to this definition"></a></dt>
+<dd><p>Extract dataframe section corresponding to selected counter name (‘name’) or tuple (‘idtuple’).</p>
+</dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.behavior_time_ratio">
-<span class="sig-name descname"><span class="pre">behavior_time_ratio</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#pyfiber.Behavior.behavior_time_ratio" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.csv_events">
-<span class="sig-name descname"><span class="pre">csv_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'TTL1':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-1',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL2':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-2',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL3':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-3',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL4':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-4',</span> <span class="pre">'Time(s)']}</span></em><a class="headerlink" href="#pyfiber.Behavior.csv_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.custom">
-<span class="sig-name descname"><span class="pre">custom</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['HLED_OFF',</span> <span class="pre">'LED1_OFF',</span> <span class="pre">'LED2_OFF']],</span> <span class="pre">'DNI':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'DARK',</span> <span class="pre">'inj1',</span> <span class="pre">5],</span> <span class="pre">'D_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'ND_first':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'HLED_ON',</span> <span class="pre">'switch_1',</span> <span class="pre">1],</span> <span class="pre">'ND_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['DARK',</span> <span class="pre">'~TIMEOUT']],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">['UNION',</span> <span class="pre">['LED1_ON',</span> <span class="pre">'TO_DARK']],</span> <span class="pre">'TO_DARK':</span> <span class="pre">['DURATION',</span> <span class="pre">'DNI',</span> <span class="pre">'&lt;',</span> <span class="pre">45],</span> <span class="pre">'hled_on_end':</span> <span class="pre">['boundary',</span> <span class="pre">'end',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'hled_on_start':</span> <span class="pre">['boundary',</span> <span class="pre">'start',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'np1_HLED_OFF':</span> <span class="pre">['iselement',</span> <span class="pre">'np1',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'np1_n':</span> <span class="pre">['generative',</span> <span class="pre">'np_effective',</span> <span class="pre">5],</span> <span class="pre">'np_effective':</span> <span class="pre">['iselement',</span> <span class="pre">'np1_HLED_OFF',</span> <span class="pre">'~TIMEOUT'],</span> <span class="pre">'rec_start':</span> <span class="pre">['indexed',</span> <span class="pre">'ttl1_on',</span> <span class="pre">1],</span> <span class="pre">'switch_1':</span> <span class="pre">['indexed',</span> <span class="pre">'switch_between',</span> <span class="pre">1],</span> <span class="pre">'switch_between':</span> <span class="pre">['timerestricted',</span> <span class="pre">'switch_dto_nd',</span> <span class="pre">[100,</span> <span class="pre">3400]],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_dto_nd':</span> <span class="pre">['combination',</span> <span class="pre">['switch_d_nd',</span> <span class="pre">'switch_to_nd']],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_end',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'TIMEOUT']}</span></em><a class="headerlink" href="#pyfiber.Behavior.custom" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.elements">
-<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">[False,</span> <span class="pre">'DARK',</span> <span class="pre">'k'],</span> <span class="pre">'HLED_OFF':</span> <span class="pre">[True,</span> <span class="pre">'Drug</span> <span class="pre">Period',</span> <span class="pre">'#069AF3'],</span> <span class="pre">'HLED_ON':</span> <span class="pre">[True,</span> <span class="pre">'No</span> <span class="pre">Drug</span> <span class="pre">Period',</span> <span class="pre">'gold'],</span> <span class="pre">'LED1_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED1_OFF',</span> <span class="pre">['darkgray',</span> <span class="pre">'darkgrey']],</span> <span class="pre">'LED1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Conditioned</span> <span class="pre">Stimulus',</span> <span class="pre">'goldenrod'],</span> <span class="pre">'LED2_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED2_OFF',</span> <span class="pre">'slategrey'],</span> <span class="pre">'LED2_ON':</span> <span class="pre">[True,</span> <span class="pre">'</span> <span class="pre">Drug</span> <span class="pre">Light</span> <span class="pre">On',</span> <span class="pre">'slategrey'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'NOTO_DARK',</span> <span class="pre">'black'],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">[True,</span> <span class="pre">'Time</span> <span class="pre">outs',</span> <span class="pre">'k'],</span> <span class="pre">'TO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'TO_DARK',</span> <span class="pre">'olivedrab'],</span> <span class="pre">'TTL1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Fiber</span> <span class="pre">Photometry</span> <span class="pre">Recordings',</span> <span class="pre">'g'],</span> <span class="pre">'inj1':</span> <span class="pre">[True,</span> <span class="pre">'Injections',</span> <span class="pre">'k'],</span> <span class="pre">'np1':</span> <span class="pre">[True,</span> <span class="pre">'Active</span> <span class="pre">Nosepokes',</span> <span class="pre">'r'],</span> <span class="pre">'np2':</span> <span class="pre">[True,</span> <span class="pre">'Inactive</span> <span class="pre">Nosepokes',</span> <span class="pre">'b'],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">D</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r'],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">ND</span> <span class="pre">to</span> <span class="pre">D',</span> <span class="pre">'b'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">TO</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r']}</span></em><a class="headerlink" href="#pyfiber.Behavior.elements" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Behavior.imetronic_events">
-<span class="sig-name descname"><span class="pre">imetronic_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'hled_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'hled_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'inj1':</span> <span class="pre">['conditional',</span> <span class="pre">[6,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'led1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'led2_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led2_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'np1':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">1],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'np2':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">2],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'ttl1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">0]],</span> <span class="pre">'ttl1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'x_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_X'],</span> <span class="pre">'xy_timestamps':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'TIME'],</span> <span class="pre">'y_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_Y']}</span></em><a class="headerlink" href="#pyfiber.Behavior.imetronic_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.Behavior.movement">
+<span class="sig-name descname"><span class="pre">movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seismic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Behavior.movement" title="Permalink to this definition"></a></dt>
+<dd><p>Show number of crossings.</p>
+</dd></dl>
 
 </dd></dl>
 
+</section>
+<section id="multibehavior">
+<h3><a class="toc-backref" href="#id5">MultiBehavior</a><a class="headerlink" href="#multibehavior" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.MultiBehavior">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">MultiBehavior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiBehavior" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.MultiBehavior.count">
-<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiBehavior.count" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.MultiBehavior.cumul">
-<span class="sig-name descname"><span class="pre">cumul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">15)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiBehavior.cumul" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.MultiBehavior.show_rate">
-<span class="sig-name descname"><span class="pre">show_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HLED_ON'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[15,</span> <span class="pre">50,</span> <span class="pre">85]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiBehavior.show_rate" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.MultiBehavior.summary">
-<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiBehavior.summary" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+</section>
+</section>
+<section id="fiber">
+<h2><a class="toc-backref" href="#id6">Fiber</a><a class="headerlink" href="#fiber" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Fiber">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<p>Extract fiberphotometry data from Doric system.</p>
+<dd><p>Extract fiberphotometry data from Doric system.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Fiber.to_csv">
 <span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recordings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.to_csv" title="Permalink to this definition"></a></dt>
@@ -247,84 +281,21 @@ graph         : True/False visualise selection</p>
 <dd><p>Normalize data with specified method</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.FIBER_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">FIBER_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DORIC'</span></em><a class="headerlink" href="#pyfiber.Fiber.FIBER_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.default_norm">
-<span class="sig-name descname"><span class="pre">default_norm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'F'</span></em><a class="headerlink" href="#pyfiber.Fiber.default_norm" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.min_sample_per_rec">
-<span class="sig-name descname"><span class="pre">min_sample_per_rec</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pyfiber.Fiber.min_sample_per_rec" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.peak_baseline_MAD">
-<span class="sig-name descname"><span class="pre">peak_baseline_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pyfiber.Fiber.peak_baseline_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.peak_distance">
-<span class="sig-name descname"><span class="pre">peak_distance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'50ms'</span></em><a class="headerlink" href="#pyfiber.Fiber.peak_distance" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.peak_peak_MAD">
-<span class="sig-name descname"><span class="pre">peak_peak_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pyfiber.Fiber.peak_peak_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.peak_window">
-<span class="sig-name descname"><span class="pre">peak_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.Fiber.peak_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.peak_zscore">
-<span class="sig-name descname"><span class="pre">peak_zscore</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'full'</span></em><a class="headerlink" href="#pyfiber.Fiber.peak_zscore" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.perievent_window">
-<span class="sig-name descname"><span class="pre">perievent_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[1.0,</span> <span class="pre">1.0]</span></em><a class="headerlink" href="#pyfiber.Fiber.perievent_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Fiber.plot_transients">
 <span class="sig-name descname"><span class="pre">plot_transients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zscore'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.plot_transients" title="Permalink to this definition"></a></dt>
 <dd><p>Show graphical representation of detected transients with their amplitude.</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.split_recordings">
-<span class="sig-name descname"><span class="pre">split_recordings</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#pyfiber.Fiber.split_recordings" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.split_treshold">
-<span class="sig-name descname"><span class="pre">split_treshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.Fiber.split_treshold" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Fiber.trim_recording">
-<span class="sig-name descname"><span class="pre">trim_recording</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#pyfiber.Fiber.trim_recording" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.Fiber.peakFA">
-<span class="sig-name descname"><span class="pre">peakFA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.peakFA" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
+</section>
+<section id="session-and-multisession">
+<h2><a class="toc-backref" href="#id7">Session and MultiSession</a><a class="headerlink" href="#session-and-multisession" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Session">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">behavior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<p>Create object containing both fiber recordings and behavioral files.</p>
+<dd><p>Create object containing both fiber recordings and behavioral files.</p>
 <p>From a single session/subject.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Session.events">
@@ -357,108 +328,12 @@ graph         : True/False visualise selection</p>
 <p>Tests if they happen within recording timeframe.</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.BEHAVIOR_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">BEHAVIOR_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'IMETRONIC'</span></em><a class="headerlink" href="#pyfiber.Session.BEHAVIOR_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.FIBER_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">FIBER_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DORIC'</span></em><a class="headerlink" href="#pyfiber.Session.FIBER_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.basic_intervals">
-<span class="sig-name descname"><span class="pre">basic_intervals</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'HLED':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['hled_on',</span> <span class="pre">'hled_off']],</span> <span class="pre">'LED1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led1_on',</span> <span class="pre">'led1_off']],</span> <span class="pre">'LED2':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led2_on',</span> <span class="pre">'led2_off']],</span> <span class="pre">'TTL1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['ttl1_on',</span> <span class="pre">'ttl1_off']]}</span></em><a class="headerlink" href="#pyfiber.Session.basic_intervals" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.behavior_time_ratio">
-<span class="sig-name descname"><span class="pre">behavior_time_ratio</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#pyfiber.Session.behavior_time_ratio" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.csv_events">
-<span class="sig-name descname"><span class="pre">csv_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'TTL1':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-1',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL2':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-2',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL3':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-3',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL4':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-4',</span> <span class="pre">'Time(s)']}</span></em><a class="headerlink" href="#pyfiber.Session.csv_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.custom">
-<span class="sig-name descname"><span class="pre">custom</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['HLED_OFF',</span> <span class="pre">'LED1_OFF',</span> <span class="pre">'LED2_OFF']],</span> <span class="pre">'DNI':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'DARK',</span> <span class="pre">'inj1',</span> <span class="pre">5],</span> <span class="pre">'D_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'ND_first':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'HLED_ON',</span> <span class="pre">'switch_1',</span> <span class="pre">1],</span> <span class="pre">'ND_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['DARK',</span> <span class="pre">'~TIMEOUT']],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">['UNION',</span> <span class="pre">['LED1_ON',</span> <span class="pre">'TO_DARK']],</span> <span class="pre">'TO_DARK':</span> <span class="pre">['DURATION',</span> <span class="pre">'DNI',</span> <span class="pre">'&lt;',</span> <span class="pre">45],</span> <span class="pre">'hled_on_end':</span> <span class="pre">['boundary',</span> <span class="pre">'end',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'hled_on_start':</span> <span class="pre">['boundary',</span> <span class="pre">'start',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'np1_HLED_OFF':</span> <span class="pre">['iselement',</span> <span class="pre">'np1',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'np1_n':</span> <span class="pre">['generative',</span> <span class="pre">'np_effective',</span> <span class="pre">5],</span> <span class="pre">'np_effective':</span> <span class="pre">['iselement',</span> <span class="pre">'np1_HLED_OFF',</span> <span class="pre">'~TIMEOUT'],</span> <span class="pre">'rec_start':</span> <span class="pre">['indexed',</span> <span class="pre">'ttl1_on',</span> <span class="pre">1],</span> <span class="pre">'switch_1':</span> <span class="pre">['indexed',</span> <span class="pre">'switch_between',</span> <span class="pre">1],</span> <span class="pre">'switch_between':</span> <span class="pre">['timerestricted',</span> <span class="pre">'switch_dto_nd',</span> <span class="pre">[100,</span> <span class="pre">3400]],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_dto_nd':</span> <span class="pre">['combination',</span> <span class="pre">['switch_d_nd',</span> <span class="pre">'switch_to_nd']],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_end',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'TIMEOUT']}</span></em><a class="headerlink" href="#pyfiber.Session.custom" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.default_norm">
-<span class="sig-name descname"><span class="pre">default_norm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'F'</span></em><a class="headerlink" href="#pyfiber.Session.default_norm" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.elements">
-<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">[False,</span> <span class="pre">'DARK',</span> <span class="pre">'k'],</span> <span class="pre">'HLED_OFF':</span> <span class="pre">[True,</span> <span class="pre">'Drug</span> <span class="pre">Period',</span> <span class="pre">'#069AF3'],</span> <span class="pre">'HLED_ON':</span> <span class="pre">[True,</span> <span class="pre">'No</span> <span class="pre">Drug</span> <span class="pre">Period',</span> <span class="pre">'gold'],</span> <span class="pre">'LED1_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED1_OFF',</span> <span class="pre">['darkgray',</span> <span class="pre">'darkgrey']],</span> <span class="pre">'LED1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Conditioned</span> <span class="pre">Stimulus',</span> <span class="pre">'goldenrod'],</span> <span class="pre">'LED2_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED2_OFF',</span> <span class="pre">'slategrey'],</span> <span class="pre">'LED2_ON':</span> <span class="pre">[True,</span> <span class="pre">'</span> <span class="pre">Drug</span> <span class="pre">Light</span> <span class="pre">On',</span> <span class="pre">'slategrey'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'NOTO_DARK',</span> <span class="pre">'black'],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">[True,</span> <span class="pre">'Time</span> <span class="pre">outs',</span> <span class="pre">'k'],</span> <span class="pre">'TO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'TO_DARK',</span> <span class="pre">'olivedrab'],</span> <span class="pre">'TTL1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Fiber</span> <span class="pre">Photometry</span> <span class="pre">Recordings',</span> <span class="pre">'g'],</span> <span class="pre">'inj1':</span> <span class="pre">[True,</span> <span class="pre">'Injections',</span> <span class="pre">'k'],</span> <span class="pre">'np1':</span> <span class="pre">[True,</span> <span class="pre">'Active</span> <span class="pre">Nosepokes',</span> <span class="pre">'r'],</span> <span class="pre">'np2':</span> <span class="pre">[True,</span> <span class="pre">'Inactive</span> <span class="pre">Nosepokes',</span> <span class="pre">'b'],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">D</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r'],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">ND</span> <span class="pre">to</span> <span class="pre">D',</span> <span class="pre">'b'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">TO</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r']}</span></em><a class="headerlink" href="#pyfiber.Session.elements" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.imetronic_events">
-<span class="sig-name descname"><span class="pre">imetronic_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'hled_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'hled_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'inj1':</span> <span class="pre">['conditional',</span> <span class="pre">[6,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'led1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'led2_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led2_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'np1':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">1],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'np2':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">2],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'ttl1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">0]],</span> <span class="pre">'ttl1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'x_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_X'],</span> <span class="pre">'xy_timestamps':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'TIME'],</span> <span class="pre">'y_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_Y']}</span></em><a class="headerlink" href="#pyfiber.Session.imetronic_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.min_sample_per_rec">
-<span class="sig-name descname"><span class="pre">min_sample_per_rec</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pyfiber.Session.min_sample_per_rec" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.peak_baseline_MAD">
-<span class="sig-name descname"><span class="pre">peak_baseline_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pyfiber.Session.peak_baseline_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.peak_distance">
-<span class="sig-name descname"><span class="pre">peak_distance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'50ms'</span></em><a class="headerlink" href="#pyfiber.Session.peak_distance" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.peak_peak_MAD">
-<span class="sig-name descname"><span class="pre">peak_peak_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pyfiber.Session.peak_peak_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.peak_window">
-<span class="sig-name descname"><span class="pre">peak_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.Session.peak_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.peak_zscore">
-<span class="sig-name descname"><span class="pre">peak_zscore</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'full'</span></em><a class="headerlink" href="#pyfiber.Session.peak_zscore" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.perievent_window">
-<span class="sig-name descname"><span class="pre">perievent_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[1.0,</span> <span class="pre">1.0]</span></em><a class="headerlink" href="#pyfiber.Session.perievent_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.split_recordings">
-<span class="sig-name descname"><span class="pre">split_recordings</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#pyfiber.Session.split_recordings" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.split_treshold">
-<span class="sig-name descname"><span class="pre">split_treshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.Session.split_treshold" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.Session.trim_recording">
-<span class="sig-name descname"><span class="pre">trim_recording</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#pyfiber.Session.trim_recording" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.MultiSession">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">MultiSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiSession" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<p>Group analyses or multiple events for single subject.</p>
+<dd><p>Group analyses or multiple events for single subject.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.MultiSession.show_rates">
 <span class="sig-name descname"><span class="pre">show_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiSession.show_rates" title="Permalink to this definition"></a></dt>
@@ -481,108 +356,17 @@ norm=’default’    : normalization method used</p>
 <dd><p>Compare behavior (input should be event name)</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.BEHAVIOR_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">BEHAVIOR_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'IMETRONIC'</span></em><a class="headerlink" href="#pyfiber.MultiSession.BEHAVIOR_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.FIBER_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">FIBER_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DORIC'</span></em><a class="headerlink" href="#pyfiber.MultiSession.FIBER_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.basic_intervals">
-<span class="sig-name descname"><span class="pre">basic_intervals</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'HLED':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['hled_on',</span> <span class="pre">'hled_off']],</span> <span class="pre">'LED1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led1_on',</span> <span class="pre">'led1_off']],</span> <span class="pre">'LED2':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led2_on',</span> <span class="pre">'led2_off']],</span> <span class="pre">'TTL1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['ttl1_on',</span> <span class="pre">'ttl1_off']]}</span></em><a class="headerlink" href="#pyfiber.MultiSession.basic_intervals" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.behavior_time_ratio">
-<span class="sig-name descname"><span class="pre">behavior_time_ratio</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#pyfiber.MultiSession.behavior_time_ratio" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.csv_events">
-<span class="sig-name descname"><span class="pre">csv_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'TTL1':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-1',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL2':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-2',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL3':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-3',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL4':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-4',</span> <span class="pre">'Time(s)']}</span></em><a class="headerlink" href="#pyfiber.MultiSession.csv_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.custom">
-<span class="sig-name descname"><span class="pre">custom</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['HLED_OFF',</span> <span class="pre">'LED1_OFF',</span> <span class="pre">'LED2_OFF']],</span> <span class="pre">'DNI':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'DARK',</span> <span class="pre">'inj1',</span> <span class="pre">5],</span> <span class="pre">'D_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'ND_first':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'HLED_ON',</span> <span class="pre">'switch_1',</span> <span class="pre">1],</span> <span class="pre">'ND_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['DARK',</span> <span class="pre">'~TIMEOUT']],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">['UNION',</span> <span class="pre">['LED1_ON',</span> <span class="pre">'TO_DARK']],</span> <span class="pre">'TO_DARK':</span> <span class="pre">['DURATION',</span> <span class="pre">'DNI',</span> <span class="pre">'&lt;',</span> <span class="pre">45],</span> <span class="pre">'hled_on_end':</span> <span class="pre">['boundary',</span> <span class="pre">'end',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'hled_on_start':</span> <span class="pre">['boundary',</span> <span class="pre">'start',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'np1_HLED_OFF':</span> <span class="pre">['iselement',</span> <span class="pre">'np1',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'np1_n':</span> <span class="pre">['generative',</span> <span class="pre">'np_effective',</span> <span class="pre">5],</span> <span class="pre">'np_effective':</span> <span class="pre">['iselement',</span> <span class="pre">'np1_HLED_OFF',</span> <span class="pre">'~TIMEOUT'],</span> <span class="pre">'rec_start':</span> <span class="pre">['indexed',</span> <span class="pre">'ttl1_on',</span> <span class="pre">1],</span> <span class="pre">'switch_1':</span> <span class="pre">['indexed',</span> <span class="pre">'switch_between',</span> <span class="pre">1],</span> <span class="pre">'switch_between':</span> <span class="pre">['timerestricted',</span> <span class="pre">'switch_dto_nd',</span> <span class="pre">[100,</span> <span class="pre">3400]],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_dto_nd':</span> <span class="pre">['combination',</span> <span class="pre">['switch_d_nd',</span> <span class="pre">'switch_to_nd']],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_end',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'TIMEOUT']}</span></em><a class="headerlink" href="#pyfiber.MultiSession.custom" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.default_norm">
-<span class="sig-name descname"><span class="pre">default_norm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'F'</span></em><a class="headerlink" href="#pyfiber.MultiSession.default_norm" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.elements">
-<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">[False,</span> <span class="pre">'DARK',</span> <span class="pre">'k'],</span> <span class="pre">'HLED_OFF':</span> <span class="pre">[True,</span> <span class="pre">'Drug</span> <span class="pre">Period',</span> <span class="pre">'#069AF3'],</span> <span class="pre">'HLED_ON':</span> <span class="pre">[True,</span> <span class="pre">'No</span> <span class="pre">Drug</span> <span class="pre">Period',</span> <span class="pre">'gold'],</span> <span class="pre">'LED1_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED1_OFF',</span> <span class="pre">['darkgray',</span> <span class="pre">'darkgrey']],</span> <span class="pre">'LED1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Conditioned</span> <span class="pre">Stimulus',</span> <span class="pre">'goldenrod'],</span> <span class="pre">'LED2_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED2_OFF',</span> <span class="pre">'slategrey'],</span> <span class="pre">'LED2_ON':</span> <span class="pre">[True,</span> <span class="pre">'</span> <span class="pre">Drug</span> <span class="pre">Light</span> <span class="pre">On',</span> <span class="pre">'slategrey'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'NOTO_DARK',</span> <span class="pre">'black'],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">[True,</span> <span class="pre">'Time</span> <span class="pre">outs',</span> <span class="pre">'k'],</span> <span class="pre">'TO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'TO_DARK',</span> <span class="pre">'olivedrab'],</span> <span class="pre">'TTL1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Fiber</span> <span class="pre">Photometry</span> <span class="pre">Recordings',</span> <span class="pre">'g'],</span> <span class="pre">'inj1':</span> <span class="pre">[True,</span> <span class="pre">'Injections',</span> <span class="pre">'k'],</span> <span class="pre">'np1':</span> <span class="pre">[True,</span> <span class="pre">'Active</span> <span class="pre">Nosepokes',</span> <span class="pre">'r'],</span> <span class="pre">'np2':</span> <span class="pre">[True,</span> <span class="pre">'Inactive</span> <span class="pre">Nosepokes',</span> <span class="pre">'b'],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">D</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r'],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">ND</span> <span class="pre">to</span> <span class="pre">D',</span> <span class="pre">'b'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">TO</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r']}</span></em><a class="headerlink" href="#pyfiber.MultiSession.elements" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.imetronic_events">
-<span class="sig-name descname"><span class="pre">imetronic_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'hled_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'hled_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'inj1':</span> <span class="pre">['conditional',</span> <span class="pre">[6,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'led1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'led2_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led2_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'np1':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">1],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'np2':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">2],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'ttl1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">0]],</span> <span class="pre">'ttl1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'x_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_X'],</span> <span class="pre">'xy_timestamps':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'TIME'],</span> <span class="pre">'y_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_Y']}</span></em><a class="headerlink" href="#pyfiber.MultiSession.imetronic_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.min_sample_per_rec">
-<span class="sig-name descname"><span class="pre">min_sample_per_rec</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pyfiber.MultiSession.min_sample_per_rec" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.peak_baseline_MAD">
-<span class="sig-name descname"><span class="pre">peak_baseline_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pyfiber.MultiSession.peak_baseline_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.peak_distance">
-<span class="sig-name descname"><span class="pre">peak_distance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'50ms'</span></em><a class="headerlink" href="#pyfiber.MultiSession.peak_distance" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.peak_peak_MAD">
-<span class="sig-name descname"><span class="pre">peak_peak_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pyfiber.MultiSession.peak_peak_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.peak_window">
-<span class="sig-name descname"><span class="pre">peak_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.MultiSession.peak_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.peak_zscore">
-<span class="sig-name descname"><span class="pre">peak_zscore</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'full'</span></em><a class="headerlink" href="#pyfiber.MultiSession.peak_zscore" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.perievent_window">
-<span class="sig-name descname"><span class="pre">perievent_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[1.0,</span> <span class="pre">1.0]</span></em><a class="headerlink" href="#pyfiber.MultiSession.perievent_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.split_recordings">
-<span class="sig-name descname"><span class="pre">split_recordings</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#pyfiber.MultiSession.split_recordings" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.split_treshold">
-<span class="sig-name descname"><span class="pre">split_treshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.MultiSession.split_treshold" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiSession.trim_recording">
-<span class="sig-name descname"><span class="pre">trim_recording</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#pyfiber.MultiSession.trim_recording" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
+</section>
+<section id="analysis-and-multianalysis">
+<h2><a class="toc-backref" href="#id8">Analysis and MultiAnalysis</a><a class="headerlink" href="#analysis-and-multianalysis" title="Permalink to this headline"></a></h2>
+<section id="analysis">
+<h3><a class="toc-backref" href="#id9">Analysis</a><a class="headerlink" href="#analysis" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Analysis">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Analysis" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<p>Give results of perievent analysis.</p>
+<dd><p>Give results of perievent analysis.</p>
 <p>Relative to one event from a session.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Analysis.plot">
@@ -607,125 +391,17 @@ norm=’default’    : normalization method used</p>
 
 </dd></dl>
 
+</section>
+<section id="multianalysis">
+<h3><a class="toc-backref" href="#id10">MultiAnalysis</a><a class="headerlink" href="#multianalysis" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.MultiAnalysis">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">MultiAnalysis</span></span><a class="headerlink" href="#pyfiber.MultiAnalysis" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="modules.html#pyfiber._utils.PyFiber" title="pyfiber._utils.PyFiber"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyfiber._utils.PyFiber</span></code></a></p>
-<dl class="py property">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#pyfiber.MultiAnalysis.data" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.full_data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">full_data</span></span><a class="headerlink" href="#pyfiber.MultiAnalysis.full_data" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.BEHAVIOR_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">BEHAVIOR_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'IMETRONIC'</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.BEHAVIOR_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.FIBER_FILE_TYPE">
-<span class="sig-name descname"><span class="pre">FIBER_FILE_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DORIC'</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.FIBER_FILE_TYPE" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.basic_intervals">
-<span class="sig-name descname"><span class="pre">basic_intervals</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'HLED':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['hled_on',</span> <span class="pre">'hled_off']],</span> <span class="pre">'LED1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led1_on',</span> <span class="pre">'led1_off']],</span> <span class="pre">'LED2':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['led2_on',</span> <span class="pre">'led2_off']],</span> <span class="pre">'TTL1':</span> <span class="pre">['ON_OFF',</span> <span class="pre">'both',</span> <span class="pre">['ttl1_on',</span> <span class="pre">'ttl1_off']]}</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.basic_intervals" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.behavior_time_ratio">
-<span class="sig-name descname"><span class="pre">behavior_time_ratio</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.behavior_time_ratio" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.csv_events">
-<span class="sig-name descname"><span class="pre">csv_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'TTL1':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-1',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL2':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-2',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL3':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-3',</span> <span class="pre">'Time(s)'],</span> <span class="pre">'TTL4':</span> <span class="pre">['timestamp',</span> <span class="pre">'DI/O-4',</span> <span class="pre">'Time(s)']}</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.csv_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.custom">
-<span class="sig-name descname"><span class="pre">custom</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['HLED_OFF',</span> <span class="pre">'LED1_OFF',</span> <span class="pre">'LED2_OFF']],</span> <span class="pre">'DNI':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'DARK',</span> <span class="pre">'inj1',</span> <span class="pre">5],</span> <span class="pre">'D_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'ND_first':</span> <span class="pre">['NEAR_EVENT',</span> <span class="pre">'HLED_ON',</span> <span class="pre">'switch_1',</span> <span class="pre">1],</span> <span class="pre">'ND_n':</span> <span class="pre">['GENERATIVE',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">['INTERSECTION',</span> <span class="pre">['DARK',</span> <span class="pre">'~TIMEOUT']],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">['UNION',</span> <span class="pre">['LED1_ON',</span> <span class="pre">'TO_DARK']],</span> <span class="pre">'TO_DARK':</span> <span class="pre">['DURATION',</span> <span class="pre">'DNI',</span> <span class="pre">'&lt;',</span> <span class="pre">45],</span> <span class="pre">'hled_on_end':</span> <span class="pre">['boundary',</span> <span class="pre">'end',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'hled_on_start':</span> <span class="pre">['boundary',</span> <span class="pre">'start',</span> <span class="pre">'HLED_ON'],</span> <span class="pre">'np1_HLED_OFF':</span> <span class="pre">['iselement',</span> <span class="pre">'np1',</span> <span class="pre">'HLED_OFF'],</span> <span class="pre">'np1_n':</span> <span class="pre">['generative',</span> <span class="pre">'np_effective',</span> <span class="pre">5],</span> <span class="pre">'np_effective':</span> <span class="pre">['iselement',</span> <span class="pre">'np1_HLED_OFF',</span> <span class="pre">'~TIMEOUT'],</span> <span class="pre">'rec_start':</span> <span class="pre">['indexed',</span> <span class="pre">'ttl1_on',</span> <span class="pre">1],</span> <span class="pre">'switch_1':</span> <span class="pre">['indexed',</span> <span class="pre">'switch_between',</span> <span class="pre">1],</span> <span class="pre">'switch_between':</span> <span class="pre">['timerestricted',</span> <span class="pre">'switch_dto_nd',</span> <span class="pre">[100,</span> <span class="pre">3400]],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_dto_nd':</span> <span class="pre">['combination',</span> <span class="pre">['switch_d_nd',</span> <span class="pre">'switch_to_nd']],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_end',</span> <span class="pre">'LED2_ON'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">['iselement',</span> <span class="pre">'hled_on_start',</span> <span class="pre">'TIMEOUT']}</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.custom" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.default_norm">
-<span class="sig-name descname"><span class="pre">default_norm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'F'</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.default_norm" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.elements">
-<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'DARK':</span> <span class="pre">[False,</span> <span class="pre">'DARK',</span> <span class="pre">'k'],</span> <span class="pre">'HLED_OFF':</span> <span class="pre">[True,</span> <span class="pre">'Drug</span> <span class="pre">Period',</span> <span class="pre">'#069AF3'],</span> <span class="pre">'HLED_ON':</span> <span class="pre">[True,</span> <span class="pre">'No</span> <span class="pre">Drug</span> <span class="pre">Period',</span> <span class="pre">'gold'],</span> <span class="pre">'LED1_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED1_OFF',</span> <span class="pre">['darkgray',</span> <span class="pre">'darkgrey']],</span> <span class="pre">'LED1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Conditioned</span> <span class="pre">Stimulus',</span> <span class="pre">'goldenrod'],</span> <span class="pre">'LED2_OFF':</span> <span class="pre">[False,</span> <span class="pre">'LED2_OFF',</span> <span class="pre">'slategrey'],</span> <span class="pre">'LED2_ON':</span> <span class="pre">[True,</span> <span class="pre">'</span> <span class="pre">Drug</span> <span class="pre">Light</span> <span class="pre">On',</span> <span class="pre">'slategrey'],</span> <span class="pre">'NOTO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'NOTO_DARK',</span> <span class="pre">'black'],</span> <span class="pre">'TIMEOUT':</span> <span class="pre">[True,</span> <span class="pre">'Time</span> <span class="pre">outs',</span> <span class="pre">'k'],</span> <span class="pre">'TO_DARK':</span> <span class="pre">[False,</span> <span class="pre">'TO_DARK',</span> <span class="pre">'olivedrab'],</span> <span class="pre">'TTL1_ON':</span> <span class="pre">[True,</span> <span class="pre">'Fiber</span> <span class="pre">Photometry</span> <span class="pre">Recordings',</span> <span class="pre">'g'],</span> <span class="pre">'inj1':</span> <span class="pre">[True,</span> <span class="pre">'Injections',</span> <span class="pre">'k'],</span> <span class="pre">'np1':</span> <span class="pre">[True,</span> <span class="pre">'Active</span> <span class="pre">Nosepokes',</span> <span class="pre">'r'],</span> <span class="pre">'np2':</span> <span class="pre">[True,</span> <span class="pre">'Inactive</span> <span class="pre">Nosepokes',</span> <span class="pre">'b'],</span> <span class="pre">'switch_d_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">D</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r'],</span> <span class="pre">'switch_nd_d':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">ND</span> <span class="pre">to</span> <span class="pre">D',</span> <span class="pre">'b'],</span> <span class="pre">'switch_to_nd':</span> <span class="pre">[False,</span> <span class="pre">'Switch</span> <span class="pre">from</span> <span class="pre">TO</span> <span class="pre">to</span> <span class="pre">ND',</span> <span class="pre">'r']}</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.elements" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.imetronic_events">
-<span class="sig-name descname"><span class="pre">imetronic_events</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'hled_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'hled_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">1],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'inj1':</span> <span class="pre">['conditional',</span> <span class="pre">[6,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'led1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">2],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'led2_off':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">0]],</span> <span class="pre">'led2_on':</span> <span class="pre">['conditional',</span> <span class="pre">[1,</span> <span class="pre">3],</span> <span class="pre">['_P',</span> <span class="pre">1]],</span> <span class="pre">'np1':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">1],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'np2':</span> <span class="pre">['conditional',</span> <span class="pre">[3,</span> <span class="pre">2],</span> <span class="pre">['_V',</span> <span class="pre">1]],</span> <span class="pre">'ttl1_off':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">0]],</span> <span class="pre">'ttl1_on':</span> <span class="pre">['conditional',</span> <span class="pre">[15,</span> <span class="pre">1],</span> <span class="pre">['_L',</span> <span class="pre">1]],</span> <span class="pre">'x_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_X'],</span> <span class="pre">'xy_timestamps':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'TIME'],</span> <span class="pre">'y_coordinates':</span> <span class="pre">['simple',</span> <span class="pre">[9,</span> <span class="pre">1],</span> <span class="pre">'_Y']}</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.imetronic_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.min_sample_per_rec">
-<span class="sig-name descname"><span class="pre">min_sample_per_rec</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.min_sample_per_rec" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.peak_baseline_MAD">
-<span class="sig-name descname"><span class="pre">peak_baseline_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.peak_baseline_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.peak_distance">
-<span class="sig-name descname"><span class="pre">peak_distance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'50ms'</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.peak_distance" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.peak_peak_MAD">
-<span class="sig-name descname"><span class="pre">peak_peak_MAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.peak_peak_MAD" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.peak_window">
-<span class="sig-name descname"><span class="pre">peak_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.peak_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.peak_zscore">
-<span class="sig-name descname"><span class="pre">peak_zscore</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'full'</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.peak_zscore" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.perievent_window">
-<span class="sig-name descname"><span class="pre">perievent_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[1.0,</span> <span class="pre">1.0]</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.perievent_window" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
+<dd><dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.MultiAnalysis.possible_data">
 <span class="sig-name descname"><span class="pre">possible_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiAnalysis.possible_data" title="Permalink to this definition"></a></dt>
 <dd><p>Return dictionnary of possible data to plot</p>
 </dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.split_recordings">
-<span class="sig-name descname"><span class="pre">split_recordings</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.split_recordings" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.split_treshold">
-<span class="sig-name descname"><span class="pre">split_treshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.split_treshold" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.trim_recording">
-<span class="sig-name descname"><span class="pre">trim_recording</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#pyfiber.MultiAnalysis.trim_recording" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyfiber.MultiAnalysis.exclude">
-<span class="sig-name descname"><span class="pre">exclude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_of_sessions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiAnalysis.exclude" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.MultiAnalysis.update">
@@ -742,13 +418,15 @@ norm=’default’    : normalization method used</p>
 </dd></dl>
 
 </section>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="modules.html" class="btn btn-neutral float-right" title="modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
