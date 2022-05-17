@@ -5,7 +5,7 @@ API
    :toctree: generated
 
    pyfiber
-   generated/pyfiber.behavior
-   generated/pyfiber.fiber
-   generated/pyfiber.analysis
-   generated/pyfiber._utils
+   pyfiber.behavior
+   pyfiber.fiber
+   pyfiber.analysis
+   pyfiber._utils
