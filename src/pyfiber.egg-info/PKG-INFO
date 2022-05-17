@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyfiber
-Version: 0.2.0
+Version: 0.2.1
 Summary: Fiber photometry and behavioral data analysis tool
 Home-page: https://github.com/matias-ceau/pyfiber
 Author: Matias Ceau
@@ -22,5 +22,13 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 
 # pyFiber
+
+Object-oriented fiber photometry and behavioral data analysis toolkit.
+
+## Installation
+
+```bash
+pip install pyfiber
+```
 
 
