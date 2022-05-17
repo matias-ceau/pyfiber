@@ -4,7 +4,8 @@ API
 .. autosummary::
    :toctree: generated
 
-   pyfiber.behavior
-   pyfiber.fiber
-   pyfiber.analysis
-   pyfiber._utils
+   pyfiber
+   generated/pyfiber.behavior
+   generated/pyfiber.fiber
+   generated/pyfiber.analysis
+   generated/pyfiber._utils
