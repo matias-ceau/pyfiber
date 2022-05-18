@@ -144,7 +144,7 @@ intervals A, B, C are added, return the count of a,b and c for each of the A, B,
 <dd class="field-even"><p>data corresponding to input parameters</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -286,7 +286,10 @@ function if the <code class="docutils literal notranslate"><span class="pre">~</
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>plot</p>
+<dd class="field-even"><p>dictionnary with all events</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -300,24 +303,68 @@ and taking into account a perievent window).</p>
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.intervals">
 <span class="sig-name descname"><span class="pre">intervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recorded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.intervals" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve list of intervals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recorded</strong> (<em>bool</em>) – only output events that are recorded(default value = <code class="docutils literal notranslate"><span class="pre">False</span></code>)</p></li>
+<li><p><strong>recorded_name</strong> (<em>bool</em>) – name of the attribute storing recorded intervals (default <code class="docutils literal notranslate"><span class="pre">'TTL1_ON'</span></code>)</p></li>
+<li><p><strong>window</strong> – perievent analysis window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionnary of all intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Optionally only those which can be used in a perievent analysis (ie during the recording period
+and taking into account a perievent window).</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.what_data">
 <span class="sig-name descname"><span class="pre">what_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">40)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.what_data" title="Permalink to this definition"></a></dt>
-<dd><p>Return dataframe summarizing the imetronic dat file.</p>
+<dd><p>Return dataframe summarizing the IMETRONIC dat file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot</strong> (<em>bool</em>) – return plotted data by ID tuple</p></li>
+<li><p><strong>figsize</strong> – plot size (default=(20,40), see <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> documentation)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.get">
 <span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.get" title="Permalink to this definition"></a></dt>
-<dd><p>Extract dataframe section corresponding to selected counter name (‘name’) or tuple (‘idtuple’).</p>
+<dd><p>Extract dataframe section (IMETRONIC format).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em><em> or </em><em>tuple</em>) – name or ID of IMETRONIC data family</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> corresponding to selected counter name (‘name’) or tuple (‘idtuple’).</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.Behavior.movement">
-<span class="sig-name descname"><span class="pre">movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seismic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.movement" title="Permalink to this definition"></a></dt>
-<dd><p>Show number of crossings.</p>
+<span class="sig-name descname"><span class="pre">movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'seismic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.Behavior.movement" title="Permalink to this definition"></a></dt>
+<dd><p>Show number of crossings as a heatmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figsize</strong> (<code class="docutils literal notranslate"><span class="pre">Tuple[int,</span> <span class="pre">int]</span></code>) – size of plot</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – color map (see <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -359,36 +406,130 @@ and taking into account a perievent window).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">MultiBehavior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior" title="Permalink to this definition"></a></dt>
-<dd><dl class="py method">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.behavior.</span></span><span class="sig-name descname"><span class="pre">MultiBehavior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileformat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior" title="Permalink to this definition"></a></dt>
+<dd><p>Class for multiple behavioral file analysis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder</strong> (<em>str</em>) – folder containing data files (the explorer recurse inside subfolders as well)</p></li>
+<li><p><strong>fileformat</strong> (<em>str</em>) – format of files to be included (default is ‘dat’)</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments passed to <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior</span></code> instances</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>folder</strong> – same as folder parameter</p></li>
+<li><p><strong>fileformat</strong> – same as fileformat parameter</p></li>
+<li><p><strong>paths</strong> – list of all found filepaths</p></li>
+<li><p><strong>filepath</strong> – list of all filepaths (this is directly extracted from each member of sessions)</p></li>
+<li><p><strong>names</strong> – list of all animal names (by default same as filepath)</p></li>
+<li><p><strong>number</strong> – number of sessions</p></li>
+<li><p><strong>(</strong><strong>dict</strong><strong>)</strong> (<em>sessions</em>) – dictionnary containing all sessions as <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior</span></code> instances.</p></li>
+<li><p><strong>df</strong> – list of behavioral data dataframes (see <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior(*).df</span></code> )</p></li>
+<li><p><strong>start</strong> – start for all files, as a list (see <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior(*).start</span></code>)</p></li>
+<li><p><strong>end</strong> – end for all files, as a list (see <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior(*).end</span></code> )</p></li>
+<li><p><strong>&lt;other&gt;</strong> – all created attributed and intervals, as a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with filenames as index.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior._savgol">
 <span class="sig-name descname"><span class="pre">_savgol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nosmoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior._savgol" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior._cnt">
-<span class="sig-name descname"><span class="pre">_cnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior._cnt" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">_cnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior._cnt" title="Permalink to this definition"></a></dt>
+<dd><p>Return the number of events per second for a defined event for all sessions:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> – event name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionnary with ‘filename’ and array with the number of events for each second</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior.count">
-<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.count" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.count" title="Permalink to this definition"></a></dt>
+<dd><p>Return the number of events per second for a defined event for all sessions:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> – event name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data frame containing with number of events for each second for each animal</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Similar to private method <code class="docutils literal notranslate"><span class="pre">self._cnt</span></code> but return the data as a dataframe.</p>
+</div>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior.cumul">
-<span class="sig-name descname"><span class="pre">cumul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">15)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.cumul" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">cumul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(20,</span> <span class="pre">15)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.cumul" title="Permalink to this definition"></a></dt>
+<dd><p>Return the cumulative sum of a given event for all animals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attribute</strong> – event name</p></li>
+<li><p><strong>plot</strong> (<em>bool</em>) – return a plot</p></li>
+<li><p><strong>figsize</strong> – figure size (passed to matplolib via a DataFrame)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Kwargs</dt>
+<dd class="field-even"><p>keyword arguments passed to the plot function of a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data Frame containing the cumulative sum, a plot (optional)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior.show_rate">
-<span class="sig-name descname"><span class="pre">show_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HLED_ON'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[15,</span> <span class="pre">50,</span> <span class="pre">85]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.show_rate" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">show_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HLED_ON'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[15,</span> <span class="pre">50,</span> <span class="pre">85]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.show_rate" title="Permalink to this definition"></a></dt>
+<dd><p>Show rate for all session for any given event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attribute</strong> (<em>str</em>) – event name</p></li>
+<li><p><strong>interval</strong> (<em>str</em><em> or </em><em>bool</em>) – interval shown on the graph (optional)</p></li>
+<li><p><strong>binsize</strong> (<em>int</em>) – binsize in seconds</p></li>
+<li><p><strong>percentiles</strong> (<em>list</em>) – optional plot with percentiles</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – figure size</p></li>
+<li><p><strong>interval_alpha</strong> – transparency value for the interval plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Rtype interval_alpha</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.behavior.MultiBehavior.summary">
-<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.summary" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.behavior.MultiBehavior.summary" title="Permalink to this definition"></a></dt>
+<dd><p>Output the session summary for all sessions:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments passed to <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior(*).summary</span></code></p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 

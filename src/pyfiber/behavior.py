@@ -12,6 +12,8 @@ import numpy as np
 from ._utils import PyFiber as PyFiber
 import typing
 from typing import List, Tuple, Union, Any
+import matplotlib.style as st
+st.use('ggplot')
 
 __all__ = [
         'Behavior',
@@ -82,14 +84,16 @@ def generate_interval(on : Events, off: Events, end: float) -> Intervals:
        fonction.
     
        """
-    on = list(set([i for i in on if i not in off]))
-    off = list(set([i for i in off if i not in on]))
+    on_l = list(set([i for i in on if i not in off]))
+    off_l = list(set([i for i in off if i not in on]))
 
-    on_series = pd.Series([1]*len(set(on)), index=on, dtype='float64')
-    off_series = pd.Series([0]*len(set(off)), index=off, dtype='float64')
+    on_series = pd.Series([1]*len(set(on_l)), index=on, dtype='float64')
+    off_series = pd.Series([0]*len(set(off_l)), index=off, dtype='float64')
    
     s = pd.concat((on_series, off_series)).sort_index()
-    status, intervals, current = 0, [], [None, None]
+    status = 0
+    intervals = []
+    current = [None, None]
   
     for n in s.index:
         if status == 0 and s[n] == 1:
@@ -126,11 +130,11 @@ def interval_is_close_to(intervals : Intervals,
     This function is used to calculate some of the custom events. For example, if the user wishes to isolate
     timestamps of particular events only if they happen near a period where a certain light is on."""
     result = []
-    intervals = pd.arrays.IntervalArray.from_tuples(
+    intervals_pd = pd.arrays.IntervalArray.from_tuples(
         intervals, closed=closed)
-    for n in range(len(intervals)):
-        if (abs(events - intervals[n].left) < nearness).any():
-            result.append((intervals[n].left, intervals[n].right))
+    for n in range(len(intervals_pd)):
+        if (abs(events - intervals_pd[n].left) < nearness).any():
+            result.append((intervals_pd[n].left, intervals_pd[n].right))
     return result
 
 def element_of(event_array : Events,
@@ -372,7 +376,7 @@ GENERAL INFORMATION:
         :type column: str
         :param value: value needed in column to extract it
         :return: data corresponding to input parameters
-        :rtype: ``pd.DataFrame``
+        :rtype: ``pandas.DataFrame``
         """
         return self.df[(self.df['F'] == family) &
                        (self.df['ID'] == subtype) &
@@ -758,7 +762,7 @@ GENERAL INFORMATION:
                 filename = f"{self.filepath.split('/')[-1].split('.dat')[0]}.csv"
             else:
                 if filename[-3:] != 'csv':
-                    filename += f'{self.rat_ID}.csv'
+                    filename += f'{self.ID}.csv'
             pd.DataFrame({'timestamps': result}).to_csv(
                 os.path.join(Behavior.FOLDER, filename), index=False)
         return result
@@ -774,7 +778,8 @@ GENERAL INFORMATION:
         :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
         :type recorded_name: bool
         :param window: perievent analysis window
-        :return: plot
+        :return: dictionnary with all events
+        :rtype: dict
 
         .. note::
             Optionally only those which can be used in a perievent analysis (ie during the recording period
@@ -790,7 +795,21 @@ GENERAL INFORMATION:
             return {k: element_of(v, recorded_and_window, is_element=True) for k, v in events.items()}
 
     def intervals(self, recorded=False, window=(0, 0)):
-        """Retrieve list of intervals."""
+        """Retrieve list of intervals.
+
+        :param recorded: only output events that are recorded(default value = ``False``)
+        :type recorded: bool
+        :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
+        :type recorded_name: bool
+        :param window: perievent analysis window
+
+        :return: dictionnary of all intervals
+        :rtype: dict
+
+        .. note::
+            Optionally only those which can be used in a perievent analysis (ie during the recording period
+            and taking into account a perievent window).
+        """
         intervals = {k: v for k, v in self.__dict__.items() if type(v)
                      == list and k[0] != '_'}
         if not recorded:
@@ -801,7 +820,11 @@ GENERAL INFORMATION:
             return {k: set_intersection(v, recorded_and_window) for k, v in intervals.items()}
 
     def what_data(self, plot=True, figsize=(20, 40)):
-        """Return dataframe summarizing the imetronic dat file."""
+        """Return dataframe summarizing the IMETRONIC dat file.
+
+        :param plot: return plotted data by ID tuple
+        :type plot: bool
+        :param figsize: plot size (default=(20,40), see ``matplotlib`` documentation)"""
         d = {}
         for k in self.SYSTEM['IMETRONIC'].keys():
             d.update(self.SYSTEM['IMETRONIC'][k])
@@ -833,7 +856,13 @@ GENERAL INFORMATION:
         return data
 
     def get(self, name):
-        """Extract dataframe section corresponding to selected counter name ('name') or tuple ('idtuple')."""
+        """Extract dataframe section (IMETRONIC format).
+
+        :param name: name or ID of IMETRONIC data family
+        :type name: str or tuple
+        :return: ``pandas.DataFrame`` corresponding to selected counter name ('name') or tuple ('idtuple').
+        """
+        
         if type(name) == str:
             nomenclature = {}
             for i in [self.SYSTEM['IMETRONIC'][d] for d in self.SYSTEM['IMETRONIC'].keys()]:
@@ -847,8 +876,16 @@ GENERAL INFORMATION:
         else:
             return self.df
 
-    def movement(self, values=False, plot=True, figsize=(20, 10), cmap='seismic'):
-        """Show number of crossings."""
+    def movement(self,
+                figsize : Tuple[int, int] =(20, 10),
+                cmap : str ='seismic'):
+        """Show number of crossings as a heatmap.
+
+        :param figsize: size of plot
+        :type figsize: ``Tuple[int, int]``
+        :param cmap: color map (see ``matplotlib``
+        :type cmap: str
+        """
         array = np.zeros((max(self.y_coordinates), max(self.x_coordinates)))
         for i in range(len(self.x_coordinates)):
             array[self.y_coordinates[i] - 1,
@@ -860,17 +897,40 @@ GENERAL INFORMATION:
 
 class MultiBehavior(PyFiber):
 
+    """Class for multiple behavioral file analysis
+
+    :param folder: folder containing data files (the explorer recurse inside subfolders as well)
+    :type folder: str
+    :param fileformat: format of files to be included (default is 'dat')
+    :type fileformat: str
+    :type filepath: str
+    :param kwargs: keyword arguments passed to ``pyfiber.Behavior`` instances
+
+    :ivar folder: same as folder parameter
+    :ivar fileformat: same as fileformat parameter
+    :ivar paths: list of all found filepaths 
+    :ivar filepath: list of all filepaths (this is directly extracted from each member of sessions)
+    :ivar names: list of all animal names (by default same as filepath)
+    :ivar number: number of sessions
+    :ivar sessions (dict): dictionnary containing all sessions as ``pyfiber.Behavior`` instances.
+    :ivar df: list of behavioral data dataframes (see ``pyfiber.Behavior(*).df`` )
+    :ivar start: start for all files, as a list (see ``pyfiber.Behavior(*).start``)
+    :ivar end: end for all files, as a list (see ``pyfiber.Behavior(*).end`` )
+    :ivar <other>: all created attributed and intervals, as a ``pandas.DataFrame`` with filenames as index.
+    """
+
     _savgol = PyFiber._savgol
 
-    def __init__(self, folder, **kwargs):
+    def __init__(self, folder, fileformat, **kwargs):
         super().__init__()
         self.sessions = {}
         self.foldername = folder
+        self.fileformat = fileformat
         self.paths = []
         for currentpath, folders, files in os.walk(folder):
             for file in files:
                 path = os.path.join(currentpath, file)
-                if path[-3:] == 'dat':
+                if path[-3:] == self.fileformat:
                     self.paths.append(path)
                     self.sessions[path] = Behavior(path, **kwargs)
         self.names = list(self.sessions.keys())
@@ -894,13 +954,45 @@ class MultiBehavior(PyFiber):
 
     def __repr__(self): return f"<MultiBehavior object> // {self.foldername}"
 
-    def _cnt(self, attribute):
+    def _cnt(self, attribute : str) -> dict:
+        """Return the number of events per second for a defined event for all sessions:
+
+        :param attribute: event name
+        :type param: str
+        :return: Dictionnary with 'filename' and array with the number of events for each second
+        :rtype: dict
+        """
         return {k: np.histogram(self.__dict__[attribute].loc[k, :].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
 
-    def count(self, attribute):
+    def count(self, attribute : str) -> pd.DataFrame:
+        """Return the number of events per second for a defined event for all sessions:
+
+        :param attribute: event name
+        :type param: str
+        :return: Data frame containing with number of events for each second for each animal
+        :rtype: ``pandas.DataFrame``
+
+        .. note::
+           Similar to private method ``self._cnt`` but return the data as a dataframe.
+        """
         return pd.DataFrame({k: pd.Series(v) for k, v in self._cnt(attribute).items()}).T
 
-    def cumul(self, attribute, plot=True, figsize=(20, 15), **kwargs):
+    def cumul(self,
+              attribute : str,
+              plot : bool =True,
+              figsize : Tuple[int, int] =(20, 15),
+              **kwargs) -> pd.DataFrame:
+        """Return the cumulative sum of a given event for all animals.
+
+        :param attribute: event name
+        :type param: str
+        :param plot: return a plot
+        :type plot: bool
+        :param figsize: figure size (passed to matplolib via a DataFrame)
+        :kwargs: keyword arguments passed to the plot function of a ``pandas.DataFrame``
+        :return: Data Frame containing the cumulative sum, a plot (optional)
+        :rtype: ``pandas.DataFrame``
+        """
         cumul = pd.DataFrame({k: pd.Series(np.cumsum(v))
                              for k, v in self._cnt(attribute).items()})
         if plot:
@@ -908,7 +1000,27 @@ class MultiBehavior(PyFiber):
             plt.show()
         return cumul.T
 
-    def show_rate(self, attribute, interval='HLED_ON', binsize=120, percentiles=[15, 50, 85], figsize=(20, 10), interval_alpha=0.3):
+    def show_rate(self,
+                  attribute : str,
+                  interval='HLED_ON',
+                  binsize : int =120,
+                  percentiles=[15, 50, 85],
+                  figsize : tuple =(20, 10),
+                  interval_alpha : float =0.3):
+        """Show rate for all session for any given event.
+        
+        :param attribute: event name
+        :type attribute: str
+        :param interval: interval shown on the graph (optional)
+        :type interval: str or bool
+        :param binsize: binsize in seconds
+        :type binsize: int
+        :param percentiles: optional plot with percentiles
+        :type percentiles: list
+        :param figsize: figure size
+        :type figsize: tuple
+        :param interval_alpha: transparency value for the interval plot
+        :rtype interval_alpha: float"""
         plt.figure(figsize=figsize)
         dic = {}
         for name in self.count(attribute).index:
@@ -946,7 +1058,13 @@ class MultiBehavior(PyFiber):
                     plt.axvspan(a-binsize, b-binsize, alpha=interval_alpha)
         plt.show()
 
-    def summary(self):
+    def summary(self, **kwargs):
+        """Output the session summary for all sessions:
+
+        :param kwargs: keyword arguments passed to ``pyfiber.Behavior(*).summary``
+
+        .. note:
+           See documentation for pyfiber.Behavior"""
         for r in self.sessions.keys():
             self.sessions[r].summary()
             plt.title(r)

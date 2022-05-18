@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 from scipy import integrate, stats
 import seaborn as sns
+import matplotlib.style as st
+st.use('ggplot')
 
 from .behavior import Behavior, MultiBehavior
 from .fiber import Fiber

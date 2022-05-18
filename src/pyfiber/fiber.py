@@ -5,6 +5,8 @@ import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 import os
+import matplotlib.style as st
+st.use('ggplot')
 
 from ._utils import PyFiber as PyFiber
 __all__ = ['Fiber']
