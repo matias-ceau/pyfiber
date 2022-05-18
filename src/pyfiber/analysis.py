@@ -84,10 +84,10 @@ class Session(PyFiber):
         """Return all intervals ; wrapper for behavioral data function."""
         return self.behavior.intervals(**kwargs)
 
-    def analyze_perievent(self,
-                          event_time,
-                          window='default',
-                          norm='default'):
+    def analyze(self,
+                event_time,
+                window='default',
+                norm='default'):
         """Return Analysis object, related to defined perievent window."""
         res = Analysis(self.ID)
         res.event_time = event_time
@@ -404,8 +404,8 @@ class MultiSession(PyFiber):
             timestamps = v._recorded_timestamps(
                 events=events, window=window, **kwargs
                 )
-            result.dict[k] = [v.analyze_perievent(
-                i, norm=norm, window=window) for i in timestamps]
+            result.dict[k] = [v.analyze(i, norm=norm, window=window)
+                              for i in timestamps]
             result.key.append(len(result.dict[k])*[k])
 
         result.key = [j for k in [i for i in result.key if i] for j in k]

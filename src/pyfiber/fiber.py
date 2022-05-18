@@ -73,7 +73,7 @@ class Fiber(PyFiber):
         """Give general information about the recording data."""
         general_info = f"""\
 File                     : {self.filepath}
-ID                   : {self.ID}
+ID                       : {self.ID}
 Number of recordings     : {self.number_of_recording}
 Data columns             : {self.columns}
 Total span               : {self.full_time[-1] - self.full_time[0]} s
@@ -82,6 +82,13 @@ Global sampling rate     : {self.sampling_rate} S/s
 Aligned to behavior file : {self.alignement} s
 """
         return general_info
+
+    def _find_rec(self, timestamp):
+        """Find recording number corresponding to inputed timestamp."""
+        rec_num = self.number_of_recording
+        time_nom = 'time'
+        return [i for i in range(1, rec_num+1) if self.get(time_nom, recording=i)[0] <= timestamp <= self.get(time_nom, recording=i)[-1]]
+
 
     def _read_file(self, filepath, alignement=0):
         """Read file and align the timestamps if specified"""
@@ -110,6 +117,43 @@ Aligned to behavior file : {self.alignement} s
         rec = {k: v[v[t_] > v[t_].to_numpy()[0]+self.trim_recording]
                for k, v in rec.items()}
         return rec
+
+    def plot(self,
+             which='all',
+             method='default',
+             figsize=(20,20),
+             raw_label=['Ca-dependant','isosbestic'],
+             norm_label='Normalized signal',
+             xlabel='Time (s)',
+             ylabel_raw='Signal (mV)',
+             ylabel_norm='Signal (%)',
+             title='Recording',
+             hspace=0.5
+             ):
+        """Hey I'm here!"""
+        if which == 'all':
+            recs = list(self.recordings.keys())
+        else:
+            recs = self._list(which)
+        data = [self.norm(rec=i, method=method, add_time=True) for i in recs]
+        rawdata = [self.norm(rec=i, method='raw', add_time=True) for i in recs]
+        n = len(recs)
+        plt.figure(figsize=figsize)
+        for i in range(n):
+            plt.subplot(n, 2, int(i*2)+1)
+            plt.plot(rawdata[i][:,0], rawdata[i][:,1:], label = raw_label)
+            plt.legend()
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel_raw)
+            plt.title(title+f' ({i+1})')
+            
+            plt.subplot(n, 2, int(2*(i+1)))
+            plt.plot(data[i][:,0], data[i][:,1], c='g', label=norm_label+f' ({method})')
+            plt.legend()
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel_norm)
+            plt.title(title+f' ({i+1})')
+        plt.subplots_adjust(hspace = hspace)
 
     def to_csv(self,
                recordings='all',
@@ -154,11 +198,6 @@ Aligned to behavior file : {self.alignement} s
                                        'sampling_rate': [1/np.diff(time)] + [np.nan]*(len(time)-1)})
                     df.to_csv(f'{prefix}_{r}_{c}.csv', index=False)
 
-    def _find_rec(self, timestamp):
-        """Find recording number corresponding to inputed timestamp."""
-        rec_num = self.number_of_recording
-        time_nom = 'time'
-        return [i for i in range(1, rec_num+1) if self.get(time_nom, recording=i)[0] <= timestamp <= self.get(time_nom, recording=i)[-1]]
 
     def get(self,
             column,
@@ -241,7 +280,6 @@ Aligned to behavior file : {self.alignement} s
             pMAD = int(self.peak_peak_MAD)
         else:
             pMAD = int(pMAD)
-        self._print('')
         dF = s
         # calculate zscores
         if zscore == 'full':

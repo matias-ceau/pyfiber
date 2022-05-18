@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from ._utils import PyFiber as PyFiber
 import typing
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Any
 
 __all__ = [
         'Behavior',
@@ -40,7 +40,10 @@ def select_interval_by_duration(interval: Intervals, condition: list) -> Interva
     :param condition: user inputed condition (*e.g.* ``['<',25]``)
     :param type: ``list``
     :return: Filtered intervals
-    :rtype: ``Intervals``"""
+    :rtype: ``Intervals``
+
+    This function selects intervals by their duration, the conditional argument is a list
+    containing the operator and a float (it mainly reads from the configuration file)."""
     if condition[0] == '<':
         return [(a, b) for a, b in interval if (b-a) < condition[1]]
     elif condition[0] == '>':
@@ -58,7 +61,27 @@ def generate_interval(on : Events, off: Events, end: float) -> Intervals:
     :param off: right limits of desired intervals.
     :type off: ``Events``
     :return: computed intervals
-    :rtype: ``Intervals``"""
+    :rtype: ``Intervals``
+
+    .. code:: python
+        
+        # This function is primarly used internally by the Behavior class, but can be directly invoked
+        >> on  = [0., 5., 20., 40]   
+        >> off = [10., 11., 30., 50]
+        # 5 and 11 are redundant and should thus be eliminated
+        >> end = 60
+        # The end should be inputed, if the last command is off, the interval can thus end at the end of the experiment
+        >> pyfiber.behavior.generate_interval(on,off,end)
+        [(0.0, 10.0), (20.0, 30.0), (40.0, 50.0)]
+
+    .. note::
+       This function is based on the metaphor of a light switch, hence the names 'on' and 'off'. However, a number of
+       intervals can be computed with the same principle. Importantly, it assumes that everything is 'off' at the beginning
+       of the experiment. If the interval of interest start at the beginning of the experiment, the complementary
+       interval should be computed and its complement (the interval of interest) itself obtained with the ``behavior.set_non``
+       fonction.
+    
+       """
     on = list(set([i for i in on if i not in off]))
     off = list(set([i for i in off if i not in on]))
 
@@ -98,7 +121,10 @@ def interval_is_close_to(intervals : Intervals,
     :param closed: see ``pandas.IntervalArray`` for details
     :type closed: ``str``
     :return: selected intervals
-    :rtype: ``Intervals``"""
+    :rtype: ``Intervals``
+
+    This function is used to calculate some of the custom events. For example, if the user wishes to isolate
+    timestamps of particular events only if they happen near a period where a certain light is on."""
     result = []
     intervals = pd.arrays.IntervalArray.from_tuples(
         intervals, closed=closed)
@@ -139,17 +165,17 @@ def element_of(event_array : Events,
     if boolean and not is_element:
         return len(res) == 0
 
-def set_operations(A, B, operation):
+def set_operations(A : Intervals, B : Intervals, operation : str) -> Intervals:
     """Compute the union or the intersection of list of sets.
-    
+
     :param A: Intervals A
     :param B: Intervals B
     :type A: ``Intervals``
     :type B: ``Intervals``
 
-    Operation :
-    - union               A U B
-    - intersection        A n B
+    .. note::
+        - **union**               A U B
+        - **intersection**        A n B
     """
     if (A == []) or (B == []):
         if operation == 'intersection':
@@ -173,7 +199,7 @@ def set_operations(A, B, operation):
                           [r for r in right if not(pA.contains(r).any() and pB.contains(r).any())]))
     return [(left, right) for left, right in result if left-right != 0]
 
-def set_union(*sets):
+def set_union(*sets : Intervals) -> Intervals:
     """Find union of any number of Intervals.
 
     :param sets: intervals to be united.
@@ -191,7 +217,7 @@ def set_union(*sets):
             union = set_operations(union, sets[i], 'union')
     return union
 
-def set_intersection(*sets):
+def set_intersection(*sets : Intervals) -> Intervals:
     """Find intersection of any number of Intervals.
 
     :param sets: intervals to be united.
@@ -210,15 +236,18 @@ def set_intersection(*sets):
                 intersection, sets[i], 'intersection')
     return intersection
 
-def set_non(A, end):
+def set_non(A : Intervals, end : float, start : float = 0) -> Intervals:
     """Returns the complement of a collection of sets.
 
     :param A: Intervals of which to compute the complement
     :type A: ``Intervals``
+    :param end: End of experiment
+    :type end: float
+    :param start: start of experiment, default value is 0
+    :type start: float
     :return: Complement of A
     :rtype: ``Intervals``
     """
-    start = 0
     if len(A) == 0:
         return [(0, end)]
     if A == [(0, end)]:
@@ -233,7 +262,6 @@ def set_non(A, end):
         return list(zip(sides[1::2], sides[2::2]))
 
 
-
 class Behavior(PyFiber):
     """Class extracting and analyzing behavioral data.
 
@@ -241,6 +269,13 @@ class Behavior(PyFiber):
     :type filepath: str
     :param filetype: must be set to user-defined format (by default takes the value of 'BEHAVIOR_FILE_TYPE' in the configuration file
     :param kwargs: arguments passed to _utils.PyFiber, the parent class (ex: verbosity=False)
+
+    :ivar filetype: input filetype (takes the default value defined in the config file)
+    :ivar filepath: data file filepath
+    :ivar df: ``pandas.DataFrame`` containing the extracted data
+    :ivar start: first timestamp of the data file, if the input is a csv and no start is provided, it takes the value 0.0
+    :ivar end: last timestamp of the data file, if the input is a csv file, there should be an 'end' column with a float value
+    :ivar <other>: all generated timestamps and intervals get added as instance attribute (and can be refered to their name as strings in most functions)
     """
     vars().update(PyFiber.BEHAVIOR)
 
@@ -253,7 +288,7 @@ class Behavior(PyFiber):
         super().__init__(**kwargs)
 
         if filetype:
-            self.filetype = filetype
+            self.filetype = filetype # :ivar input filetype
         else:
             self.filetype = self.BEHAVIOR_FILE_TYPE
 
@@ -276,6 +311,10 @@ class Behavior(PyFiber):
                 c_ = ''.join(''.join(''.join(('_'.join(('_'.join(c.split('-'))).split(' '))).split('/')).split('(')).split(')'))
                 self.__dict__[c_] = self.df[c].to_numpy()
 
+        if 'start' not in self.__dict__:
+            self.start = 0.
+
+        self.all = [(self.start, self.end)]
         self._compute_attributes()
         self._print(
             f'Importing finished in {np.round(time.time() - start,3)} seconds\n'
@@ -289,12 +328,14 @@ class Behavior(PyFiber):
 
     @property
     def total(self):
-        """Return the count for a all extracted event."""
+        """Return the count for all extracted event (*i.e.* if events a,b and c are added,
+        return the total count of a,b and c.)"""
         return pd.DataFrame({k: v.shape[0] for k, v in self.events().items()}, index=['count']).T
 
     @property
     def data(self):
-        """Return the count for all extracted event for all calculated intervals."""
+        """Return the count for all extracted event for all calculated intervals. (*i.e.* if events a,b and c, and
+        intervals A, B, C are added, return the count of a,b and c for each of the A, B, C intervals.)"""
         user_value = self._verbosity
         self._verbosity = False
         events = self.events().keys()
@@ -339,7 +380,9 @@ GENERAL INFORMATION:
 
         # RAW EVENT TIMESTAMP
     def _create_imetronic_attributes(self):
-        """Extract event specified in the configuration file, in the **imetronic_events** section."""
+        """Extract event specified in the configuration file, in the **imetronic_events** section.
+
+        This function gets called during instance initialization if the filetype is 'IMETRONIC' (see configuration file)."""
         for e, param in self.BEHAVIOR['imetronic_events'].items():
             self._print(f"Detecting {e+'...':<30}  {param})")
             if param[0] == 'conditional':
@@ -410,8 +453,14 @@ GENERAL INFORMATION:
 
  ######################################################################################################
 
-    def _translate(self, obj):
-        """Translate strings into corresponding arrays."""
+    def _translate(self, obj : str):
+        """Translate strings into corresponding arrays.
+        
+        :param obj: name of the interval/event
+        :type obj: str
+
+        Equivalent to a lookup in ``self.__dict__`` with the addition of a call to the ``behavior.set_non``
+        function if the ``~`` sign is prepended to the string."""
         if type(obj) == str:
             if '~' in obj:
                 obj = obj[1:]
@@ -428,8 +477,14 @@ GENERAL INFORMATION:
         else:
             return obj
 
-    def _internal_selection(self, obj):
-        """Transform string into corresponding data."""
+    def _internal_selection(self, obj : Any) -> list:
+        """Transform string into corresponding data.
+        
+        :param obj: either the event/interval name or its data
+
+        :return: object data as a list
+
+        """
         if type(obj) == str:
             # events arrays
             obj = [self._translate(obj)]
@@ -440,7 +495,8 @@ GENERAL INFORMATION:
         else:
             return []
 
-    def _graph(self, ax,
+    def _graph(self,
+               ax,
                obj,
                label=None,
                color=None,
@@ -448,6 +504,7 @@ GENERAL INFORMATION:
                unit='min',
                x_lim='default',
                alpha=1):
+        """Internal function for plotting on a single axis."""
         factor = {'ms': 0.001, 's': 1, 'min': 60, 'h': 3.6*10**3}[unit]
         if x_lim == 'default':
             x_lim = (self.start/factor, self.end/factor)
@@ -502,14 +559,23 @@ GENERAL INFORMATION:
  ###################### USER FUNCTIONS ##########################
 
     def _debug_interinj(self):
-        """Return interinfusion time (between 2 consecutive pump activations)."""
+        """Return interinfusion time (between 2 consecutive pump activations).
+
+        Used to eliminate recording containing short interinfusion time."""
         a = self.get((6, 1))
         return np.mean(abs(a['TIME'][a['_L'] == 1].to_numpy() - a['TIME'][a['_L'] == 2].to_numpy()))
 
 
     def figure(self, obj,
                figsize='default', h=0.8, hspace=0, label_list=None, color_list=None, **kwargs):
-        """Take either string, single events/intervals (or list of either), or data_dictionnary as input and plots into one graph."""
+        """Plot data.
+
+        :param obj: data to plot
+        :type obj: ``Events`` or ``Intervals``, list of such elements, str corresponding to such data in ``self.__dict__`` or dictionnary
+        
+        :return: ``matplotlib.pyplot.figure`` containing a **eventplots** or **axvspan** or a combination of both.
+
+        Main plotting function, calling ``self._plot`` for each ``axis``, called itself by ``self.summary``"""
         if type(obj) == dict:
             label_list = list(obj.keys())
             obj_list = [b[0] for a, b in obj.items()]
@@ -536,32 +602,54 @@ GENERAL INFORMATION:
                     ax, obj_list[n], label=label_list[n], color=color_list[n], **kwargs)
         plt.show()
 
-    def summary(self, demo=True, **kwargs):
-        """Return a graphical summary of main events and intervals (can be configured in config.yaml)."""
-        full_list = [i for i in self.elements.keys()
-                     if i in self.__dict__.keys()]
-        sel_list = [i for i in full_list if self.elements[i][0]]
+    def summary(self, demo : bool=True, **kwargs):
+        """Return a predifined graphical summary of main events and intervals.
+        
+        :param demo: Demo mode (``True``). Provides a user defined summary of intervals and events. If ``False`` plots everything.
+        :type demo: bool
+        :param kwargs: Plotting arguments, passed to ``self.figure`` and ``self._plot``.
+
+        The data and the formating provided by the **demo** option can be configured in pyfiber.yaml."""
+        if demo:
+            full_list = [i for i in self.elements.keys()
+                         if i in self.__dict__.keys()]
+            sel_list = [i for i in full_list if self.elements[i][0]]
+        else:
+            sel_list = [i for i in self.events().keys()] + [i for i in self.intervals().keys()]
         self.figure(sel_list, **kwargs)
 
     def timestamps(self,
-                   events,
-                   interval='all',
-                   length=False,
-                   intersection=[],
-                   exclude=[],
-                   user_output=False):
-        """events        : timestamp array, list of timestamp arrays, keyword or list of keywords (ex: 'np1')
-interval      : selected interval or list of intervals
-intersection  : intersection of inputed intervals
-exclude       : array or list of arrays to exclude
-to_csv        : True/False output csv timestamp file
-filename      : selected filemame for csv
-graph         : True/False visualise selection"""
+                   events : Union[str, Events],
+                   interval : Union[str, List[str], Intervals] ='all',
+                   length : Union[float, int, bool] =False,
+                   intersection : List[Intervals] = [],
+                   exclude : List[Intervals] =[],
+                   user_output: bool =False) -> Union[Events,tuple]:
+        """Selects timestamps based on conditions.
+
+        :param events: name or array of timestamps
+        :type events: str or ``Events``
+        
+        :param interval: interval or intervals in which the timestamps must be contained, can be ``'all'``
+        :type interval: ``str``, ``List[str]``, ``List[Intervals]``, ``Intervals`` 
+        
+        :param intersection: intersection of intervals in which the timestamps must be contained
+        :type intersection: ``List[str]``, ``List[Intervals]``
+        
+        :param exclude: interval or intervals in which the timestamps must not be contained
+        :type exclude: ``List[str]``, ``List[Intervals]`` 
+        
+        :param user_output: if ``True``, returns a tuple with all the user input data (for plotting purposes)
+        :param length: distance from the start of the intervals defined in ``interval`` to be considered.
+        
+        :return: Timestamps or tuple with timestamps and considered intervals (depending on ``user_output``)
+        :rtype: ``Events`` or tuple
+        """
         events_data = np.sort(np.concatenate(self._internal_selection(events)))
         self._print(f'Event timestamps: {events_data}')
         if interval == 'all':
             interval_data = [(self.start, self.end)]
-            self._print(f'Choosen interval: {interval_data} (all)')
+            self._print(f'Choosen interval: {interval_data} (any)')
         else:
             interval_data = set_union(*self._internal_selection(interval))
         selected_interval = interval_data
@@ -592,29 +680,72 @@ graph         : True/False visualise selection"""
             return selected_timestamps
 
     def export_timestamps(self,
-                          events,
-                          interval='all',
-                          intersection=[],
-                          exclude=[],
+                          events : Union[str, Events],
+                          interval : Union[str, List[str], Intervals] ='all',
+                          length : Union[float, int, bool] =False,
+                          intersection : List[Intervals] = [],
+                          exclude : List[Intervals] =[],
                           to_csv=True,
                           graph=True,
                           filename='default',
                           start_TTL1=False,
                           **kwargs):
-        """Create list of timestamps and export them."""
-        events_data, interval_data, intersection_data, exclude_data, selected_interval, selected_timestamps = self.timestamps(
-            events, interval, intersection, exclude, user_output=True)
+        """User API for visualizing timestamp selection.
+
+        :param events: name or array of timestamps
+        :type events: str or ``Events``
+        
+        :param interval: interval or intervals in which the timestamps must be contained, can be ``'all'``
+        :type interval: ``str``, ``List[str]``, ``List[Intervals]``, ``Intervals`` 
+        
+        :param intersection: intersection of intervals in which the timestamps must be contained
+        :type intersection: ``List[str]``, ``List[Intervals]``
+        
+        :param exclude: interval or intervals in which the timestamps must not be contained
+        :type exclude: ``List[str]``, ``List[Intervals]``
+
+        Wrapper for the ``self.timestamps`` function, with added graphical representation and csv output.
+        """
+        (
+        events_data,
+        interval_data,
+        intersection_data,
+        exclude_data,
+        selected_interval,
+        selected_timestamps
+        ) = self.timestamps(
+                            events,
+                            interval,
+                            length,
+                            intersection,
+                            exclude,
+                            user_output=True)
         if graph:
-            data = {f"Event(s):     {','.join([self.elements[i][1] for i in self._list(events)])}": (events_data,               'r'),  # 'k'),#
-                    # 'g'),#
-                    f"Interval(s):  {','.join([self.elements[i][1] for i in self._list(interval)])}": (interval_data,             'g'),
-                    # 'darkgrey'),#
-                    f"Intersection: {','.join([self.elements[i][1] for i in self._list(intersection)])}": (intersection_data,   '#069AF3'),
-                    # 'r'),#
-                    f"Excluded:     {','.join([self.elements[i][1] for i in self._list(exclude)])}": (exclude_data,              '#069AF3'),
-                    # 'y'),#
-                    "Selected interval(s):": (selected_interval,         'orange'),
-                    "Selected timestamp(s):": (selected_timestamps,       'darkorange')}  # 'g')}#
+            try:
+                events_key = f"Event(s):   {','.join([self.elements[i][1] for i in self._list(events)])}"
+            except (KeyError,TypeError):
+                events_key = "Event(s)"
+            try:
+                interval_key = f"Interval(s):  {','.join([self.elements[i][1] for i in self._list(interval)])}"
+            except (KeyError,TypeError):
+                interval_key = "Interval(s)"
+            try:
+                intersection_key = f"Intersection: {','.join([self.elements[i][1] for i in self._list(intersection)])}"
+            except (KeyError,TypeError):
+                intersection_key = "Intersection"
+            try:
+                exclude_key = f"Excluded:     {','.join([self.elements[i][1] for i in self._list(exclude)])}"
+            except (KeyError,TypeError):
+                exclude_key = "Excluded"
+
+            data = {
+                events_key: (events_data,'r'),
+                interval_key: (interval_data, 'g'),
+                intersection_key: (intersection_data, '#069AF3'),
+                exclude_key: (exclude_data, '#069AF3'),
+                "Selected interval(s):": (selected_interval, 'orange'),
+                "Selected timestamp(s):": (selected_timestamps, 'darkorange')
+                    }
             data_dict = {k: v for k, v in data.items() if v[0] != []}
             self.figure(data_dict, **kwargs)
         if start_TTL1:
@@ -632,8 +763,22 @@ graph         : True/False visualise selection"""
                 os.path.join(Behavior.FOLDER, filename), index=False)
         return result
 
-    def events(self, recorded=False, window=(0, 0)):
-        """Retrieve list of events. Optionally only those which can be used in a perievent analysis (ie during the recording period and taking into account a perievent window)."""
+    def events(self,
+        recorded : bool =False,
+        recorded_name : str ='TTL1_ON',
+        window : tuple =(0, 0)):
+        """Retrieve list of events.
+        
+        :param recorded: only output events that are recorded(default value = ``False``)
+        :type recorded: bool
+        :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
+        :type recorded_name: bool
+        :param window: perievent analysis window
+        :return: plot
+
+        .. note::
+            Optionally only those which can be used in a perievent analysis (ie during the recording period
+            and taking into account a perievent window)."""
         events = {k: v for k, v in self.__dict__.items() if type(v)
                   == np.ndarray}
         #if window_unit == 'default': window_unit = 's'
@@ -641,7 +786,7 @@ graph         : True/False visualise selection"""
             return events
         else:
             recorded_and_window = [(a+window[0], b-window[1])
-                                   for a, b in self.TTL1_ON]
+                                   for a, b in self.__dict__[recorded_name] ]
             return {k: element_of(v, recorded_and_window, is_element=True) for k, v in events.items()}
 
     def intervals(self, recorded=False, window=(0, 0)):

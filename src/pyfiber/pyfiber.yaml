@@ -84,6 +84,7 @@ BEHAVIOR:
     elements:
         # Long name and plotting color for any event
         #event/interval - show (True/False) - long name  - color
+        all:          [True, 'Session'                    ,                    b]
         HLED_OFF:     [True, 'Drug Period'                ,            '#069AF3']
         HLED_ON:      [True, 'No Drug Period'             ,                 gold]
         TTL1_ON:      [True, 'Fiber Photometry Recordings',                    g]
