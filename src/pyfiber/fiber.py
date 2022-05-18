@@ -5,19 +5,29 @@ import time
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 import os
+from typing import List, Tuple, Union, Any
 import matplotlib.style as st
 st.use('ggplot')
 
 from ._utils import PyFiber as PyFiber
 __all__ = ['Fiber']
 
+Intervals = List[Tuple[float,float]]
+Events = np.ndarray
 
 class Fiber(PyFiber):
-    """Extract fiberphotometry data from Doric system."""
+    """Extract and analyse fiberphotometry data.
+
+    :param filepath:
+    :type filepath: str
+    :param name: 
+    :type name: str
+    :param ID:
+    :type ID: hashable"""
     vars().update(PyFiber.FIBER)
 
     def __init__(self,
-                 filepath,
+                 filepath :str,
                  name='default',
                  ID=None,
                  alignement=0,

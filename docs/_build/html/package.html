@@ -50,7 +50,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#fiber">Fiber</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#session-and-multisession">Session and MultiSession</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#session-and-multisession">Session and MultiSession</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#session">Session</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multisession">MultiSession</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#analysis-and-multianalysis">Analysis and MultiAnalysis</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#analysis">Analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multianalysis">MultiAnalysis</a></li>
@@ -101,11 +105,16 @@
 </ul>
 </li>
 <li><p><a class="reference internal" href="#fiber" id="id6">Fiber</a></p></li>
-<li><p><a class="reference internal" href="#session-and-multisession" id="id7">Session and MultiSession</a></p></li>
-<li><p><a class="reference internal" href="#analysis-and-multianalysis" id="id8">Analysis and MultiAnalysis</a></p>
+<li><p><a class="reference internal" href="#session-and-multisession" id="id7">Session and MultiSession</a></p>
 <ul>
-<li><p><a class="reference internal" href="#analysis" id="id9">Analysis</a></p></li>
-<li><p><a class="reference internal" href="#multianalysis" id="id10">MultiAnalysis</a></p></li>
+<li><p><a class="reference internal" href="#session" id="id8">Session</a></p></li>
+<li><p><a class="reference internal" href="#multisession" id="id9">MultiSession</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#analysis-and-multianalysis" id="id10">Analysis and MultiAnalysis</a></p>
+<ul>
+<li><p><a class="reference internal" href="#analysis" id="id11">Analysis</a></p></li>
+<li><p><a class="reference internal" href="#multianalysis" id="id12">MultiAnalysis</a></p></li>
 </ul>
 </li>
 </ul>
@@ -319,7 +328,7 @@ and taking into account a perievent window).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>plot</strong> (<em>bool</em>) – return plotted data by ID tuple</p></li>
-<li><p><strong>figsize</strong> – plot size (default=(20,40), see <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> documentation)</p></li>
+<li><p><strong>figsize</strong> – plot size (default=(20,40), see <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> documentation)</p></li>
 </ul>
 </dd>
 </dl>
@@ -347,7 +356,7 @@ and taking into account a perievent window).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>figsize</strong> (<code class="docutils literal notranslate"><span class="pre">Tuple[int,</span> <span class="pre">int]</span></code>) – size of plot</p></li>
-<li><p><strong>cmap</strong> (<em>str</em>) – color map (see <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code></p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – color map (see <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -471,8 +480,17 @@ and taking into account a perievent window).</p>
 <h2><a class="toc-backref" href="#id6">Fiber</a><a class="headerlink" href="#fiber" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Fiber">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber" title="Permalink to this definition"></a></dt>
-<dd><p>Extract fiberphotometry data from Doric system.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber" title="Permalink to this definition"></a></dt>
+<dd><p>Extract and analyse fiberphotometry data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>ID</strong> (<em>hashable</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Fiber.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Ca-dependant',</span> <span class="pre">'isosbestic']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Normalized</span> <span class="pre">signal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time</span> <span class="pre">(s)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel_raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Signal</span> <span class="pre">(mV)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Signal</span> <span class="pre">(%)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Recording'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.plot" title="Permalink to this definition"></a></dt>
@@ -517,6 +535,8 @@ and taking into account a perievent window).</p>
 </section>
 <section id="session-and-multisession">
 <h2><a class="toc-backref" href="#id7">Session and MultiSession</a><a class="headerlink" href="#session-and-multisession" title="Permalink to this headline"></a></h2>
+<section id="session">
+<h3><a class="toc-backref" href="#id8">Session</a><a class="headerlink" href="#session" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Session">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">behavior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session" title="Permalink to this definition"></a></dt>
@@ -555,6 +575,9 @@ and taking into account a perievent window).</p>
 
 </dd></dl>
 
+</section>
+<section id="multisession">
+<h3><a class="toc-backref" href="#id9">MultiSession</a><a class="headerlink" href="#multisession" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.MultiSession">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">MultiSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.MultiSession" title="Permalink to this definition"></a></dt>
@@ -584,10 +607,11 @@ norm=’default’    : normalization method used</p>
 </dd></dl>
 
 </section>
+</section>
 <section id="analysis-and-multianalysis">
-<h2><a class="toc-backref" href="#id8">Analysis and MultiAnalysis</a><a class="headerlink" href="#analysis-and-multianalysis" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id10">Analysis and MultiAnalysis</a><a class="headerlink" href="#analysis-and-multianalysis" title="Permalink to this headline"></a></h2>
 <section id="analysis">
-<h3><a class="toc-backref" href="#id9">Analysis</a><a class="headerlink" href="#analysis" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id11">Analysis</a><a class="headerlink" href="#analysis" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.Analysis">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Analysis" title="Permalink to this definition"></a></dt>
@@ -618,7 +642,7 @@ norm=’default’    : normalization method used</p>
 
 </section>
 <section id="multianalysis">
-<h3><a class="toc-backref" href="#id10">MultiAnalysis</a><a class="headerlink" href="#multianalysis" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id12">MultiAnalysis</a><a class="headerlink" href="#multianalysis" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.MultiAnalysis">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">MultiAnalysis</span></span><a class="headerlink" href="#pyfiber.MultiAnalysis" title="Permalink to this definition"></a></dt>

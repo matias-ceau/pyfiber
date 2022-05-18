@@ -63,9 +63,14 @@ Fiber
 Session and MultiSession
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+Session
+-------
+
 .. autoclass:: pyfiber.Session
    :members:
 
+MultiSession
+------------
 
 .. autoclass:: pyfiber.MultiSession
    :members:

@@ -76,7 +76,7 @@ def generate_interval(on : Events, off: Events, end: float) -> Intervals:
         >> pyfiber.behavior.generate_interval(on,off,end)
         [(0.0, 10.0), (20.0, 30.0), (40.0, 50.0)]
 
-    .. note::
+    .. warning::
        This function is based on the metaphor of a light switch, hence the names 'on' and 'off'. However, a number of
        intervals can be computed with the same principle. Importantly, it assumes that everything is 'off' at the beginning
        of the experiment. If the interval of interest start at the beginning of the experiment, the complementary
@@ -824,7 +824,7 @@ GENERAL INFORMATION:
 
         :param plot: return plotted data by ID tuple
         :type plot: bool
-        :param figsize: plot size (default=(20,40), see ``matplotlib`` documentation)"""
+        :param figsize: plot size (default=(20,40), see :py:mod:`matplotlib` documentation)"""
         d = {}
         for k in self.SYSTEM['IMETRONIC'].keys():
             d.update(self.SYSTEM['IMETRONIC'][k])
@@ -883,7 +883,7 @@ GENERAL INFORMATION:
 
         :param figsize: size of plot
         :type figsize: ``Tuple[int, int]``
-        :param cmap: color map (see ``matplotlib``
+        :param cmap: color map (see :py:mod:`matplotlib`)
         :type cmap: str
         """
         array = np.zeros((max(self.y_coordinates), max(self.x_coordinates)))

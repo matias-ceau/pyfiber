@@ -333,7 +333,7 @@ and taking into account a perievent window).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>plot</strong> (<em>bool</em>) – return plotted data by ID tuple</p></li>
-<li><p><strong>figsize</strong> – plot size (default=(20,40), see <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> documentation)</p></li>
+<li><p><strong>figsize</strong> – plot size (default=(20,40), see <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> documentation)</p></li>
 </ul>
 </dd>
 </dl>
@@ -361,7 +361,7 @@ and taking into account a perievent window).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>figsize</strong> (<code class="docutils literal notranslate"><span class="pre">Tuple[int,</span> <span class="pre">int]</span></code>) – size of plot</p></li>
-<li><p><strong>cmap</strong> (<em>str</em>) – color map (see <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code></p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – color map (see <code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -590,8 +590,8 @@ containing the operator and a float (it mainly reads from the configuration file
 <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">)]</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
 <p>This function is based on the metaphor of a light switch, hence the names ‘on’ and ‘off’. However, a number of
 intervals can be computed with the same principle. Importantly, it assumes that everything is ‘off’ at the beginning
 of the experiment. If the interval of interest start at the beginning of the experiment, the complementary
@@ -706,8 +706,17 @@ timestamps of particular events only if they happen near a period where a certai
 <span id="pyfiber-fiber-module"></span><h2>pyfiber.fiber module<a class="headerlink" href="#module-pyfiber.fiber" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.fiber.Fiber">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.fiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber" title="Permalink to this definition"></a></dt>
-<dd><p>Extract fiberphotometry data from Doric system.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.fiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber" title="Permalink to this definition"></a></dt>
+<dd><p>Extract and analyse fiberphotometry data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>ID</strong> (<em>hashable</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.fiber.Fiber._find_rec">
 <span class="sig-name descname"><span class="pre">_find_rec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.fiber.Fiber._find_rec" title="Permalink to this definition"></a></dt>

@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from scipy import integrate, stats
 import seaborn as sns
+from typing import List, Tuple, Union, Any
 import matplotlib.style as st
 st.use('ggplot')
 
@@ -13,7 +14,8 @@ from .fiber import Fiber
 from ._utils import PyFiber as PyFiber
 __all__ = ['Session', 'MultiSession', 'Analysis', 'MultiAnalysis']
 
-
+Intervals = List[Tuple[float,float]]
+Events = np.ndarray
 
 class Session(PyFiber):
     """Create object containing both fiber recordings and behavioral files.
