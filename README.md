@@ -4,6 +4,7 @@ Object-oriented fiber photometry and behavioral data analysis toolkit.
 
 ## Installation
 
+Available on [PyPi](https://pypi.org/project/pyfiber/):
 ```bash
 pip install pyfiber
 ```
