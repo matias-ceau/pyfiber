@@ -15,6 +15,7 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -489,22 +490,6 @@ and taking into account a perievent window).</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Fiber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber" title="Permalink to this definition"></a></dt>
 <dd><p>Extract and analyse fiberphotometry data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filepath</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – fiber photometry data file path</p></li>
-<li><p><strong>name</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – session name (default is filepath without the extension)</p></li>
-<li><p><strong>ID</strong> (<em>hashable</em>) – animal identifier</p></li>
-<li><p><strong>alignment</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – optional shift in the timestamps</p></li>
-<li><p><strong>filetype</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – data file type, defaults to Doric</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Alignment can be used if the exact time of recording start is provided by a behavioral system.
-It simply shift every timestamps of the fiber file accordingly.</p>
-</div>
-<dl class="field-list simple">
 <dt class="field-odd">Variables</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> – dataframe with all data from data file</p></li>
@@ -524,46 +509,35 @@ It simply shift every timestamps of the fiber file accordingly.</p>
 <li><p><strong>filepath</strong> – see <strong>parameters</strong></p></li>
 <li><p><strong>filetype</strong> – see <strong>parameters</strong></p></li>
 <li><p><strong>name</strong> – see <strong>parameters</strong></p></li>
+<li><p><strong>FIBER_FILE_TYPE</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) system file type (default: DORIC)</p></li>
+<li><p><strong>split_recordings</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) see <a class="reference internal" href="#recs"><span class="std std-ref">note below</span></a></p></li>
+<li><p><strong>split_treshold</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) treshold for splitting data into recording (<em>e.g</em>. 10 is 10 times the mean intersample distance)</p></li>
+<li><p><strong>min_sample_per_rec</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) minimun number of samples for a split to be considered a recordings (ignores one sample recordings that are bugs)</p></li>
+<li><p><strong>trim_recording</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) number of seconds automatically removed from recording start (to avoid the LED artifact)</p></li>
+<li><p><strong>perievent_window</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) default perievent analysis window</p></li>
+<li><p><strong>default_norm</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) default normalization method (‘F’ or ‘Z’, see detail in <code class="docutils literal notranslate"><span class="pre">pyfiber.fiber.normalize_signal</span></code>)</p></li>
+<li><p><strong>peak_window</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) length in seconds of the peak detection window</p></li>
+<li><p><strong>peak_distance</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) minimum distance between peaks (to avoid false positives), in milliseconds</p></li>
+<li><p><strong>peak_zscore</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) <strong>full</strong> or <strong>bins</strong> choose if post normalization standardization should be done on the full recordings or for each window</p></li>
+<li><p><strong>peak_baseline_MAD</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) first treshold for peak analysis</p></li>
+<li><p><strong>peak_peak_MAD</strong> – (from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code>) second treshold for peak analysis</p></li>
 </ul>
 </dd>
 <dt class="field-even">Parameters</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>filepath</strong> (<em>str</em>) – </p></li>
-<li><p><strong>name</strong> (<em>str</em>) – </p></li>
-<li><p><strong>ID</strong> (<em>str</em>) – </p></li>
-<li><p><strong>alignment</strong> (<em>float</em>) – </p></li>
-<li><p><strong>filetype</strong> (<em>str</em>) – </p></li>
+<li><p><strong>filepath</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – fiber photometry data file path</p></li>
+<li><p><strong>name</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – session name (default is filepath without the extension)</p></li>
+<li><p><strong>ID</strong> (<em>hashable</em>) – animal identifier</p></li>
+<li><p><strong>alignment</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – optional shift in the timestamps</p></li>
+<li><p><strong>filetype</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – data file type, defaults to Doric</p></li>
 </ul>
 </dd>
 </dl>
-<p>Class variables inherited from <code class="docutils literal notranslate"><span class="pre">_utils.PyFiber</span></code> (read from configuration file):</p>
-<dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>FIBER_FILE_TYPE</strong> – system file type (default: DORIC)</p></li>
-<li><p><strong>split_recordings</strong> – see <a class="reference internal" href="#recs"><span class="std std-ref">note below</span></a></p></li>
-<li><p><strong>split_treshold</strong> – treshold for splitting data into recording (<em>e.g</em>. 10 is 10 times the mean intersample distance)</p></li>
-<li><p><strong>min_sample_per_rec</strong> – minimun number of samples for a split to be considered a recordings (ignores one sample recordings that are bugs)</p></li>
-<li><p><strong>trim_recording</strong> – number of seconds automatically removed from recording start (to avoid the LED artifact)</p></li>
-<li><p><strong>perievent_window</strong> – default perievent analysis window</p></li>
-<li><p><strong>default_norm</strong> – default normalization method (‘F’ or ‘Z’, see detail in <code class="docutils literal notranslate"><span class="pre">pyfiber.fiber.normalize_signal</span></code>)</p></li>
-<li><p><strong>peak_window</strong> – length in seconds of the peak detection window</p></li>
-<li><p><strong>peak_distance</strong> – minimum distance between peaks (to avoid false positives), in milliseconds</p></li>
-<li><p><strong>peak_zscore</strong> – <strong>full</strong> or <strong>bins</strong> choose if post normalization standardization should be done on the full recordings or for each window</p></li>
-<li><p><strong>peak_baseline_MAD</strong> – first treshold for peak analysis</p></li>
-<li><p><strong>peak_peak_MAD</strong> – second treshold for peak analysis</p></li>
-</ul>
-</dd>
-<dt class="field-even">Parameters</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>filepath</strong> (<em>str</em>) – </p></li>
-<li><p><strong>name</strong> (<em>str</em>) – </p></li>
-<li><p><strong>ID</strong> (<em>str</em>) – </p></li>
-<li><p><strong>alignment</strong> (<em>float</em>) – </p></li>
-<li><p><strong>filetype</strong> (<em>str</em>) – </p></li>
-</ul>
-</dd>
-</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Alignment can be used if the exact time of recording start is provided by a behavioral system.
+It simply shift every timestamps of the fiber file accordingly.</p>
+</div>
 <div class="admonition note" id="recs">
 <p class="admonition-title">Note</p>
 <p>In the fiber photometry data file, locations where the timestamps are discontinuous define breakpoints
@@ -631,40 +605,47 @@ at instantiation, or modify the configuration file :</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Fiber.get">
 <span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recording</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.get" title="Permalink to this definition"></a></dt>
-<dd><p>Extracts a data array from a specific column of a recording (default is first recording)
-- add_time (False) : if True returns a 2D array with time included
-- as_df    (False) : if True returns data as a data frame (add_time will automatically set to True)</p>
+<dd><p>Extracts a data array from a specific column of a recording.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>column</strong> (<em>str</em>) – </p></li>
+<li><p><strong>column</strong> (<em>str</em>) – dataframe column to extract (list of columns: <code class="docutils literal notranslate"><span class="pre">self.columns</span></code>)</p></li>
+<li><p><strong>add_time</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code> return a 2D array (stack of time and signal)</p></li>
+<li><p><strong>as_df</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code> return data as a data frame (add_time will automatically be set to <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
 <li><p><strong>recording</strong> (<em>int</em>) – </p></li>
-<li><p><strong>add_time</strong> (<em>bool</em>) – </p></li>
-<li><p><strong>as_df</strong> (<em>bool</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><em>Union</em>[pandas.core.frame.DataFrame, numpy.ndarray]</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is a shortcut to <code class="docutils literal notranslate"><span class="pre">&lt;obj&gt;.recordings[&lt;rec_number&gt;][&lt;'column_name'&gt;].to_numpy()</span></code> with
+multiple queries (time) as an option.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Fiber.norm">
 <span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.norm" title="Permalink to this definition"></a></dt>
-<dd><p>Normalize data with specified method</p>
+<dd><p>Normalize data with specified method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rec</strong> (<em>int</em>) – </p></li>
-<li><p><strong>method</strong> (<em>str</em>) – </p></li>
-<li><p><strong>add_time</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>rec</strong> (<em>int</em>) – recording number</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – normalization method (see :ref`note &lt;n&gt;`)</p></li>
+<li><p><strong>add_time</strong> (<em>bool</em>) – include timestamps with output</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>numpy.ndarray</p>
 </dd>
 </dl>
+<div class="admonition note" id="n">
+<p class="admonition-title">Note</p>
+<p>This method is a wrapper of the <code class="docutils literal notranslate"><span class="pre">fiber.normalize_signal</span></code> function, see its documentation for more details.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -674,15 +655,38 @@ at instantiation, or modify the configuration file :</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> (<em>str</em>) – </p></li>
-<li><p><strong>figsize</strong> (<em>tuple</em>) – </p></li>
-<li><p><strong>rec</strong> (<em>str</em>) – </p></li>
-<li><p><strong>colors</strong> (<em>str</em>) – </p></li>
-<li><p><strong>alpha</strong> (<em>float</em>) – </p></li>
+<li><p><strong>value</strong> (<em>str</em>) – show either Z-scores (<code class="docutils literal notranslate"><span class="pre">'zscore</span></code>) or <span class="math notranslate nohighlight">\(\frac{\Delta F}{F_0}\)</span> (<code class="docutils literal notranslate"><span class="pre">'dF/F'</span></code>)</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – figure size</p></li>
+<li><p><strong>rec</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – recordings to plot, default is all</p></li>
+<li><p><strong>colors</strong> (<em>str</em>) – bar colors</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – transparency</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None</p>
+<dt class="field-even">Pram kwargs</dt>
+<dd class="field-even"><p>keyworg arguments passed to <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.Fiber.peakFA">
+<span class="sig-name descname"><span class="pre">peakFA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Fiber.peakFA" title="Permalink to this definition"></a></dt>
+<dd><p>Return peak analysis: frequency and amplitude results for given interval.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>float</em>) – left limit of the interval</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – right limit of the interval</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Mean frequency, mean peak amplitude, max peak amplitude, full peak data frame (all peaks from the interval)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -698,7 +702,30 @@ at instantiation, or modify the configuration file :</p>
 <dt class="sig sig-object py" id="pyfiber.Session">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.</span></span><span class="sig-name descname"><span class="pre">Session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">behavior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session" title="Permalink to this definition"></a></dt>
 <dd><p>Create object containing both fiber recordings and behavioral files.</p>
-<p>From a single session/subject.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>behavior</strong> (<em>Union</em><em>[</em><a class="reference internal" href="modules.html#pyfiber.behavior.Behavior" title="pyfiber.behavior.Behavior"><em>pyfiber.behavior.Behavior</em></a><em>, </em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>fiber</strong> (<em>Union</em><em>[</em><a class="reference internal" href="modules.html#pyfiber.behavior.Behavior" title="pyfiber.behavior.Behavior"><em>pyfiber.behavior.Behavior</em></a><em>, </em><em>str</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyfiber.Session.from_folder">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiber_marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">behavior_marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.dat'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session.from_folder" title="Permalink to this definition"></a></dt>
+<dd><p>Create session object from folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderpath</strong> (<em>str</em>) – folder path</p></li>
+<li><p><strong>fiber_marker</strong> (<em>str</em>) – string present only in fiber data file (default is <code class="docutils literal notranslate"><span class="pre">'.csv'</span></code>)</p></li>
+<li><p><strong>behavior_marker</strong> (<em>str</em>) – string present only in fiber data file (default is <code class="docutils literal notranslate"><span class="pre">'.dat'</span></code>)</p></li>
+<li><p><strong>kwargs</strong> – keyword arguments passed to __init__</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Session.events">
 <span class="sig-name descname"><span class="pre">events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session.events" title="Permalink to this definition"></a></dt>
