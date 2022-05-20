@@ -9,7 +9,7 @@ import os
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-from ._utils import PyFiber as PyFiber
+from ._utils import PyFiber, Intervals, Events
 import typing
 from typing import List, Tuple, Union, Any
 import matplotlib.style as st
@@ -25,13 +25,11 @@ __all__ = [
         'interval_is_close_to',
         'element_of',
         'set_operation',
-        'set_intersection',
+        'set_intersections',
         'set_union',
         'set_non'
         ]
 
-Intervals = List[Tuple[float,float]]
-Events = np.ndarray
 # FUNCTIONS
 
 def select_interval_by_duration(interval: Intervals, condition: list) -> Intervals:
@@ -78,17 +76,17 @@ def generate_interval(on : Events, off: Events, end: float) -> Intervals:
 
     .. warning::
        This function is based on the metaphor of a light switch, hence the names 'on' and 'off'. However, a number of
-       intervals can be computed with the same principle. Importantly, it assumes that everything is 'off' at the beginning
-       of the experiment. If the interval of interest start at the beginning of the experiment, the complementary
-       interval should be computed and its complement (the interval of interest) itself obtained with the ``behavior.set_non``
+       intervals can be computed with the same principle.
+       Importantly, it assumes that the state is 'off' at the beginning of the experiment. If the interval of interest
+       is by default on at the beginning of the experiment, the complementary interval should be computed and its complement (the interval of interest) itself obtained with the ``behavior.set_non``
        fonction.
     
        """
     on_l = list(set([i for i in on if i not in off]))
     off_l = list(set([i for i in off if i not in on]))
 
-    on_series = pd.Series([1]*len(set(on_l)), index=on, dtype='float64')
-    off_series = pd.Series([0]*len(set(off_l)), index=off, dtype='float64')
+    on_series = pd.Series([1]*len(set(on_l)), index=on_l, dtype='float64')
+    off_series = pd.Series([0]*len(set(off_l)), index=off_l, dtype='float64')
    
     s = pd.concat((on_series, off_series)).sort_index()
     status = 0
@@ -246,9 +244,9 @@ def set_non(A : Intervals, end : float, start : float = 0) -> Intervals:
     :param A: Intervals of which to compute the complement
     :type A: ``Intervals``
     :param end: End of experiment
-    :type end: float
+    :type end: ``float``
     :param start: start of experiment, default value is 0
-    :type start: float
+    :type start: ``float``
     :return: Complement of A
     :rtype: ``Intervals``
     """
@@ -270,8 +268,9 @@ class Behavior(PyFiber):
     """Class extracting and analyzing behavioral data.
 
     :param filepath: filepath (by default must be a .dat file)
-    :type filepath: str
+    :type filepath: ``str``
     :param filetype: must be set to user-defined format (by default takes the value of 'BEHAVIOR_FILE_TYPE' in the configuration file
+    :type filetype: ``str``
     :param kwargs: arguments passed to _utils.PyFiber, the parent class (ex: verbosity=False)
 
     :ivar filetype: input filetype (takes the default value defined in the config file)
@@ -369,11 +368,11 @@ GENERAL INFORMATION:
         """Extract timestamps for counters from Imetronic file.
 
         :param family: data family (see Imetronic nomenclature)
-        :type family: int
+        :type family: ``int``
         :param subtype: data subtype
-        :type family: int
+        :type family: ``int``
         :param column: additional column precising event of interest
-        :type column: str
+        :type column: ``str``
         :param value: value needed in column to extract it
         :return: data corresponding to input parameters
         :rtype: ``pandas.DataFrame``
@@ -461,7 +460,7 @@ GENERAL INFORMATION:
         """Translate strings into corresponding arrays.
         
         :param obj: name of the interval/event
-        :type obj: str
+        :type obj: ``str``
 
         Equivalent to a lookup in ``self.__dict__`` with the addition of a call to the ``behavior.set_non``
         function if the ``~`` sign is prepended to the string."""
@@ -508,7 +507,17 @@ GENERAL INFORMATION:
                unit='min',
                x_lim='default',
                alpha=1):
-        """Internal function for plotting on a single axis."""
+        """Internal function for plotting on a single axis.
+
+        :param ax: axis on which to plot
+        :param obj: element to plot
+        :param label: figure label
+        :param color: plot color
+        :param demo: use the predifined style defined in the configuration file
+        :param unit: units for the x-axis (can be ``'ms'``, ``'s'``, ``'min'``, ``'h'``)
+        :param x_lim: x-axis limits, by default from start to end
+        :param alpha: graph transparency
+        """
         factor = {'ms': 0.001, 's': 1, 'min': 60, 'h': 3.6*10**3}[unit]
         if x_lim == 'default':
             x_lim = (self.start/factor, self.end/factor)
@@ -575,7 +584,7 @@ GENERAL INFORMATION:
         """Plot data.
 
         :param obj: data to plot
-        :type obj: ``Events`` or ``Intervals``, list of such elements, str corresponding to such data in ``self.__dict__`` or dictionnary
+        :type obj: ``Events`` or ``Intervals``, ``str``, ``dict``
         
         :return: ``matplotlib.pyplot.figure`` containing a **eventplots** or **axvspan** or a combination of both.
 
@@ -610,7 +619,7 @@ GENERAL INFORMATION:
         """Return a predifined graphical summary of main events and intervals.
         
         :param demo: Demo mode (``True``). Provides a user defined summary of intervals and events. If ``False`` plots everything.
-        :type demo: bool
+        :type demo: ``bool``
         :param kwargs: Plotting arguments, passed to ``self.figure`` and ``self._plot``.
 
         The data and the formating provided by the **demo** option can be configured in pyfiber.yaml."""
@@ -632,7 +641,7 @@ GENERAL INFORMATION:
         """Selects timestamps based on conditions.
 
         :param events: name or array of timestamps
-        :type events: str or ``Events``
+        :type events: ``str`` or ``Events``
         
         :param interval: interval or intervals in which the timestamps must be contained, can be ``'all'``
         :type interval: ``str``, ``List[str]``, ``List[Intervals]``, ``Intervals`` 
@@ -647,7 +656,7 @@ GENERAL INFORMATION:
         :param length: distance from the start of the intervals defined in ``interval`` to be considered.
         
         :return: Timestamps or tuple with timestamps and considered intervals (depending on ``user_output``)
-        :rtype: ``Events`` or tuple
+        :rtype: ``Events`` or ``tuple``
         """
         events_data = np.sort(np.concatenate(self._internal_selection(events)))
         self._print(f'Event timestamps: {events_data}')
@@ -697,7 +706,7 @@ GENERAL INFORMATION:
         """User API for visualizing timestamp selection.
 
         :param events: name or array of timestamps
-        :type events: str or ``Events``
+        :type events: ``str`` or ``Events``
         
         :param interval: interval or intervals in which the timestamps must be contained, can be ``'all'``
         :type interval: ``str``, ``List[str]``, ``List[Intervals]``, ``Intervals`` 
@@ -774,12 +783,12 @@ GENERAL INFORMATION:
         """Retrieve list of events.
         
         :param recorded: only output events that are recorded(default value = ``False``)
-        :type recorded: bool
+        :type recorded: ``bool``
         :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
-        :type recorded_name: bool
+        :type recorded_name: ``bool``
         :param window: perievent analysis window
         :return: dictionnary with all events
-        :rtype: dict
+        :rtype: ``dict``
 
         .. note::
             Optionally only those which can be used in a perievent analysis (ie during the recording period
@@ -798,13 +807,13 @@ GENERAL INFORMATION:
         """Retrieve list of intervals.
 
         :param recorded: only output events that are recorded(default value = ``False``)
-        :type recorded: bool
+        :type recorded: ``bool``
         :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
-        :type recorded_name: bool
+        :type recorded_name: ``bool``
         :param window: perievent analysis window
 
         :return: dictionnary of all intervals
-        :rtype: dict
+        :rtype: ``dict``
 
         .. note::
             Optionally only those which can be used in a perievent analysis (ie during the recording period
@@ -823,7 +832,7 @@ GENERAL INFORMATION:
         """Return dataframe summarizing the IMETRONIC dat file.
 
         :param plot: return plotted data by ID tuple
-        :type plot: bool
+        :type plot: ``bool``
         :param figsize: plot size (default=(20,40), see :py:mod:`matplotlib` documentation)"""
         d = {}
         for k in self.SYSTEM['IMETRONIC'].keys():
@@ -859,7 +868,7 @@ GENERAL INFORMATION:
         """Extract dataframe section (IMETRONIC format).
 
         :param name: name or ID of IMETRONIC data family
-        :type name: str or tuple
+        :type name: ``str`` or ``tuple``
         :return: ``pandas.DataFrame`` corresponding to selected counter name ('name') or tuple ('idtuple').
         """
         
@@ -884,7 +893,7 @@ GENERAL INFORMATION:
         :param figsize: size of plot
         :type figsize: ``Tuple[int, int]``
         :param cmap: color map (see :py:mod:`matplotlib`)
-        :type cmap: str
+        :type cmap: ``str``
         """
         array = np.zeros((max(self.y_coordinates), max(self.x_coordinates)))
         for i in range(len(self.x_coordinates)):
@@ -900,11 +909,13 @@ class MultiBehavior(PyFiber):
     """Class for multiple behavioral file analysis
 
     :param folder: folder containing data files (the explorer recurse inside subfolders as well)
-    :type folder: str
+    :type folder: ``str``
     :param fileformat: format of files to be included (default is 'dat')
-    :type fileformat: str
-    :type filepath: str
+    :type fileformat: ``str``
+    :type filepath: ``str``
     :param kwargs: keyword arguments passed to ``pyfiber.Behavior`` instances
+
+    :cvar behavior_time_ratio: conversion from file unit to seconds, default 1000 (inherited from ``_utils.PyFiber`` which directly reads it from the configuration file)
 
     :ivar folder: same as folder parameter
     :ivar fileformat: same as fileformat parameter
@@ -912,7 +923,7 @@ class MultiBehavior(PyFiber):
     :ivar filepath: list of all filepaths (this is directly extracted from each member of sessions)
     :ivar names: list of all animal names (by default same as filepath)
     :ivar number: number of sessions
-    :ivar sessions (dict): dictionnary containing all sessions as ``pyfiber.Behavior`` instances.
+    :ivar sessions: dictionnary containing all sessions as ``pyfiber.Behavior`` instances.
     :ivar df: list of behavioral data dataframes (see ``pyfiber.Behavior(*).df`` )
     :ivar start: start for all files, as a list (see ``pyfiber.Behavior(*).start``)
     :ivar end: end for all files, as a list (see ``pyfiber.Behavior(*).end`` )
@@ -921,7 +932,10 @@ class MultiBehavior(PyFiber):
 
     _savgol = PyFiber._savgol
 
-    def __init__(self, folder, fileformat, **kwargs):
+    def __init__(self,
+                 folder : str,
+                 fileformat : str,
+                 **kwargs):
         super().__init__()
         self.sessions = {}
         self.foldername = folder
@@ -958,9 +972,9 @@ class MultiBehavior(PyFiber):
         """Return the number of events per second for a defined event for all sessions:
 
         :param attribute: event name
-        :type param: str
+        :type param: ``str``
         :return: Dictionnary with 'filename' and array with the number of events for each second
-        :rtype: dict
+        :rtype: ``dict``
         """
         return {k: np.histogram(self.__dict__[attribute].loc[k, :].dropna().to_numpy(), bins=round(self.sessions[k].end)+1, range=(0, round(self.sessions[k].end)+1))[0] for k in self.names}
 
@@ -968,7 +982,7 @@ class MultiBehavior(PyFiber):
         """Return the number of events per second for a defined event for all sessions:
 
         :param attribute: event name
-        :type param: str
+        :type param: ``str``
         :return: Data frame containing with number of events for each second for each animal
         :rtype: ``pandas.DataFrame``
 
@@ -985,9 +999,9 @@ class MultiBehavior(PyFiber):
         """Return the cumulative sum of a given event for all animals.
 
         :param attribute: event name
-        :type param: str
+        :type param: ``str``
         :param plot: return a plot
-        :type plot: bool
+        :type plot: ``bool``
         :param figsize: figure size (passed to matplolib via a DataFrame)
         :kwargs: keyword arguments passed to the plot function of a ``pandas.DataFrame``
         :return: Data Frame containing the cumulative sum, a plot (optional)
@@ -1010,17 +1024,17 @@ class MultiBehavior(PyFiber):
         """Show rate for all session for any given event.
         
         :param attribute: event name
-        :type attribute: str
+        :type attribute: ``str``
         :param interval: interval shown on the graph (optional)
-        :type interval: str or bool
+        :type interval: ``str`` or ``bool``
         :param binsize: binsize in seconds
-        :type binsize: int
+        :type binsize: ``int``
         :param percentiles: optional plot with percentiles
-        :type percentiles: list
+        :type percentiles: ``list``
         :param figsize: figure size
-        :type figsize: tuple
+        :type figsize: ``tuple``
         :param interval_alpha: transparency value for the interval plot
-        :rtype interval_alpha: float"""
+        :rtype interval_alpha: ``float``"""
         plt.figure(figsize=figsize)
         dic = {}
         for name in self.count(attribute).index:
@@ -1063,8 +1077,8 @@ class MultiBehavior(PyFiber):
 
         :param kwargs: keyword arguments passed to ``pyfiber.Behavior(*).summary``
 
-        .. note:
-           See documentation for pyfiber.Behavior"""
+        .. note::
+           See documentation for ``pyfiber.Behavior``"""
         for r in self.sessions.keys():
             self.sessions[r].summary()
             plt.title(r)

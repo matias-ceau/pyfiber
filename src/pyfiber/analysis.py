@@ -1,6 +1,11 @@
 import numpy as np
 import pandas as pd
 import time
+"""
+This modules defines both Session/MultiSession and Analysis/MultiAnalysis classes, which handle combined fiber photometry
+and behavioral data analysis.
+"""
+
 import os
 import matplotlib.pyplot as plt
 from scipy import integrate, stats
@@ -20,13 +25,35 @@ Events = np.ndarray
 class Session(PyFiber):
     """Create object containing both fiber recordings and behavioral files.
     
-    From a single session/subject.
+    :param behavior: 
     """
 
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
 
-    def __init__(self, behavior, fiber, ID=None, **kwargs):
+    @classmethod
+    def from_folder(cls,
+                    folderpath : str,
+                    fiber_marker : str ='.csv',
+                    behavior_marker : str ='.dat',
+                    **kwargs):
+        """Create session object from folder.
+
+        :param folderpath: folder path
+        :param fiber_marker: string present only in fiber data file (default is ``'.csv'``)
+        :param behavior_marker: string present only in fiber data file (default is ``'.dat'``)
+        :param kwargs: keyword arguments passed to __init__
+        """
+        files = os.listdir(folderpath)
+        fiber = os.path.join(folderpath, [f for f in files if fiber_marker in f][0])
+        behavior = os.path.join(folderpath, [f for f in files if behavior_marker in f][0])
+        return cls(behavior=behavior, fiber=fiber, **kwargs)
+
+    def __init__(self,
+                 behavior : Union[Behavior,str],
+                 fiber : Union[Behavior,str] ,
+                 ID=None,
+                 **kwargs):
         super().__init__(**kwargs)
         self.ID = ID
         if type(behavior) == Behavior:
@@ -34,13 +61,13 @@ class Session(PyFiber):
         else:
             self.behavior = Behavior(behavior)
         if type(fiber) == Fiber:
-            if fiber.alignement == self.behavior.rec_start:
+            if fiber.alignment == self.behavior.rec_start:
                 self.fiber = fiber
             else:
                 self.fiber = Fiber(
-                    fiber.filepath, alignement=self.behavior.rec_start)
+                    fiber.filepath, alignment=self.behavior.rec_start)
         else:
-            self.fiber = Fiber(fiber, alignement=self.behavior.rec_start)
+            self.fiber = Fiber(fiber, alignment=self.behavior.rec_start)
         self.analyses = {}
 
     def __repr__(self): 
@@ -49,11 +76,17 @@ class Session(PyFiber):
 <Session(fiber    = "{self.fiber.filepath}",
             behavior = "{self.behavior.filepath}")"""
 
-    def _sample(self, time_array, event_time, window):
-        """Take a sample of the recording.
-
-    Based on one event and desired preevent and postevent duration.
-    """
+    def _sample(self,
+                time_array : np.ndarray,
+                event_time : float,
+                window : tuple) -> tuple:
+        """Get indices of a timeseries sample of the recording.
+        
+        :param time_array: an array of timestamp
+        :param event_time: event of interest
+        :param window: time window left and right of the event of interest
+        :return: indices for the start, event and end of the sample, relative to the input array
+        """
         start = event_time - window[0]
         end = event_time + window[1]
         start_idx = np.where(abs(time_array - start) ==
@@ -64,12 +97,18 @@ class Session(PyFiber):
                            min(abs(time_array - end)))[0][-1]
         return (start_idx, event_idx, end_idx)
 
-    def _recorded_timestamps(self, events, window, **kwargs):
-        """Return timestamps.
-   
-    Uses Behavior objecys timestamps method function
-    and applying it to analyzable_events.
-    """
+    def _recorded_timestamps(self,
+                             events : Union[str,List[str]],
+                             window : tuple,
+                             **kwargs) -> Events:
+        """Return analyzable timestamps (*i.e.* both recorded and not overlapping the perievent window on the edges).
+
+        :param events: name of events of interest
+        :param window: perievent analysis window
+        :param kwargs: keyword arguments passed on to ``pyfiber.Behavior.timestamps``
+        :return: array of timestamps corresponding to input and occuring during recorded intervals
+        """
+
         if type(events) == str:
             recorded_events = self.events(recorded=True, window=window)[events]
         elif type(events) == list:
@@ -80,19 +119,44 @@ class Session(PyFiber):
             return
         return self.behavior.timestamps(events=recorded_events, **kwargs)
 
-    def events(self, **kwargs):
-        """Return all events ; wrapper for behavioral data function."""
+    def events(self, **kwargs) -> Events:
+        """See ``pyfiber.Behavior.events``.
+
+        :param recorded: only output events that are recorded(default value = ``False``)
+        :type recorded: ``bool``
+        :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
+        :type recorded_name: ``bool``
+        :param window: perievent analysis window
+        :return: dictionnary with all events
+        :rtype: ``dict``"""
         return self.behavior.events(**kwargs)
 
-    def intervals(self, **kwargs):
-        """Return all intervals ; wrapper for behavioral data function."""
+    def intervals(self, **kwargs) -> Intervals:
+        """See ``pyfiber.Behavior.intervals``
+
+        :param recorded: only output events that are recorded(default value = ``False``)
+        :type recorded: ``bool``
+        :param recorded_name: name of the attribute storing recorded intervals (default ``'TTL1_ON'``)
+        :type recorded_name: ``bool``
+        :param window: perievent analysis window
+
+        :return: dictionnary of all intervals
+        :rtype: ``dict``"""
         return self.behavior.intervals(**kwargs)
 
     def analyze(self,
-                event_time,
-                window='default',
-                norm='default'):
-        """Return Analysis object, related to defined perievent window."""
+                event_time : float,
+                window : Union[str, tuple] ='default',
+                norm : str ='default') -> object:
+        """Return Analysis object, related to defined perievent window.
+
+        :param event_time: event of interest timestamp
+        :param window: perievent analysis window
+        :param norm: normalization method
+        :return: object containing all the analysis data and methods to display them
+
+        .. note::
+           The normalization parameter correspond the process of taking into account the """
         res = Analysis(self.ID)
         res.event_time = event_time
         res.fiberfile = self.fiber.filepath
@@ -211,9 +275,10 @@ class Analysis(PyFiber):
              event=True,
              event_label='event',
              linewidth=2,
-             smooth='savgol',
-             unsmoothed=True,
-             smth_window='default'):
+             smth_method='savgol',
+             smooth=True,
+             smth_window='default',
+             show_non_smoothed=True):
         """Visualize data.
 
         By default smoothes data with Savitski Golay filter
@@ -228,12 +293,12 @@ class Analysis(PyFiber):
         time = self.time
         if smooth:
             time_and_data = self.smooth(
-                data, method=smooth, window=smth_window)
+                data, method=smth_method, window=smth_window)
             s_time = time_and_data[:, 0]
             s_data = time_and_data[:, 1]
         if len(data) == len(time):
             fig = plt.figure(figsize=figsize)
-            if unsmoothed is True:
+            if show_non_smoothed:
                 plt.plot(time, data, c='r', alpha=0.5)
             if smooth:
                 plt.plot(s_time, s_data, c='k')
@@ -324,7 +389,7 @@ class MultiSession(PyFiber):
 
     def __repr__(self):
         """Representation fo MultiSession object."""
-        return f"""<MultiSession object> // folder: {self.folder}"""
+        return f"""<MultiSession object> - folder: {self.folder}"""
 
     def __getitem__(self, item):
         """Return session objective with corresponding filename."""

@@ -729,19 +729,68 @@ multiple queries (time) as an option.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Session.events">
 <span class="sig-name descname"><span class="pre">events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session.events" title="Permalink to this definition"></a></dt>
-<dd><p>Return all events ; wrapper for behavioral data function.</p>
+<dd><p>See <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior.events</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recorded</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – only output events that are recorded(default value = <code class="docutils literal notranslate"><span class="pre">False</span></code>)</p></li>
+<li><p><strong>recorded_name</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – name of the attribute storing recorded intervals (default <code class="docutils literal notranslate"><span class="pre">'TTL1_ON'</span></code>)</p></li>
+<li><p><strong>window</strong> – perievent analysis window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionnary with all events</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Session.intervals">
 <span class="sig-name descname"><span class="pre">intervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session.intervals" title="Permalink to this definition"></a></dt>
-<dd><p>Return all intervals ; wrapper for behavioral data function.</p>
+<dd><p>See <code class="docutils literal notranslate"><span class="pre">pyfiber.Behavior.intervals</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recorded</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – only output events that are recorded(default value = <code class="docutils literal notranslate"><span class="pre">False</span></code>)</p></li>
+<li><p><strong>recorded_name</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – name of the attribute storing recorded intervals (default <code class="docutils literal notranslate"><span class="pre">'TTL1_ON'</span></code>)</p></li>
+<li><p><strong>window</strong> – perievent analysis window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionnary of all intervals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Session.analyze">
 <span class="sig-name descname"><span class="pre">analyze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Session.analyze" title="Permalink to this definition"></a></dt>
 <dd><p>Return Analysis object, related to defined perievent window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_time</strong> (<em>float</em>) – event of interest timestamp</p></li>
+<li><p><strong>window</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>tuple</em><em>]</em>) – perievent analysis window</p></li>
+<li><p><strong>norm</strong> (<em>str</em>) – normalization method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>object containing all the analysis data and methods to display them</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The normalization parameter correspond the process of taking into account the</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -803,7 +852,7 @@ norm=’default’    : normalization method used</p>
 <p>Relative to one event from a session.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.Analysis.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'event'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'savgol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsmoothed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smth_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Analysis.plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'event'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smth_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'savgol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smth_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_non_smoothed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.Analysis.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Visualize data.</p>
 <p>By default smoothes data with Savitski Golay filter
 (window size 250ms).</p>
