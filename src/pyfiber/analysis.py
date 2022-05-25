@@ -59,15 +59,15 @@ class Session(PyFiber):
         if type(behavior) == Behavior:
             self.behavior = behavior
         else:
-            self.behavior = Behavior(behavior)
+            self.behavior = Behavior(behavior,verbosity=self._verbosity)
         if type(fiber) == Fiber:
             if fiber.alignment == self.behavior.rec_start:
                 self.fiber = fiber
             else:
                 self.fiber = Fiber(
-                    fiber.filepath, alignment=self.behavior.rec_start)
+                    fiber.filepath, alignment=self.behavior.rec_start, verbosity=self._verbosity)
         else:
-            self.fiber = Fiber(fiber, alignment=self.behavior.rec_start)
+            self.fiber = Fiber(fiber, alignment=self.behavior.rec_start, verbosity=self._verbosity)
         self.analyses = {}
 
     def __repr__(self): 
@@ -207,6 +207,8 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         res.post_zscores = res.zscores[end_idx-event_idx:]
         res.rob_zscores = (res.signal - np.median(res.preevent)) / \
             stats.median_abs_deviation(res.preevent)
+        res.preAVG_dF  = res.preevent.mean() 
+        res.postAVG_dF = res.postevent.mean()
         res.pre_Rzscores = res.rob_zscores[:end_idx-event_idx]
         res.post_Rzscores = res.rob_zscores[end_idx-event_idx:]
         res.preAVG_Z = res.pre_zscores.mean()
@@ -278,8 +280,17 @@ class Analysis(PyFiber):
              smth_method='savgol',
              smooth=True,
              smth_window='default',
-             show_non_smoothed=True):
+             show_non_smoothed=True,
+             xlim=None,
+             ylim=None,
+             save=None,
+             save_dpi=600,
+             save_format=['png','pdf'],):
         """Visualize data.
+        
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving
 
         By default smoothes data with Savitski Golay filter
         (window size 250ms).
@@ -308,6 +319,13 @@ class Analysis(PyFiber):
             if event:
                 plt.axvline(self.event_time, c='k',
                             label=event_label, lw=linewidth)
+            if xlim:
+                plt.xlim(xlim)
+            if ylim:
+                plt.ylim(ylim)
+            if save:
+                for ext in self._list(save_format):
+                    plt.savefig(f"{save}.{ext}", dpi=save_dpi)
             plt.show()
 
     def _possible_data(self):
@@ -356,10 +374,9 @@ class MultiSession(PyFiber):
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
 #TODO CHANGE DEBUG
-    def __init__(self, folder, debug=0.800, verbosity=True):
-        super().__init__()
+    def __init__(self, folder, debug=0.800, **kwargs):
+        super().__init__(**kwargs)
         print('folder', folder)
-        self._verbosity = verbosity
         self.folder = folder
         start = time.time()
         self._import_folder(folder)
@@ -407,7 +424,7 @@ class MultiSession(PyFiber):
                         f = path
                     elif '.dat' in path:
                         b = path
-                sessions[r] = Session(behavior=b, fiber=f)
+                sessions[r] = Session(behavior=b, fiber=f, verbosity=self._verbosity)
             self.sessions = sessions
 
     def _getID(self):
@@ -439,6 +456,9 @@ class MultiSession(PyFiber):
                 window='default',
                 norm='default',
                 sessions='all',
+                save=False,
+                save_dpi=600,
+                save_format=['png','pdf'],
                 **kwargs):
         """Analyze specific events.
 
@@ -526,8 +546,17 @@ class MultiSession(PyFiber):
             result.event_name = 'custom events, see times.'
         return result
 
-    def compare_behavior(self, attribute):
-        """Compare behavior (input should be event name)"""
+    def compare_behavior(self,
+                         attribute,
+                         save=False,
+                         save_dpi=600,
+                         save_format=['png','pdf']):
+        """Compare behavior (input should be event name)
+
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving
+        """
         obj_behav = [self.sessions[k].behavior for k in self.sessions.keys()]
         end = max(rat[1].behavior.end for rat in self.sessions.items())
         timebins = np.arange(0, round(end)+1, 1)
@@ -547,6 +576,9 @@ class MultiSession(PyFiber):
         for n, i in enumerate(pltcumul):
             plt.plot(i, label=names[n])
         plt.legend()
+        if save:
+            for ext in self._list(save_format):
+                plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()
         return np.array(cumul)
 
@@ -614,8 +646,15 @@ class MultiAnalysis(PyFiber):
              data_window=500,
              mean_window=500,
              label=None,
-             **kwargs):
-        """Visualize specified data."""
+             save=False,
+             save_dpi=600,
+             save_format=['png','pdf'],**kwargs):
+        """Visualize specified data.
+
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving
+        """
         cfg = {'figsize': (20, 10), 'c': 'k', 'linewidth': 1, 'alpha': 0.3}
         if data not in self.__dict__.keys():
             self._print(f"You need to choose among {self.possible_data()}")
@@ -640,4 +679,13 @@ class MultiAnalysis(PyFiber):
             mean_data = self._savgol(mean_data, mean_window)
         plt.plot(self.EPOCH, mean_data, c='k', label='mean')
         plt.axvline(0, alpha=1, linewidth=cfg['linewidth'], c=cfg['c'])
+        if 'window' in kwargs.keys():
+            plt.xlim(-1*kwargs['window'][0], kwargs['window'][1])
+        else:
+            plt.xlim(-1*self.WINDOW[0], self.WINDOW[1])
+        if 'ylim' in kwargs.keys():
+            plt.ylim(kwargs['ylim'])
+        if save:
+            for ext in self._list(save_format):
+                plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()

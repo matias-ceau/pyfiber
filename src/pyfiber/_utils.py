@@ -37,8 +37,11 @@ class PyFiber:
     vars().update(CFG['GENERAL'])
     vars().update(CFG['SYSTEM'])
 
-    def __init__(self, verbosity=True, **kwargs):
-        self._verbosity = verbosity
+    def __init__(self, **kwargs):
+        if 'verbosity' in kwargs.keys():
+            self._verbosity = kwargs['verbosity']
+        else:
+            self._verbosity = True
         self._log = []
         self.__dict__.update(**kwargs)
 

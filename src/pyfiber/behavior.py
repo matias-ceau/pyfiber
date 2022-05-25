@@ -5,6 +5,7 @@ automatically calculated by defining them in the configuration file.
 """
 
 import pandas as pd
+import portion
 import os
 import time
 import matplotlib.pyplot as plt
@@ -47,9 +48,9 @@ def select_interval_by_duration(interval: Intervals, condition: list) -> Interva
     if condition[0] == '<':
         return [(a, b) for a, b in interval if (b-a) < condition[1]]
     elif condition[0] == '>':
-        [(a, b) for a, b in interval if (b-a) > condition[1]]
+        return [(a, b) for a, b in interval if (b-a) > condition[1]]
     elif condition[0] == '=':
-        [(a, b) for a, b in interval if (b-a) == condition[1]]
+        return [(a, b) for a, b in interval if (b-a) == condition[1]]
     else:
         print('Invalid input for select by interval duration.')
 
@@ -167,7 +168,42 @@ def element_of(event_array : Events,
     if boolean and not is_element:
         return len(res) == 0
 
-def set_operations(A : Intervals, B : Intervals, operation : str) -> Intervals:
+# def set_operations(A : Intervals, B : Intervals, operation : str) -> Intervals:
+#     """Compute the union or the intersection of list of sets.
+
+#     :param A: Intervals A
+#     :param B: Intervals B
+#     :type A: ``Intervals``
+#     :type B: ``Intervals``
+
+#     .. note::
+#         - **union**               A U B
+#         - **intersection**        A n B
+#     """
+
+#     if (A == []) or (B == []):
+#         if operation == 'intersection':
+#             return []
+#         if operation == 'union':
+#             if A == []:
+#                 return B
+#             if B == []:
+#                 return A
+#     if A == B:
+#         return A
+#     left = np.sort(list(set([i[0] for i in A] + [i[0] for i in B])))
+#     right = np.sort(list(set([i[1] for i in A] + [i[1] for i in B])))
+#     pA = pd.arrays.IntervalArray.from_tuples(A, closed="both")
+#     pB = pd.arrays.IntervalArray.from_tuples(B, closed="both")
+#     if operation == 'intersection':
+#         result = list(zip([l for l in left if (pA.contains(l).any() and pB.contains(l).any())],
+#                           [r for r in right if (pA.contains(r).any() and pB.contains(r).any())]))
+#     if operation == 'union':
+#         result = list(zip([l for l in left if not(pA.contains(l).any() and pB.contains(l).any())],
+#                           [r for r in right if not(pA.contains(r).any() and pB.contains(r).any())]))
+#     return [(left, right) for left, right in result if left-right != 0]
+
+def set_operations(A , B, operation : str):
     """Compute the union or the intersection of list of sets.
 
     :param A: Intervals A
@@ -179,27 +215,25 @@ def set_operations(A : Intervals, B : Intervals, operation : str) -> Intervals:
         - **union**               A U B
         - **intersection**        A n B
     """
-    if (A == []) or (B == []):
-        if operation == 'intersection':
-            return []
-        if operation == 'union':
-            if A == []:
-                return B
-            if B == []:
-                return A
-    if A == B:
-        return A
-    left = np.sort(list(set([i[0] for i in A] + [i[0] for i in B])))
-    right = np.sort(list(set([i[1] for i in A] + [i[1] for i in B])))
-    pA = pd.arrays.IntervalArray.from_tuples(A, closed="both")
-    pB = pd.arrays.IntervalArray.from_tuples(B, closed="both")
-    if operation == 'intersection':
-        result = list(zip([l for l in left if (pA.contains(l).any() and pB.contains(l).any())],
-                          [r for r in right if (pA.contains(r).any() and pB.contains(r).any())]))
     if operation == 'union':
-        result = list(zip([l for l in left if not(pA.contains(l).any() and pB.contains(l).any())],
-                          [r for r in right if not(pA.contains(r).any() and pB.contains(r).any())]))
-    return [(left, right) for left, right in result if left-right != 0]
+        if A == []: return B
+        if B == []: return A
+    if operation == 'intersection':
+        if (A == []) or (B == []):
+            return []
+    def to_portion(list_of_tuples):
+        A = [portion.closed(a,b) for a,b in list_of_tuples]
+        a = A[0]
+        for i in A[1:]:
+            a = a | i
+        return a
+    A, B = to_portion(A), to_portion(B)
+    if operation == 'union':
+        result =  A | B
+    if operation == 'intersection':
+        result = A & B
+    return [(a,b) for l,a,b,r in portion.to_data(result)
+            if abs(a-b)>1e-5]#(l != float('inf'))&(r != float('-inf'))]
 
 def set_union(*sets : Intervals) -> Intervals:
     """Find union of any number of Intervals.
@@ -297,7 +331,8 @@ class Behavior(PyFiber):
 
         self._print(f'IMPORTING {filepath}...')
         start = time.time()
-
+        self._description = {}
+        
         if self.filetype == 'IMETRONIC':
             self.df = pd.read_csv(filepath, skiprows=12, delimiter='\t', header=None, names=[
                                   'TIME', 'F', 'ID', '_P', '_V', '_L', '_R', '_T', '_W', '_X', '_Y', '_Z'])
@@ -349,6 +384,11 @@ class Behavior(PyFiber):
         self._verbosity = user_value
         return pd.concat((self.total, df), axis=1)
 
+    @property
+    def description(self):
+        for k,v in self._description.items():
+            print(f"\033[1m{k:<20}\033[0m {v}")
+
     def __repr__(self):
         """Return __repr__."""
         return f"""\
@@ -386,14 +426,16 @@ GENERAL INFORMATION:
         """Extract event specified in the configuration file, in the **imetronic_events** section.
 
         This function gets called during instance initialization if the filetype is 'IMETRONIC' (see configuration file)."""
-        for e, param in self.BEHAVIOR['imetronic_events'].items():
+        for e, (param, descr) in self.BEHAVIOR['imetronic_events'].items():
             self._print(f"Detecting {e+'...':<30}  {param})")
             if param[0] == 'conditional':
                 (f, i), (c, v) = param[1:]
                 self.__dict__[e] = self._extract(f, i, c, v)
+                self._description[e] = descr
             if param[0] == 'simple':
                 (f, i), c = param[1:]
                 self.__dict__[e] = self.get((f, i))[c].to_numpy()
+                self._description[e] = descr
         # local function, translates from string to data, including special nomenclature
 
     
@@ -411,47 +453,75 @@ GENERAL INFORMATION:
 
         # simple intervals, only need events
         if bool(self.BEHAVIOR['basic_intervals']):
-            for e, param in self.BEHAVIOR['basic_intervals'].items():
+            for e, (param, descr) in self.BEHAVIOR['basic_intervals'].items():
                 self._print(f"Detecting {e+'...':<30}  {param})")
                 if param[0] == 'ON_OFF':
                     w, (a, b) = param[1:]
                     ON = generate_interval(t(a), t(b), self.end)
                     if w == 'on' or w == 'both':
                         self.__dict__[e+'_ON'] = ON
+                        self._description[e+'_ON'] = descr
                     if w == 'off' or w == 'both':
                         self.__dict__[e+'_OFF'] = set_non(ON, self.end)
+                        self._description[e+'_OFF'] = descr
 
         # custom events an intervals, function defined first as generation is sequential and depend on a specific order
         if bool(self.BEHAVIOR['custom']):
-            for e, param in self.BEHAVIOR['custom'].items():
+            for e, (param, descr) in self.BEHAVIOR['custom'].items():
                 p, a, *b = param
                 self._print(f"Detecting {e+'...':<30}  {param})")
                 if p == 'INTERSECTION':
                     self.__dict__[e] = set_intersection(*t(a))
+                    self._description[e] = descr
                 if p == 'NEAR_EVENT':
                     self.__dict__[e] = interval_is_close_to(
                         **{k: v for k, v in zip(['intervals', 'events', 'nearness'], t([a]+b))})
+                    self._description[e] = descr
                 if p == 'DURATION':
                     self.__dict__[e] = select_interval_by_duration(t(a), b)
+                    self._description[e] = descr
                 if p == 'UNION':
                     self.__dict__[e] = set_union(*t(a))
+                    self._description[e] = descr
                 if p == 'boundary':
                     self.__dict__[e] = np.array(
                         [i if a == 'start' else j for i, j in t(*b)])
+                    self._description[e] = descr
                 if p == 'combination':
                     self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
+                    self._description[e] = descr
                 if p == 'indexed':
                     self.__dict__[e] = t(a)[b[0]-1: b[0]]
+                    self._description[e] = descr
                 if p == 'iselement':
                     self.__dict__[e] = element_of(t(a), t(*b))
+                    self._description[e] = descr
                 if p == 'timerestricted':
                     self.__dict__[e] = t(a)[(t(a) > b[0][0]) & (t(a) < b[0][1])]
+                    self._description[e] = descr
                 if p == 'generative':
                     self.__dict__.update(
                         {e.replace('_n', f'_{str(i+1)}'): t(a)[i::b[0]] for i in range(b[0])})
+                if p == 'generative2':
+                    intervals = [f"{a[0][:-1]}{n}" for n in range(100) if f"{a[0][:-1]}{n}" in self.__dict__]
+                    intervals = t(intervals)
+                    self.__dict__.update(
+                        {e.replace('_n', f'_{str(i+1)}') :
+                             np.concatenate([element_of(t(a[1]), interval)[i::b[0]]
+                                                for interval in intervals])
+                        for i in range(b[0])}
+                                        )
+                    self._description[e] = descr
                 if p == 'GENERATIVE':
                     self.__dict__.update(
                         {e.replace('_n', f'_{str(i+1)}'): [n] for i, n in enumerate(t(a))})
+                    self._description[e] = descr
+                if p == 'EXCLUDE':
+                    self.__dict__[e] = set_intersection(t(a), set_non(*t(b), self.end))
+                    self._description[e] = descr
+                if p == 'CONTAINS':
+                    self.__dict__[e] = [interval for interval in t(a) if element_of(*t(b), [interval], boolean=True)]
+                    self._description[e] = descr
             
 
  ######################################################################################################
@@ -580,11 +650,21 @@ GENERAL INFORMATION:
 
 
     def figure(self, obj,
-               figsize='default', h=0.8, hspace=0, label_list=None, color_list=None, **kwargs):
+               figsize='default',
+               h=0.8, hspace=0,
+               label_list=None,
+               color_list=None,
+               save=False,
+               save_dpi=600,
+               save_format=['png','pdf'],
+               **kwargs):
         """Plot data.
 
         :param obj: data to plot
         :type obj: ``Events`` or ``Intervals``, ``str``, ``dict``
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving
         
         :return: ``matplotlib.pyplot.figure`` containing a **eventplots** or **axvspan** or a combination of both.
 
@@ -613,6 +693,9 @@ GENERAL INFORMATION:
             for n, ax in enumerate(axes):
                 self._graph(
                     ax, obj_list[n], label=label_list[n], color=color_list[n], **kwargs)
+        if save:
+            for ext in self._list(save_format):
+                plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()
 
     def summary(self, demo : bool=True, **kwargs):
@@ -887,13 +970,19 @@ GENERAL INFORMATION:
 
     def movement(self,
                 figsize : Tuple[int, int] =(20, 10),
-                cmap : str ='seismic'):
+                cmap : str ='seismic',
+                save=False,
+                save_dpi=600,
+                save_format=['png','pdf']):
         """Show number of crossings as a heatmap.
 
         :param figsize: size of plot
         :type figsize: ``Tuple[int, int]``
         :param cmap: color map (see :py:mod:`matplotlib`)
         :type cmap: ``str``
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving
         """
         array = np.zeros((max(self.y_coordinates), max(self.x_coordinates)))
         for i in range(len(self.x_coordinates)):
@@ -902,6 +991,9 @@ GENERAL INFORMATION:
         fig, ax = plt.subplots(1, figsize=figsize)
         ax.imshow(array, cmap=cmap, vmin=0, vmax=np.max(array))
         ax.invert_yaxis()
+        if save:
+            for ext in self._list(save_format):
+                plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()
 
 class MultiBehavior(PyFiber):
@@ -995,7 +1087,9 @@ class MultiBehavior(PyFiber):
               attribute : str,
               plot : bool =True,
               figsize : Tuple[int, int] =(20, 15),
-              **kwargs) -> pd.DataFrame:
+              save=False,
+              save_dpi=600,
+              save_format=['png','pdf'],**kwargs) -> pd.DataFrame:
         """Return the cumulative sum of a given event for all animals.
 
         :param attribute: event name
@@ -1004,6 +1098,9 @@ class MultiBehavior(PyFiber):
         :type plot: ``bool``
         :param figsize: figure size (passed to matplolib via a DataFrame)
         :kwargs: keyword arguments passed to the plot function of a ``pandas.DataFrame``
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving
         :return: Data Frame containing the cumulative sum, a plot (optional)
         :rtype: ``pandas.DataFrame``
         """
@@ -1011,6 +1108,9 @@ class MultiBehavior(PyFiber):
                              for k, v in self._cnt(attribute).items()})
         if plot:
             cumul.plot(figsize=figsize, **kwargs)
+            if save:
+                for ext in self._list(save_format):
+                    plt.savefig(f"{save}.{ext}", dpi=save_dpi)
             plt.show()
         return cumul.T
 
@@ -1020,7 +1120,10 @@ class MultiBehavior(PyFiber):
                   binsize : int =120,
                   percentiles=[15, 50, 85],
                   figsize : tuple =(20, 10),
-                  interval_alpha : float =0.3):
+                  interval_alpha : float =0.3,
+                  save=False,
+                  save_dpi=600,
+                  save_format=['png','pdf'],):
         """Show rate for all session for any given event.
         
         :param attribute: event name
@@ -1034,7 +1137,10 @@ class MultiBehavior(PyFiber):
         :param figsize: figure size
         :type figsize: ``tuple``
         :param interval_alpha: transparency value for the interval plot
-        :rtype interval_alpha: ``float``"""
+        :rtype interval_alpha: ``float``
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving"""
         plt.figure(figsize=figsize)
         dic = {}
         for name in self.count(attribute).index:
@@ -1070,6 +1176,9 @@ class MultiBehavior(PyFiber):
             if len(interval):
                 for a, b in interval:
                     plt.axvspan(a-binsize, b-binsize, alpha=interval_alpha)
+        if save:
+            for ext in self._list(save_format):
+                plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()
 
     def summary(self, **kwargs):

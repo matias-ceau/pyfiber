@@ -16,70 +16,89 @@ BEHAVIOR:
     # events directly accessible from imetronic raw file, extracted first
         #event_name       ['type',        [F, ID], [column , value]]
         #event_nam        ['simple',  [F,ID], column]
-        hled_on:          ['conditional', [1, 1] , ['_P'  ,  1]]     # houselight on (start of ND period) (1,1)
-        hled_off:         ['conditional', [1, 1] , ['_P'  ,  0]]     # houselight on
-        led1_on:          ['conditional', [1, 2] , ['_P'  ,  1]]     # CS = administration light on (1,2)
-        led1_off:         ['conditional', [1, 2] , ['_P'  ,  0]]     # led1 off (possibly unnecessary switch off commands depending of exercises)
-        led2_on:          ['conditional', [1, 3] , ['_P'  ,  1]]
-        led2_off:         ['conditional', [1, 3] , ['_P'  ,  0]]
-        np1:              ['conditional', [3, 1] , ['_V'  ,  1]]     # NP active detected (3,1)
-        np2:              ['conditional', [3, 2] , ['_V'  ,  1]]     # NP inactive detected (3,2)
-        inj1:             ['conditional', [6, 1] , ['_L'  ,  1]]     # injection (6,1) (NB: first pump turn)
-        ttl1_on:          ['conditional', [15,1] , ['_L'  ,  1]]
-        ttl1_off:         ['conditional', [15,1] , ['_L'  ,  0]]
-        x_coordinates:    ['simple', [9, 1], '_X']
-        y_coordinates:    ['simple', [9, 1], '_Y'] 
-        xy_timestamps:    ['simple', [9, 1], 'TIME'] 
+        hled_on:          [['conditional', [1, 1] , ['_P'  ,  1]] , "houselight on"]    # houselight on (start of ND period) (1,1)
+        hled_off:         [['conditional', [1, 1] , ['_P'  ,  0]] , "houselight off"]   # houselight on
+        led1_on:          [['conditional', [1, 2] , ['_P'  ,  1]] , "CS light on"]   # CS = administration light on (1,2)
+        led1_off:         [['conditional', [1, 2] , ['_P'  ,  0]] , "CS light off"]   # led1 off (possibly unnecessary switch off commands depending of exercises)
+        led2_on:          [['conditional', [1, 3] , ['_P'  ,  1]] , "Drug light on"]
+        led2_off:         [['conditional', [1, 3] , ['_P'  ,  0]] , "Drug light off"]
+        np1:              [['conditional', [3, 1] , ['_V'  ,  1]] , "Active Nosepoke"]    # NP active detected (3,1)
+        np2:              [['conditional', [3, 2] , ['_V'  ,  1]] , "Inactive nosepoke"]   # NP inactive detected (3,2)
+        inj1:             [['conditional', [6, 1] , ['_L'  ,  1]] , "Injection"]   # injection (6,1) (NB: first pump turn)
+        ttl1_on:          [['conditional', [15,1] , ['_L'  ,  1]] , "Recording TTL on"]
+        ttl1_off:         [['conditional', [15,1] , ['_L'  ,  0]] , "Recording TTL off"]
+        x_coordinates:    [['simple', [9, 1], '_X'] , "X coordinates"]
+        y_coordinates:    [['simple', [9, 1], '_Y'] , 'Y coordinates']
+        xy_timestamps:    [['simple', [9, 1], 'TIME'] , 'Timestamps for coordinates' ]
    
     csv_events:
     # events extracted from a csv file with one event per columns
         # event1:        ['timestamp',  data column name 1, time column name]
         # event2:        ['timestamp',  data column name 2, time column name]
         # eventA:        ['value',      column name A]
-        TTL1:           ['timestamp', DI/O-1, Time(s)]
-        TTL2:           ['timestamp', DI/O-2, Time(s)]
-        TTL3:           ['timestamp', DI/O-3, Time(s)]
-        TTL4:           ['timestamp', DI/O-4, Time(s)]
+        TTL1:           [['timestamp', DI/O-1, Time(s)] , 'TTL1']
+        TTL2:           [['timestamp', DI/O-2, Time(s)] , 'TTL2']
+        TTL3:           [['timestamp', DI/O-3, Time(s)] , 'TTL3']
+        TTL4:           [['timestamp', DI/O-4, Time(s)] , 'TTL4']
 
     basic_intervals:
     # intervals directly computable with events above
         #INTERVAL_NAME    ['type'  , on/off/both, [start,end (of ON)]
-        HLED:             ['ON_OFF', both       , [hled_on,hled_off]]
-        LED1:             ['ON_OFF', both       , [led1_on,led1_off]]
-        LED2:             ['ON_OFF', both       , [led2_on,led2_off]]
-        TTL1:             ['ON_OFF', both       , [ttl1_on,ttl1_off]]
-        #INTERVAL1_2       ['ON_OFF', both        , [event1,event2]]
+        HLED:             [['ON_OFF', both       , [hled_on,hled_off]] , 'Houselight on (interval)']
+        LED1:             [['ON_OFF', both       , [led1_on,led1_off]] , 'CS light on (interval)']
+        LED2:             [['ON_OFF', both       , [led2_on,led2_off]] , 'Drug light on (interval)']
+        TTL1:             [['ON_OFF', both       , [ttl1_on,ttl1_off]] , 'TTL1 sending (interval)']
+        #INTERVAL1_2       [['ON_OFF', both        , [event1,event2]] , '']
         
     custom:
     # complex events and intervals, please input them in a logical order (eg: if interval A is needed for timestamps T, A should be defined before T)
-        #INTERVAL         ['INTERSECTION', [INTERVALS]]                          # intersection of two intervals   eg: ['INTERSECTION',[(10,20),(30,40)],[(0,15),(35,60)]] => [(10,15),(35,40)]
-        #INTERVAL         ['UNION',        [INTERVALS]]                          # union of two intervals          eg: ['UNION',       [(10,20),(30,40)],[(0,15),(35,60)]] => [(0,20),(30,60)]
-        #INTERVAL         ['NEAR_EVENT',   INTERVAL,       event,   nearness]    # intervals that are near (nearness in seconds) specified events 
-        #INTERVAL         ['GENERATIVE', INTERVALS]                              # for every subinterval of an interval, generates an indexed interval eg: [(10,20),(30,40)] => {name}_1 = [(10,20)], {name}_2 = [(30,40)]
-        #event            ['boundary',     start/end/both, INTERVAL]             # boundaries of intervals (either,start,end, or both as an array)
-        #event            ['iselement',    parent_events,  INTERVAL]             # timestamps that are in specified intervals
-        #event            ['indexed',      parent_events,  index]                # 
+        #INTERVAL          ['INTERSECTION', [INTERVALS]]                          # intersection of two intervals   eg: ['INTERSECTION',[(10,20),(30,40)],[(0,15),(35,60)]] => [(10,15),(35,40)]
+        #INTERVAL          ['UNION',        [INTERVALS]]                          # union of two intervals          eg: ['UNION',       [(10,20),(30,40)],[(0,15),(35,60)]] => [(0,20),(30,60)]
+        #INTERVAL          ['NEAR_EVENT',   INTERVAL,       event,   nearness]    # intervals that are near (nearness in seconds) specified events 
+        #INTERVAL          ['GENERATIVE', INTERVALS]                              # for every subinterval of an interval, generates an indexed interval eg: [(10,20),(30,40)] => {name}_1 = [(10,20)], {name}_2 = [(30,40)]
+        #event             ['boundary',     start/end/both, INTERVAL]             # boundaries of intervals (either,start,end, or both as an array)
+        #event             ['iselement',    parent_events,  INTERVAL]             # timestamps that are in specified intervals
+        #event             ['indexed',      parent_events,  index]                # 
         #
-        rec_start:        ['indexed'        ,  ttl1_on                        ,   1       ]  #first ttl1_on command
-        DARK:             ['INTERSECTION'   ,  [HLED_OFF,LED1_OFF,LED2_OFF]               ]
-        DNI:              ['NEAR_EVENT'     ,  DARK                           , inj1  , 5 ]
-        TO_DARK:          ['DURATION'       ,  DNI                            , <     , 45]
-        TIMEOUT:          ['UNION'          ,  [LED1_ON,TO_DARK]                          ]
-        NOTO_DARK:        ['INTERSECTION'   ,  [DARK,~TIMEOUT]                            ] #~is the logic non operator
-        hled_on_start:    ['boundary'       ,  start                          , HLED_ON   ]
-        hled_on_end:      ['boundary'       ,  end                            , HLED_ON   ]
-        switch_d_nd:      ['iselement'      ,  hled_on_start                  , LED2_ON   ]
-        switch_to_nd:     ['iselement'      ,  hled_on_start                  , TIMEOUT   ]
-        switch_dto_nd:    ['combination'    ,  [switch_d_nd,switch_to_nd]                 ]
-        switch_nd_d:      ['iselement'      ,  hled_on_end                    , LED2_ON   ]
-        switch_between:   ['timerestricted' ,  switch_dto_nd                  ,[100,3400] ]
-        switch_1:         ['indexed'        ,  switch_between                 , 1         ]
-        np1_HLED_OFF:     ['iselement'      ,  np1                            , HLED_OFF  ]
-        np_effective:     ['iselement'      ,  np1_HLED_OFF                   , ~TIMEOUT  ]
-        np1_n:            ['generative'     ,  np_effective                   ,         5 ]
-        D_n:              ['GENERATIVE'     ,  HLED_OFF                                   ]
-        ND_n:             ['GENERATIVE'     ,  HLED_ON                                    ]
-        ND_first:         ['NEAR_EVENT'     ,  HLED_ON                        ,switch_1, 1]
+        rec_start:         [['indexed'        ,  ttl1_on                        ,   1       ]  , 'Start of the recording'] #first ttl1_on command
+        DARK:              [['INTERSECTION'   ,  [HLED_OFF,LED1_OFF,LED2_OFF]               ]  , 'No lights on']
+        DNI:               [['NEAR_EVENT'     ,  DARK                           , inj1  , 5 ]  , 'No lights on, close to an injection']
+        TO_DARK:           [['DURATION'       ,  DNI                            , '<'   , 45]  , 'No lights on, close to an injection, shorter than 45s']
+        TIMEOUT:           [['UNION'          ,  [LED1_ON,TO_DARK]                          ]  , 'CS light on + subsequent dark period']
+        NOTO_DARK:         [['INTERSECTION'   ,  [DARK,~TIMEOUT]                            ]  , 'No lights on, not a timeout']      #~is the logic non operator
+        noto_dark_end:     [['boundary'       ,  end                            , NOTO_DARK ]  , "End of dark period (that isn't a timeout)"]
+        switch_dark_d1:    [['iselement'      ,  noto_dark_end                  , LED2_ON   ]  , 'Switch from dark to D1']
+        hled_on_start:     [['boundary'       ,  start                          , HLED_ON   ]  , 'Starts of each no drug periods']
+        hled_on_end:       [['boundary'       ,  end                            , HLED_ON   ]  , 'Ends of each no drug periods']
+        switch_d_nd:       [['iselement'      ,  hled_on_start                  , LED2_ON   ]  , 'Switch from drug to no drug (ie excluding timeout to drug)']
+        switch_to_nd:      [['iselement'      ,  hled_on_start                  , TIMEOUT   ]  , 'Switch from timeout to no drug']
+        switch_dto_nd:     [['combination'    ,  [switch_d_nd,switch_to_nd]                 ]  , 'Switch of either drug/timeout to no drug']
+        switch_nd_d:       [['iselement'      ,  hled_on_end                    , LED2_ON   ]  , 'Switch from ND to D']
+        switch_between:    [['timerestricted' ,  switch_dto_nd                  ,[100,3400] ]  , 'Switch between ND and D that are between t+100s and t+3400s']
+        switch_1:          [['indexed'        ,  switch_between                 , 1         ]  , 'First of the switches between ND and D that are between t+100s and t+3400s']
+        HLEDOFF_NODARK:    [['INTERSECTION'   , [HLED_OFF, ~NOTO_DARK]                      ]  , 'HLED off, excluding non-timeout-dark periods']
+        DRP:               [['NEAR_EVENT'     ,  HLEDOFF_NODARK                 , led2_on, 1]  , 'Period with HLED off and near a led2 switch on']
+        DRP_LONG:          [['DURATION'       ,  DRP                            , '>'  , 600]  , 'Drug periods longer than 600 seconds']
+        DRP_INJ:           [['CONTAINS'       ,  DRP                            , inj1      ]  , 'Drug period that is close to an injection']
+        DRUG:              [['UNION'          , [DRP_LONG, DRP_INJ]                         ]  , 'Drug periods']
+        D_n:               [['GENERATIVE'     ,  DRUG                                       ]  , 'N-th drug period']
+        DRUG_NOTO:         [['INTERSECTION'   ,  [DRUG, ~TIMEOUT]                           ]  , 'Drug period without timeouts']
+        #np1_HLED_OFF:      [['iselement'      ,  np1                            , DRUG      ]  , 'Active nosepokes during D']
+        np_HF_NOTO:        [['iselement'      ,  np1                            , DRUG_NOTO ]  , 'Active nosepoke not during HLED ON and not during full timeout']
+        np_effective:      [['iselement'      ,  np_HF_NOTO                     , LED2_ON   ]  , 'Active nosepoke that is part of the FR series']
+        np1dx_n:           [['generative2'    ,  [D_n, np_effective]            ,         5 ]  , 'N-th effective nosepoke inside each drug period']
+        np1_n:             [['generative'     ,  np_effective                   ,         5 ]  , 'N-th effective nosepoke']
+        ND_n:              [['GENERATIVE'     ,  HLED_ON                                    ]  , 'No drug period (HLED on)']
+        ND_first:          [['NEAR_EVENT'     ,  HLED_ON                        ,switch_1, 1]  , 'First ND period (excluding the first one in case of NDpre paradigm']
+        inj_first:         [['indexed'        ,  inj1                           ,   1       ]  , 'First injection']
+        npt:               [['combination'    ,  [np1, np2]                                 ]  , 'All nosepokes (active and inactive)']
+        np1_ND_first:      [['iselement'      ,  np1                            , ND_first  ]  , 'Active nosepokes during the first ND period']
+        np2_ND_first:      [['iselement'      ,  np2                            , ND_first  ]  , 'Inactive nosepokes during the first ND period']
+        npt_ND_first:      [['iselement'      ,  npt                            , ND_first  ]  , 'Nosepokes during the first ND period']
+        np1_NDfirst_1:     [['indexed'        ,  np1_ND_first                   ,   1       ]  , 'First active nosepoke of first ND period']
+        np2_NDfirst_1:     [['indexed'        ,  np2_ND_first                   ,   1       ]  , 'First inactive nosepoke of first ND period']
+        npt_NDfirst_1:     [['indexed'        ,  npt_ND_first                   ,   1       ]  , 'First nosepoke of first ND period']
+ 
                
     elements:
         # Long name and plotting color for any event

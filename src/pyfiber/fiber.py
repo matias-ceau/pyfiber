@@ -587,6 +587,9 @@ Aligned to behavior file : {self.alignment} s
                         rec : Union[str,int] ='all', 
                         colors : str ='k',
                         alpha : float =0.3,
+                        save=False,
+                        save_dpi=600,
+                        save_format=['png','pdf'],
                         **kwargs) -> None:
         """Show graphical representation of detected transients with their amplitude.
 
@@ -595,7 +598,10 @@ Aligned to behavior file : {self.alignment} s
         :param rec: recordings to plot, default is all
         :param colors: bar colors
         :param alpha: transparency
-        :pram kwargs: keyworg arguments passed to ``matplotlib``"""
+        :param kwargs: keyworg arguments passed to ``matplotlib``
+        :param save: default is ``False``, filepath (without file extension)
+        :param save_dpi: dpi if figure is saved
+        :param save_format: file extension for saving"""
         if rec == 'all':
             rec = self.number_of_recording
         fig, axes = plt.subplots(rec, figsize=figsize)
@@ -614,6 +620,9 @@ Aligned to behavior file : {self.alignment} s
                     ax.vlines(data.loc[i, 'time'],
                               ymin=0, ymax=data.loc[i, value],
                               colors=colors, alpha=alpha, **kwargs)
+        if save:
+            for ext in self._list(save_format):
+                plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()
 
     def peakFA(self,
