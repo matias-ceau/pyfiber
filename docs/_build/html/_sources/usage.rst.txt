@@ -1,26 +1,22 @@
 Usage
 =====
 
-The less important function is .. py:function:: ``pyfiber.this_is_a_function()`` function:
-
-.. py:function:: pyfiber.this_is_a_function(a=None)
-
-    Return nothing because the function doesn't exist.
-
-    :param a: Optional "a" or something
-    :type a: str or None
-    :return: Nothing at all.
-    :rtype: None
+.. toctree::
+    :maxdepth: 3
+    :caption: Jupyter notebooks:
+    
+    notebooks/behavior/PYFIBER_Behavior
+    notebooks/fiber/PYFIBER_Fiber
 
 
-Behavioral data
----------------
+..
+    The less important function is .. py:function:: ``pyfiber.this_is_a_function()`` function:
 
+    .. py:function:: pyfiber.this_is_a_function(a=None)
 
-Fiber photometry
-----------------
+        Return nothing because the function doesn't exist.
 
-
-
-Combination
------------
+        :param a: Optional "a" or something
+        :type a: str or None
+        :return: Nothing at all.
+        :rtype: None

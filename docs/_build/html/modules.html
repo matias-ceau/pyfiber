@@ -1377,6 +1377,40 @@ can be used.</p>
 <dt class="sig sig-object py" id="pyfiber.analysis.MultiSession">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.analysis.</span></span><span class="sig-name descname"><span class="pre">MultiSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.MultiSession" title="Permalink to this definition"></a></dt>
 <dd><p>Group analyses or multiple events for single subject.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> – path of the <a class="reference internal" href="package.html#mainfolder"><span class="std std-ref">main folder</span></a> containing session folders</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>folder</strong> – path of the folder</p></li>
+<li><p><strong>sessions</strong> – dictionnary containing <code class="docutils literal notranslate"><span class="pre">Session</span></code> instances for each session</p></li>
+<li><p><strong>removed</strong> – list of removed file (if debug is set and a problem was detected)</p></li>
+<li><p><strong>names</strong> – subfolder nmaes, ideally reflecting session names</p></li>
+<li><p><strong>details</strong> – extracted session details from folder names (if set in the configuration file)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="literal-block-wrapper docutils container" id="id1">
+<span id="mainfolder"></span><div class="code-block-caption"><span class="caption-text"><strong>Input file structure</strong></span><a class="headerlink" href="#id1" title="Permalink to this code"></a></div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># folder and filenames can vary</span>
+main_folder/
+├── session_1/
+│   ├── behavior_1.dat
+│   └── fiber_1.csv
+├── session_2/
+│   ├── behavior_2.dat
+│   └── fiber_2.csv
+├── session_3/
+│   ├── behavior_3.dat
+│   └── fiber_3.csv
+├── session_4/
+│   ├── behavior_4.dat
+│   └── fiber_4.csv
+...
+</pre></div>
+</div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.analysis.MultiSession._import_folder">
 <span class="sig-name descname"><span class="pre">_import_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.MultiSession._import_folder" title="Permalink to this definition"></a></dt>
@@ -1518,8 +1552,53 @@ norm=’default’    : normalization method used</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.analysis.Analysis">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.analysis.</span></span><span class="sig-name descname"><span class="pre">Analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Analysis" title="Permalink to this definition"></a></dt>
-<dd><p>Give results of perievent analysis.</p>
-<p>Relative to one event from a session.</p>
+<dd><p>Instantiated by using <code class="docutils literal notranslate"><span class="pre">Session</span></code> method <code class="docutils literal notranslate"><span class="pre">analyze</span></code>.</p>
+<p>Contains all automatically retrieved and computed about a single peri-event analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_time</strong> – timestamps of the analyzed event</p></li>
+<li><p><strong>window</strong> – perievent window</p></li>
+<li><p><strong>rec_number</strong> – recording number in the Fiber instance data</p></li>
+<li><p><strong>recordingdata</strong> – 2D-array with time and normalized signal (full recording)</p></li>
+<li><p><strong>rawdata</strong> – 2D-array with time, raw signal and control (full recording)</p></li>
+<li><p><strong>normalisation</strong> – normalization method used</p></li>
+<li><p><strong>raw_signal</strong> – raw signal (peri-event)</p></li>
+<li><p><strong>raw_control</strong> – raw control (peri-event)</p></li>
+<li><p><strong>data</strong> – 2D-array with time and normalized signal (peri-event)</p></li>
+<li><p><strong>signal</strong> – normalized signal (peri-event)</p></li>
+<li><p><strong>preevent</strong> – normalized signal (pre-event)</p></li>
+<li><p><strong>postevent</strong> – normalized signal (post-event)</p></li>
+<li><p><strong>sampling_rate</strong> – mean sampling rate (peri-event)</p></li>
+<li><p><strong>time</strong> – timestamps (peri-event)</p></li>
+<li><p><strong>pre_time</strong> – timestamps (pre-event)</p></li>
+<li><p><strong>post_time</strong> – timestamps (post-event)</p></li>
+<li><p><strong>pre_raw_sig</strong> – raw signal (pre-event)</p></li>
+<li><p><strong>post_raw_sig</strong> – raw signal (post-event)</p></li>
+<li><p><strong>post_raw_ctrl</strong> – raw control (post-event)</p></li>
+<li><p><strong>pre_raw_AUC</strong> – raw signal area under curve (pre-event)</p></li>
+<li><p><strong>post_raw_AUC</strong> – raw signal area under curve (post-event)</p></li>
+<li><p><strong>zscores</strong> – Z-scores with pre-event as baseline (peri-event)</p></li>
+<li><p><strong>pre_zscores</strong> – Z-scores with pre-event as baseline (pre-event)</p></li>
+<li><p><strong>post_zscores</strong> – Z-scores with pre-event as baseline (post-event)</p></li>
+<li><p><strong>rob_zscores</strong> – robust Z-scores with pre-event as baseline (peri-event)</p></li>
+<li><p><strong>pre_Rzscores</strong> – robust Z-scores with pre-event as baseline (pre-event)</p></li>
+<li><p><strong>post_Rzscores</strong> – robust Z-scores with pre-event as baseline (post-event)</p></li>
+<li><p><strong>preAVG_dF</strong> – average normalized signal (pre-event)</p></li>
+<li><p><strong>postAVG_dF</strong> – average normalized signal (post-event)</p></li>
+<li><p><strong>preAVG_Z</strong> – average Z-scores (pre-event)</p></li>
+<li><p><strong>postAVG_Z</strong> – average Z-scores (post-event)</p></li>
+<li><p><strong>preAVG_RZ</strong> – average robust Z-scores (pre-event)</p></li>
+<li><p><strong>postAVG_RZ</strong> – average robust Z-scores (post-event)</p></li>
+<li><p><strong>preAUC</strong> – = normalized signal area under curve (pre-event)</p></li>
+<li><p><strong>postAUC</strong> – = normalized signal area under curve (post-event)</p></li>
+<li><p><strong>preZ_AUC</strong> – = Z-scores area under curve (pre-event)</p></li>
+<li><p><strong>postZ_AUC</strong> – = Z-scores area under curve (post-event)</p></li>
+<li><p><strong>preRZ_AUC</strong> – = robust Z-scores area under curve (pre-event)</p></li>
+<li><p><strong>postRZ_AUC</strong> – = robust Z-scores area under curve (post-event)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyfiber.analysis.Analysis._savgol">
 <span class="sig-name descname"><span class="pre">_savgol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nosmoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyfiber.analysis.Analysis._savgol" title="Permalink to this definition"></a></dt>
@@ -1565,7 +1644,74 @@ norm=’default’    : normalization method used</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyfiber.analysis.MultiAnalysis">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyfiber.analysis.</span></span><span class="sig-name descname"><span class="pre">MultiAnalysis</span></span><a class="headerlink" href="#pyfiber.analysis.MultiAnalysis" title="Permalink to this definition"></a></dt>
-<dd><dl class="py property">
+<dd><p>Contains results of multiple analysis of similar peri-event intervals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exclude_list</strong> – optional list of excluded sessions in the analysis</p></li>
+<li><p><strong>nb_of_points</strong> – mean number of data points for all sessions (used to interpolate each session data)</p></li>
+<li><p><strong>WINDOW</strong> – peri-event window</p></li>
+<li><p><strong>dict</strong> – dictionnary containing a list of <code class="docutils literal notranslate"><span class="pre">Analysis</span></code> objects for each session</p></li>
+<li><p><strong>key</strong> – corresponding session for each event in each session</p></li>
+<li><p><strong>epoch</strong> – interpolated epochs for each event in each session</p></li>
+<li><p><strong>EPOCH</strong> – reference epoch (based on <code class="docutils literal notranslate"><span class="pre">nb_of_points</span></code> and <code class="docutils literal notranslate"><span class="pre">WINDOW</span></code>)</p></li>
+<li><p><strong>interpolated_raw_control</strong> – interpolated raw control for each event in each session</p></li>
+<li><p><strong>RAW_CONTROL</strong> – mean raw control</p></li>
+<li><p><strong>interpolated_raw_signal</strong> – interpolated raw signal for each event in each session</p></li>
+<li><p><strong>RAW_SIGNAL</strong> – mean raw signal</p></li>
+<li><p><strong>interpolated_rob_zscores</strong> – interpolated robust Z-scores for each event in each session</p></li>
+<li><p><strong>ROB_ZSCORES</strong> – mean robust Z-scores</p></li>
+<li><p><strong>interpolated_signal</strong> – interpolated normalized signal for each event in each session</p></li>
+<li><p><strong>SIGNAL</strong> – mean normalized signal</p></li>
+<li><p><strong>interpolated_time</strong> – interpolated time for each event in each session</p></li>
+<li><p><strong>TIME</strong> – mean time for all recordings (automatically generated)</p></li>
+<li><p><strong>interpolated_zscores</strong> – interpolated Z-scores for each event in each session</p></li>
+<li><p><strong>ZSCORES</strong> – mean Z-scores</p></li>
+<li><p><strong>interpolated_epoch</strong> – reference timestamps,</p></li>
+<li><p><strong>event_name</strong> – queried event (defined in config file)</p></li>
+<li><p><strong>event_time</strong> – timestamps of the analyzed event for each event in each session</p></li>
+<li><p><strong>window</strong> – perievent windows for each event in each session</p></li>
+<li><p><strong>rec_number</strong> – recording number in the Fiber instance data for each event in each session</p></li>
+<li><p><strong>recordingdata</strong> – list of 2D-arrays with time and normalized signal (full recording) for each event in each session</p></li>
+<li><p><strong>rawdata</strong> – list of 2D-arrays with time, raw signal and control (full recording) for each event in each session</p></li>
+<li><p><strong>normalisation</strong> – normalization method used for each event in each session</p></li>
+<li><p><strong>raw_signal</strong> – raw signal (peri-event) for each event in each session</p></li>
+<li><p><strong>raw_control</strong> – raw control (peri-event) for each event in each session</p></li>
+<li><p><strong>data</strong> – 2D-array with time and normalized signal (peri-event) for each event in each session</p></li>
+<li><p><strong>signal</strong> – normalized signal (peri-event) for each event in each session</p></li>
+<li><p><strong>preevent</strong> – normalized signal (pre-event) for each event in each session</p></li>
+<li><p><strong>postevent</strong> – normalized signal (post-event) for each event in each session</p></li>
+<li><p><strong>sampling_rate</strong> – mean sampling rate (peri-event) for each event in each session</p></li>
+<li><p><strong>time</strong> – timestamps (peri-event) for each event in each session</p></li>
+<li><p><strong>pre_time</strong> – timestamps (pre-event) for each event in each session</p></li>
+<li><p><strong>post_time</strong> – timestamps (post-event) for each event in each session</p></li>
+<li><p><strong>pre_raw_sig</strong> – raw signal (pre-event) for each event in each session</p></li>
+<li><p><strong>post_raw_sig</strong> – raw signal (post-event) for each event in each session</p></li>
+<li><p><strong>post_raw_ctrl</strong> – raw control (post-event) for each event in each session</p></li>
+<li><p><strong>pre_raw_AUC</strong> – raw signal area under curve (pre-event) for each event in each session</p></li>
+<li><p><strong>post_raw_AUC</strong> – raw signal area under curve (post-event) for each event in each session</p></li>
+<li><p><strong>zscores</strong> – Z-scores with pre-event as baseline (peri-event) for each event in each session</p></li>
+<li><p><strong>pre_zscores</strong> – Z-scores with pre-event as baseline (pre-event) for each event in each session</p></li>
+<li><p><strong>post_zscores</strong> – Z-scores with pre-event as baseline (post-event) for each event in each session</p></li>
+<li><p><strong>rob_zscores</strong> – robust Z-scores with pre-event as baseline (peri-event) for each event in each session</p></li>
+<li><p><strong>pre_Rzscores</strong> – robust Z-scores with pre-event as baseline (pre-event) for each event in each session</p></li>
+<li><p><strong>post_Rzscores</strong> – robust Z-scores with pre-event as baseline (post-event) for each event in each session</p></li>
+<li><p><strong>preAVG_dF</strong> – average normalized signal (pre-event) for each event in each session</p></li>
+<li><p><strong>postAVG_dF</strong> – average normalized signal (post-event) for each event in each session</p></li>
+<li><p><strong>preAVG_Z</strong> – average Z-scores (pre-event) for each event in each session</p></li>
+<li><p><strong>postAVG_Z</strong> – average Z-scores (post-event) for each event in each session</p></li>
+<li><p><strong>preAVG_RZ</strong> – average robust Z-scores (pre-event) for each event in each session</p></li>
+<li><p><strong>postAVG_RZ</strong> – average robust Z-scores (post-event) for each event in each session</p></li>
+<li><p><strong>preAUC</strong> – = normalized signal area under curve (pre-event) for each event in each session</p></li>
+<li><p><strong>postAUC</strong> – = normalized signal area under curve (post-event) for each event in each session</p></li>
+<li><p><strong>preZ_AUC</strong> – = Z-scores area under curve (pre-event) for each event in each session</p></li>
+<li><p><strong>postZ_AUC</strong> – = Z-scores area under curve (post-event) for each event in each session</p></li>
+<li><p><strong>preRZ_AUC</strong> – = robust Z-scores area under curve (pre-event) for each event in each session</p></li>
+<li><p><strong>postRZ_AUC</strong> – = robust Z-scores area under curve (post-event) for each event in each session</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
 <dt class="sig sig-object py" id="pyfiber.analysis.MultiAnalysis.data">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#pyfiber.analysis.MultiAnalysis.data" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>

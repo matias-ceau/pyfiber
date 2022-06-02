@@ -82,6 +82,9 @@ Analysis
 --------
 .. autoclass:: pyfiber.Analysis
    :members:
+   :member-order: bysource
+   :undoc-members:
+   :private-members:
 
 MultiAnalysis
 -------------

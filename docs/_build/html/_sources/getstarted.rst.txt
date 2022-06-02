@@ -1,7 +1,6 @@
 Get Started
 ===========
 
-This is a test
---------------
+Extract behavioral file
+-----------------------
 
-testing
