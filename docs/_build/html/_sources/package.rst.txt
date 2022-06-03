@@ -26,7 +26,7 @@ All classes are defined in submodules but directly imported in the main package,
 Four main categories of objects exist:
 
 **Behavior** and **MultiBehavior**
-   As the name suggest, these classes extract and describe single or multiple behavioral data files. Currently, Imetronic '.dat' files are the default, but *csv* files can also be inputed (In that case they, should follow a specific structure, see ??). 
+   As the name suggest, these classes extract and describe single or multiple behavioral data files. Currently, Imetronic '.dat' files are the default, but *csv* files can also be inputed (In that case they, should follow a specific structure, see :doc:`configuration`). 
 
 **Fiber** 
    This class is used to extract and analyze fiber photometry data. Currently it accepts by default Doric systems *csv* files. Other file formats may be extracted, by providing the columns labels in the configuration file (see :doc:`configuration`)
@@ -52,12 +52,18 @@ MultiBehavior
 -------------
 .. autoclass:: pyfiber.MultiBehavior
    :members:
+   :member-order: bysource
+   :undoc-members:
+   :private-members:
 
 
 Fiber
 ~~~~~~
 .. autoclass:: pyfiber.Fiber
    :members:
+   :member-order: bysource
+   :undoc-members:
+   :private-members:
 
 
 Session and MultiSession
@@ -68,12 +74,18 @@ Session
 
 .. autoclass:: pyfiber.Session
    :members:
+   :member-order: bysource
+   :undoc-members:
+   :private-members:
 
 MultiSession
 ------------
 
 .. autoclass:: pyfiber.MultiSession
    :members:
+   :member-order: bysource
+   :undoc-members:
+   :private-members:
 
 Analysis and MultiAnalysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -90,6 +102,9 @@ MultiAnalysis
 -------------
 .. autoclass:: pyfiber.MultiAnalysis
    :members:
+   :member-order: bysource
+   :undoc-members:
+   :private-members:
 
 
 
