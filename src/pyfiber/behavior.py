@@ -470,59 +470,61 @@ GENERAL INFORMATION:
             for e, (param, descr) in self.BEHAVIOR['custom'].items():
                 p, a, *b = param
                 self._print(f"Detecting {e+'...':<30}  {param})")
-                if p == 'INTERSECTION':
-                    self.__dict__[e] = set_intersection(*t(a))
-                    self._description[e] = descr
-                if p == 'NEAR_EVENT':
-                    self.__dict__[e] = interval_is_close_to(
-                        **{k: v for k, v in zip(['intervals', 'events', 'nearness'], t([a]+b))})
-                    self._description[e] = descr
-                if p == 'DURATION':
-                    self.__dict__[e] = select_interval_by_duration(t(a), b)
-                    self._description[e] = descr
-                if p == 'UNION':
-                    self.__dict__[e] = set_union(*t(a))
-                    self._description[e] = descr
-                if p == 'boundary':
-                    self.__dict__[e] = np.array(
-                        [i if a == 'start' else j for i, j in t(*b)])
-                    self._description[e] = descr
-                if p == 'combination':
-                    self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
-                    self._description[e] = descr
-                if p == 'indexed':
-                    self.__dict__[e] = t(a)[b[0]-1: b[0]]
-                    self._description[e] = descr
-                if p == 'iselement':
-                    self.__dict__[e] = element_of(t(a), t(*b))
-                    self._description[e] = descr
-                if p == 'timerestricted':
-                    self.__dict__[e] = t(a)[(t(a) > b[0][0]) & (t(a) < b[0][1])]
-                    self._description[e] = descr
-                if p == 'generative':
-                    self.__dict__.update(
-                        {e.replace('_n', f'_{str(i+1)}'): t(a)[i::b[0]] for i in range(b[0])})
-                if p == 'generative2':
-                    intervals = [f"{a[0][:-1]}{n}" for n in range(100) if f"{a[0][:-1]}{n}" in self.__dict__]
-                    intervals = t(intervals)
-                    self.__dict__.update(
-                        {e.replace('_n', f'_{str(i+1)}') :
-                             np.concatenate([element_of(t(a[1]), interval)[i::b[0]]
-                                                for interval in intervals])
-                        for i in range(b[0])}
-                                        )
-                    self._description[e] = descr
-                if p == 'GENERATIVE':
-                    self.__dict__.update(
-                        {e.replace('_n', f'_{str(i+1)}'): [n] for i, n in enumerate(t(a))})
-                    self._description[e] = descr
-                if p == 'EXCLUDE':
-                    self.__dict__[e] = set_intersection(t(a), set_non(*t(b), self.end))
-                    self._description[e] = descr
-                if p == 'CONTAINS':
-                    self.__dict__[e] = [interval for interval in t(a) if element_of(*t(b), [interval], boolean=True)]
-                    self._description[e] = descr
-            
+                try:
+                    if p == 'INTERSECTION':
+                        self.__dict__[e] = set_intersection(*t(a))
+                        self._description[e] = descr
+                    if p == 'NEAR_EVENT':
+                        self.__dict__[e] = interval_is_close_to(
+                            **{k: v for k, v in zip(['intervals', 'events', 'nearness'], t([a]+b))})
+                        self._description[e] = descr
+                    if p == 'DURATION':
+                        self.__dict__[e] = select_interval_by_duration(t(a), b)
+                        self._description[e] = descr
+                    if p == 'UNION':
+                        self.__dict__[e] = set_union(*t(a))
+                        self._description[e] = descr
+                    if p == 'boundary':
+                        self.__dict__[e] = np.array(
+                            [i if a == 'start' else j for i, j in t(*b)])
+                        self._description[e] = descr
+                    if p == 'combination':
+                        self.__dict__[e] = np.unique(np.sort(np.concatenate(t(a))))
+                        self._description[e] = descr
+                    if p == 'indexed':
+                        self.__dict__[e] = t(a)[b[0]-1: b[0]]
+                        self._description[e] = descr
+                    if p == 'iselement':
+                        self.__dict__[e] = element_of(t(a), t(*b))
+                        self._description[e] = descr
+                    if p == 'timerestricted':
+                        self.__dict__[e] = t(a)[(t(a) > b[0][0]) & (t(a) < b[0][1])]
+                        self._description[e] = descr
+                    if p == 'generative':
+                        self.__dict__.update(
+                            {e.replace('_n', f'_{str(i+1)}'): t(a)[i::b[0]] for i in range(b[0])})
+                    if p == 'generative2':
+                        intervals = [f"{a[0][:-1]}{n}" for n in range(100) if f"{a[0][:-1]}{n}" in self.__dict__]
+                        intervals = t(intervals)
+                        self.__dict__.update(
+                            {e.replace('_n', f'_{str(i+1)}') :
+                                 np.concatenate([element_of(t(a[1]), interval)[i::b[0]]
+                                                    for interval in intervals])
+                            for i in range(b[0])}
+                                            )
+                        self._description[e] = descr
+                    if p == 'GENERATIVE':
+                        self.__dict__.update(
+                            {e.replace('_n', f'_{str(i+1)}'): [n] for i, n in enumerate(t(a))})
+                        self._description[e] = descr
+                    if p == 'EXCLUDE':
+                        self.__dict__[e] = set_intersection(t(a), set_non(*t(b), self.end))
+                        self._description[e] = descr
+                    if p == 'CONTAINS':
+                        self.__dict__[e] = [interval for interval in t(a) if element_of(*t(b), [interval], boolean=True)]
+                        self._description[e] = descr
+                except ValueError:
+                    print(f"Failed extraction for {e} (no data)")
 
  ######################################################################################################
 
@@ -655,6 +657,7 @@ GENERAL INFORMATION:
                label_list=None,
                color_list=None,
                save=False,
+               title=None,
                save_dpi=600,
                save_format=['png','pdf'],
                **kwargs):
@@ -693,6 +696,8 @@ GENERAL INFORMATION:
             for n, ax in enumerate(axes):
                 self._graph(
                     ax, obj_list[n], label=label_list[n], color=color_list[n], **kwargs)
+        if title:
+            plt.suptitle(title)
         if save:
             for ext in self._list(save_format):
                 plt.savefig(f"{save}.{ext}", dpi=save_dpi)
@@ -1026,7 +1031,7 @@ class MultiBehavior(PyFiber):
 
     def __init__(self,
                  folder : str,
-                 fileformat : str,
+                 fileformat : str = 'dat',
                  **kwargs):
         super().__init__()
         self.sessions = {}
@@ -1089,7 +1094,8 @@ class MultiBehavior(PyFiber):
               figsize : Tuple[int, int] =(20, 15),
               save=False,
               save_dpi=600,
-              save_format=['png','pdf'],**kwargs) -> pd.DataFrame:
+              save_format=['png','pdf'],
+              legend=False,**kwargs) -> pd.DataFrame:
         """Return the cumulative sum of a given event for all animals.
 
         :param attribute: event name
@@ -1101,13 +1107,14 @@ class MultiBehavior(PyFiber):
         :param save: default is ``False``, filepath (without file extension)
         :param save_dpi: dpi if figure is saved
         :param save_format: file extension for saving
+        :param legend: show session names as labels
         :return: Data Frame containing the cumulative sum, a plot (optional)
         :rtype: ``pandas.DataFrame``
         """
         cumul = pd.DataFrame({k: pd.Series(np.cumsum(v))
                              for k, v in self._cnt(attribute).items()})
         if plot:
-            cumul.plot(figsize=figsize, **kwargs)
+            cumul.plot(figsize=figsize, legend=legend, **kwargs)
             if save:
                 for ext in self._list(save_format):
                     plt.savefig(f"{save}.{ext}", dpi=save_dpi)
@@ -1116,14 +1123,16 @@ class MultiBehavior(PyFiber):
 
     def show_rate(self,
                   attribute : str,
-                  interval='HLED_ON',
-                  binsize : int =120,
-                  percentiles=[15, 50, 85],
-                  figsize : tuple =(20, 10),
-                  interval_alpha : float =0.3,
-                  save=False,
+                  interval = 'HLED_ON',
+                  binsize : int = 120,
+                  percentiles : Union[list,bool] = [15, 50, 85],
+                  figsize : tuple = (20, 10),
+                  interval_alpha : float = 0.3,
+                  save : bool = False,
                   save_dpi=600,
-                  save_format=['png','pdf'],):
+                  save_format=['png','pdf'],
+                  legend: bool =False,
+                  **kwargs):
         """Show rate for all session for any given event.
         
         :param attribute: event name
@@ -1140,7 +1149,9 @@ class MultiBehavior(PyFiber):
         :rtype interval_alpha: ``float``
         :param save: default is ``False``, filepath (without file extension)
         :param save_dpi: dpi if figure is saved
-        :param save_format: file extension for saving"""
+        :param save_format: file extension for saving
+        :param legend: show session names as labels
+        """
         plt.figure(figsize=figsize)
         dic = {}
         for name in self.count(attribute).index:
@@ -1150,7 +1161,8 @@ class MultiBehavior(PyFiber):
             dic[name] = np.array([np.sum(count[n-binsize:n])
                                  for n in range(binsize, len(count))])
             plt.plot(dic[name], linewidth=1, label=name)
-            plt.legend()
+            if legend:
+                plt.legend()
         if interval:
             if type(interval) == str:
                 interval = list(self.sessions.items())[
@@ -1181,13 +1193,21 @@ class MultiBehavior(PyFiber):
                 plt.savefig(f"{save}.{ext}", dpi=save_dpi)
         plt.show()
 
-    def summary(self, **kwargs):
+    def summary(self,
+                title : Union[bool,list] = True,
+                **kwargs):
         """Output the session summary for all sessions:
 
         :param kwargs: keyword arguments passed to ``pyfiber.Behavior(*).summary``
 
         .. note::
            See documentation for ``pyfiber.Behavior``"""
-        for r in self.sessions.keys():
-            self.sessions[r].summary()
-            plt.title(r)
+        if type(title) == list:
+            if len(title) == len(self.sessions.keys()):
+                title_list = title
+        elif title:
+            title_list = self.sessions.keys()
+        else:
+            title_list = [None] * len(self.sessions.keys())
+        for r,t in zip(self.sessions.keys(), title_list):
+            self.sessions[r].summary(title=t, **kwargs)

@@ -253,9 +253,49 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
 
 
 class Analysis(PyFiber):
-    """Give results of perievent analysis.
+    """Instantiated by using ``Session`` method ``analyze``.
 
-    Relative to one event from a session.
+    Contains all automatically retrieved and computed about a single peri-event analysis.  
+    
+    :ivar event_time: timestamps of the analyzed event
+    :ivar window: perievent window
+    :ivar rec_number: recording number in the Fiber instance data
+    :ivar recordingdata: 2D-array with time and normalized signal (full recording)
+    :ivar rawdata: 2D-array with time, raw signal and control (full recording)
+    :ivar normalisation: normalization method used
+    :ivar raw_signal: raw signal (peri-event)
+    :ivar raw_control: raw control (peri-event)
+    :ivar data: 2D-array with time and normalized signal (peri-event)
+    :ivar signal: normalized signal (peri-event)
+    :ivar preevent: normalized signal (pre-event)
+    :ivar postevent: normalized signal (post-event)
+    :ivar sampling_rate: mean sampling rate (peri-event)
+    :ivar time: timestamps (peri-event)
+    :ivar pre_time: timestamps (pre-event)
+    :ivar post_time: timestamps (post-event)
+    :ivar pre_raw_sig: raw signal (pre-event)
+    :ivar post_raw_sig: raw signal (post-event)
+    :ivar post_raw_ctrl: raw control (post-event)
+    :ivar pre_raw_AUC: raw signal area under curve (pre-event)
+    :ivar post_raw_AUC: raw signal area under curve (post-event)
+    :ivar zscores: Z-scores with pre-event as baseline (peri-event)
+    :ivar pre_zscores: Z-scores with pre-event as baseline (pre-event)
+    :ivar post_zscores: Z-scores with pre-event as baseline (post-event)
+    :ivar rob_zscores: robust Z-scores with pre-event as baseline (peri-event)
+    :ivar pre_Rzscores: robust Z-scores with pre-event as baseline (pre-event)
+    :ivar post_Rzscores: robust Z-scores with pre-event as baseline (post-event)
+    :ivar preAVG_dF: average normalized signal (pre-event)
+    :ivar postAVG_dF: average normalized signal (post-event)
+    :ivar preAVG_Z: average Z-scores (pre-event)
+    :ivar postAVG_Z: average Z-scores (post-event)
+    :ivar preAVG_RZ: average robust Z-scores (pre-event)
+    :ivar postAVG_RZ: average robust Z-scores (post-event)
+    :ivar preAUC: = normalized signal area under curve (pre-event)
+    :ivar postAUC: = normalized signal area under curve (post-event)
+    :ivar preZ_AUC: = Z-scores area under curve (pre-event)
+    :ivar postZ_AUC: = Z-scores area under curve (post-event)
+    :ivar preRZ_AUC: = robust Z-scores area under curve (pre-event)
+    :ivar postRZ_AUC: = robust Z-scores area under curve (post-event)
     """
 
     _savgol = PyFiber._savgol
@@ -370,7 +410,36 @@ class Analysis(PyFiber):
 
 
 class MultiSession(PyFiber):
-    """Group analyses or multiple events for single subject."""
+    """Group analyses or multiple events for single subject.
+    
+    :param folder: path of the :ref:`main folder <mainfolder>` containing session folders
+
+    :ivar folder: path of the folder
+    :ivar sessions: dictionnary containing ``Session`` instances for each session
+    :ivar removed: list of removed file (if debug is set and a problem was detected)
+    :ivar names: subfolder nmaes, ideally reflecting session names
+    :ivar details: extracted session details from folder names (if set in the configuration file)
+    
+    .. _mainfolder:
+    .. code-block:: bash
+        :caption: **Input file structure**
+        
+        # folder and filenames can vary
+        main_folder/
+        ├── session_1/
+        │   ├── behavior_1.dat
+        │   └── fiber_1.csv
+        ├── session_2/
+        │   ├── behavior_2.dat
+        │   └── fiber_2.csv
+        ├── session_3/
+        │   ├── behavior_3.dat
+        │   └── fiber_3.csv
+        ├── session_4/
+        │   ├── behavior_4.dat
+        │   └── fiber_4.csv
+        ...
+    """
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
 #TODO CHANGE DEBUG
@@ -584,6 +653,69 @@ class MultiSession(PyFiber):
 
 
 class MultiAnalysis(PyFiber):
+    """Contains results of multiple analysis of similar peri-event intervals.
+
+    :ivar exclude_list: optional list of excluded sessions in the analysis
+    :ivar nb_of_points: mean number of data points for all sessions (used to interpolate each session data)
+    :ivar WINDOW: peri-event window
+    :ivar dict: dictionnary containing a list of ``Analysis`` objects for each session
+    :ivar key: corresponding session for each event in each session
+    :ivar epoch: interpolated epochs for each event in each session
+    :ivar EPOCH: reference epoch (based on ``nb_of_points`` and ``WINDOW``)
+    :ivar interpolated_raw_control: interpolated raw control for each event in each session
+    :ivar RAW_CONTROL: mean raw control
+    :ivar interpolated_raw_signal: interpolated raw signal for each event in each session
+    :ivar RAW_SIGNAL: mean raw signal
+    :ivar interpolated_rob_zscores: interpolated robust Z-scores for each event in each session
+    :ivar ROB_ZSCORES: mean robust Z-scores
+    :ivar interpolated_signal: interpolated normalized signal for each event in each session
+    :ivar SIGNAL: mean normalized signal
+    :ivar interpolated_time: interpolated time for each event in each session
+    :ivar TIME: mean time for all recordings (automatically generated)
+    :ivar interpolated_zscores: interpolated Z-scores for each event in each session
+    :ivar ZSCORES: mean Z-scores
+    :ivar interpolated_epoch: reference timestamps,
+    :ivar event_name: queried event (defined in config file)
+    :ivar event_time: timestamps of the analyzed event for each event in each session
+    :ivar window: perievent windows for each event in each session
+    :ivar rec_number: recording number in the Fiber instance data for each event in each session
+    :ivar recordingdata: list of 2D-arrays with time and normalized signal (full recording) for each event in each session
+    :ivar rawdata: list of 2D-arrays with time, raw signal and control (full recording) for each event in each session
+    :ivar normalisation: normalization method used for each event in each session
+    :ivar raw_signal: raw signal (peri-event) for each event in each session
+    :ivar raw_control: raw control (peri-event) for each event in each session
+    :ivar data: 2D-array with time and normalized signal (peri-event) for each event in each session
+    :ivar signal: normalized signal (peri-event) for each event in each session
+    :ivar preevent: normalized signal (pre-event) for each event in each session
+    :ivar postevent: normalized signal (post-event) for each event in each session
+    :ivar sampling_rate: mean sampling rate (peri-event) for each event in each session
+    :ivar time: timestamps (peri-event) for each event in each session
+    :ivar pre_time: timestamps (pre-event) for each event in each session
+    :ivar post_time: timestamps (post-event) for each event in each session
+    :ivar pre_raw_sig: raw signal (pre-event) for each event in each session
+    :ivar post_raw_sig: raw signal (post-event) for each event in each session
+    :ivar post_raw_ctrl: raw control (post-event) for each event in each session
+    :ivar pre_raw_AUC: raw signal area under curve (pre-event) for each event in each session
+    :ivar post_raw_AUC: raw signal area under curve (post-event) for each event in each session
+    :ivar zscores: Z-scores with pre-event as baseline (peri-event) for each event in each session
+    :ivar pre_zscores: Z-scores with pre-event as baseline (pre-event) for each event in each session
+    :ivar post_zscores: Z-scores with pre-event as baseline (post-event) for each event in each session
+    :ivar rob_zscores: robust Z-scores with pre-event as baseline (peri-event) for each event in each session
+    :ivar pre_Rzscores: robust Z-scores with pre-event as baseline (pre-event) for each event in each session
+    :ivar post_Rzscores: robust Z-scores with pre-event as baseline (post-event) for each event in each session
+    :ivar preAVG_dF: average normalized signal (pre-event) for each event in each session
+    :ivar postAVG_dF: average normalized signal (post-event) for each event in each session
+    :ivar preAVG_Z: average Z-scores (pre-event) for each event in each session
+    :ivar postAVG_Z: average Z-scores (post-event) for each event in each session
+    :ivar preAVG_RZ: average robust Z-scores (pre-event) for each event in each session
+    :ivar postAVG_RZ: average robust Z-scores (post-event) for each event in each session
+    :ivar preAUC: = normalized signal area under curve (pre-event) for each event in each session
+    :ivar postAUC: = normalized signal area under curve (post-event) for each event in each session
+    :ivar preZ_AUC: = Z-scores area under curve (pre-event) for each event in each session
+    :ivar postZ_AUC: = Z-scores area under curve (post-event) for each event in each session
+    :ivar preRZ_AUC: = robust Z-scores area under curve (pre-event) for each event in each session
+    :ivar postRZ_AUC: = robust Z-scores area under curve (post-event) for each event in each session
+    """ 
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
 
