@@ -641,9 +641,9 @@ Aligned to behavior file : {self.alignment} s
             return
         data = self.peaks[r][(self.peaks[r]['time'] > a)
                              & (self.peaks[r]['time'] < b)]
-        return {'frequency': len(data)/(b-a),
-                'mean zscore': data['zscore'].mean(),
-                'mean dF/F': data['dF/F'].mean(),
-                'max zscore': data['zscore'].max(),
-                'max dF/F': data['dF/F'].max(),
+        return {'peak_frequency': len(data)/(b-a),
+                'peak_avg_Z': data['zscore'].mean(),
+                'peak_avg_dFF': data['dF/F'].mean(),
+                'peak_max_Z': data['zscore'].max(),
+                'peak_max_dFF': data['dF/F'].max(),
                 'data': data}

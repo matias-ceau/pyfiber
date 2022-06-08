@@ -223,6 +223,20 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         res.postZ_AUC = integrate.simpson(res.post_zscores, res.post_time)
         res.preRZ_AUC = integrate.simpson(res.pre_Rzscores, res.pre_time)
         res.postRZ_AUC = integrate.simpson(res.post_Rzscores, res.post_time)
+        pre_peak_analysis = self.fiber.peakFA(res.event_time - res.window[0],
+                                              res.event_time)
+        post_peak_analysis = self.fiber.peakFA(res.event_time,
+                                              res.event_time + res.window[-1])
+        try:
+            res.__dict__.update({'pre_'+k:v for k,v in pre_peak_analysis.items() if isinstance(v,float)})
+            res.__dict__.update({'post_'+k:v for k,v in post_peak_analysis.items() if isinstance(v,float)})
+        except AttributeError:
+            peak_attr_names = [a+b for a in ['pre_','post_'] for b in ['peak_frequency',
+                                                                       'peak_avg_Z',
+                                                                       'peak_avg_dFF',
+                                                                       'peak_max_Z',
+                                                                       'peak_max_dFF']]
+            res.__dict__.update({k:np.nan for k in peak_attr_names})
         self.analyses.update(
             {f'rec{res.rec_number}_{res.event_time}_{res.window}': res})
         return res
