@@ -7,6 +7,7 @@ Usage
     
     notebooks/behavior/PYFIBER_Behavior
     notebooks/fiber/PYFIBER_Fiber
+    notebooks/analysis/PYFIBER_Analysis
 
 
 ..
