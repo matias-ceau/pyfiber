@@ -13,11 +13,11 @@ __all__ = ['PyFiber', 'Intervals', 'Events']
 Intervals = List[Tuple[float,float]]
 Events = np.ndarray
 
+
 class PyFiber:
     """Parent object for Behavioral, Fiber and Analysis objects.
 
     :cvar CFG: dictionnary containing the whole ``'pyfiber.yaml'`` file content
-
     :param verbose: if ``False``, activates silent mode (the log is still available in ``self.log``)
     :param kwargs: add additional attribute or modify config option at runtine"""
     FOLDER = os.path.expanduser('~/.pyfiber')

@@ -164,9 +164,9 @@ class Session(PyFiber):
         if norm == 'default':
             res.normalisation = self.default_norm
         else:
-            try:
-                res.normalisation = {'F': 'delta F/F', 'Z': 'Z-scores'}[norm]
-            except KeyError:
+            if norm in ['Z', 'F']:
+                res.normalisation = norm
+            else:
                 self._print(
                     """Invalid choice for signal normalisation !
                     nZ-score differences: norm='Z'\ndelta F/f: stand='F'""")
@@ -310,6 +310,16 @@ class Analysis(PyFiber):
     :ivar postZ_AUC: = Z-scores area under curve (post-event)
     :ivar preRZ_AUC: = robust Z-scores area under curve (pre-event)
     :ivar postRZ_AUC: = robust Z-scores area under curve (post-event)
+    :ivar post_peak_avg_Z: post-event average transient Z-scores
+    :ivar post_peak_avg_dFF: post-event average transient amplitude
+    :ivar post_peak_frequency: post-event transient frequency
+    :ivar post_peak_max_Z: post-event maximum Z-scores of transients
+    :ivar post_peak_max_dFF: post-event maximum amplitude of transients
+    :ivar pre_peak_avg_Z: pre-event average transient Z-scores
+    :ivar pre_peak_avg_dFF: pre-event average transient amplitud
+    :ivar pre_peak_frequency: pre-event transient frequency
+    :ivar pre_peak_max_Z: pre-event maximum Z-scores of transients
+    :ivar pre_peak_max_dFF: pre-event maximum amplitude of transients
     """
 
     _savgol = PyFiber._savgol
@@ -723,12 +733,22 @@ class MultiAnalysis(PyFiber):
     :ivar postAVG_Z: average Z-scores (post-event) for each event in each session
     :ivar preAVG_RZ: average robust Z-scores (pre-event) for each event in each session
     :ivar postAVG_RZ: average robust Z-scores (post-event) for each event in each session
-    :ivar preAUC: = normalized signal area under curve (pre-event) for each event in each session
-    :ivar postAUC: = normalized signal area under curve (post-event) for each event in each session
-    :ivar preZ_AUC: = Z-scores area under curve (pre-event) for each event in each session
-    :ivar postZ_AUC: = Z-scores area under curve (post-event) for each event in each session
-    :ivar preRZ_AUC: = robust Z-scores area under curve (pre-event) for each event in each session
-    :ivar postRZ_AUC: = robust Z-scores area under curve (post-event) for each event in each session
+    :ivar preAUC: normalized signal area under curve (pre-event) for each event in each session
+    :ivar postAUC: normalized signal area under curve (post-event) for each event in each session
+    :ivar preZ_AUC: Z-scores area under curve (pre-event) for each event in each session
+    :ivar postZ_AUC: Z-scores area under curve (post-event) for each event in each session
+    :ivar preRZ_AUC: robust Z-scores area under curve (pre-event) for each event in each session
+    :ivar postRZ_AUC: robust Z-scores area under curve (post-event) for each event in each session
+    :ivar post_peak_avg_Z: post-event average transient Z-scores
+    :ivar post_peak_avg_dFF: post-event average transient amplitude
+    :ivar post_peak_frequency: post-event transient frequency
+    :ivar post_peak_max_Z: post-event maximum Z-scores of transients
+    :ivar post_peak_max_dFF: post-event maximum amplitude of transients
+    :ivar pre_peak_avg_Z: pre-event average transient Z-scores
+    :ivar pre_peak_avg_dFF: pre-event average transient amplitud
+    :ivar pre_peak_frequency: pre-event transient frequency
+    :ivar pre_peak_max_Z: pre-event maximum Z-scores of transients
+    :ivar pre_peak_max_dFF: pre-event maximum amplitude of transients
     """ 
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
