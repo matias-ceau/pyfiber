@@ -1,4 +1,201 @@
 Configuration
 =============
 
-If no configutration file exist, a standard one is generated in user's home folder ('/home/user/.pyfiber' on Unix-based system and 'C://Users/user/.pyfiber' on Windows)
+If no configuration file exist, a standard one is generated in user's home folder ('/home/user/.pyfiber' on Unix-based system and 'C://Users/user/.pyfiber' on Windows).
+
+The configuration file is written in YAML format and contains user-specified preferences for analysis, custom events and intervals to be computed, and general data structure information about raw files.
+
+
+General
+~~~~~~~~
+
+.. code:: yaml
+
+	GENERAL:
+	    ID: 'Not specified'                # DEFAULT ID when not specified at file creation
+	    folder_nomenclature:
+	    # used to autodetect metadata from a folder containing sessions (as a collection fo folders including a behavioral data and a fiberphotometry file)
+	        separator: '_'
+	        naming:    '@_rat_@_@_j@'
+	        meanings:  ['experiment','','rat_number','experiment_type','session_number']
+	        ID:        ['experiment','rat_number']
+
++ **ID** is default name for the animal ID when not specified at the instantiation of the corresponding object
++ **folder_nomenclature** allows for the automatic retrieval of information contained in the 
+
+Behavior
+~~~~~~~~
+
+.. code:: yaml
+
+	BEHAVIOR:  
+	    BEHAVIOR_FILE_TYPE: IMETRONIC 
+	    behavior_time_ratio:  1000         # 1000 if behavior file in milliseconds
+	# for clarity, events should be in lowercase and intervals in upper case 
+	    imetronic_events:  
+	    # events directly accessible from imetronic raw file, extracted first
+	        #event_name       ['type',        [F, ID], [column , value]]
+	        #event_nam        ['simple',  [F,ID], column]
+	        hled_on:          [['conditional', [1, 1] , ['_P'  ,  1]] , "houselight on"]    # houselight on (start of ND period) (1,1)
+	        hled_off:         [['conditional', [1, 1] , ['_P'  ,  0]] , "houselight off"]   # houselight on
+	        led1_on:          [['conditional', [1, 2] , ['_P'  ,  1]] , "CS light on"]   # CS = administration light on (1,2)
+	        led1_off:         [['conditional', [1, 2] , ['_P'  ,  0]] , "CS light off"]   # led1 off (possibly unnecessary switch off commands depending of exercises)
+	        led2_on:          [['conditional', [1, 3] , ['_P'  ,  1]] , "Drug light on"]
+	        led2_off:         [['conditional', [1, 3] , ['_P'  ,  0]] , "Drug light off"]
+	        np1:              [['conditional', [3, 1] , ['_V'  ,  1]] , "Active Nosepoke"]    # NP active detected (3,1)
+	        np2:              [['conditional', [3, 2] , ['_V'  ,  1]] , "Inactive nosepoke"]   # NP inactive detected (3,2)
+	        inj1:             [['conditional', [6, 1] , ['_L'  ,  1]] , "Injection"]   # injection (6,1) (NB: first pump turn)
+	        ttl1_on:          [['conditional', [15,1] , ['_L'  ,  1]] , "Recording TTL on"]
+	        ttl1_off:         [['conditional', [15,1] , ['_L'  ,  0]] , "Recording TTL off"]
+	        x_coordinates:    [['simple', [9, 1], '_X'] , "X coordinates"]
+	        y_coordinates:    [['simple', [9, 1], '_Y'] , 'Y coordinates']
+	        xy_timestamps:    [['simple', [9, 1], 'TIME'] , 'Timestamps for coordinates' ]
+	   
+	    csv_events:
+	    # events extracted from a csv file with one event per columns
+	        # event1:        ['timestamp',  data column name 1, time column name]
+	        # event2:        ['timestamp',  data column name 2, time column name]
+	        # eventA:        ['value',      column name A]
+	        TTL1:           [['timestamp', DI/O-1, Time(s)] , 'TTL1']
+	        TTL2:           [['timestamp', DI/O-2, Time(s)] , 'TTL2']
+	        TTL3:           [['timestamp', DI/O-3, Time(s)] , 'TTL3']
+	        TTL4:           [['timestamp', DI/O-4, Time(s)] , 'TTL4']
+
+	    basic_intervals:
+	    # intervals directly computable with events above
+	        #INTERVAL_NAME    ['type'  , on/off/both, [start,end (of ON)]
+	        HLED:             [['ON_OFF', both       , [hled_on,hled_off]] , 'Houselight on (interval)']
+	        LED1:             [['ON_OFF', both       , [led1_on,led1_off]] , 'CS light on (interval)']
+	        LED2:             [['ON_OFF', both       , [led2_on,led2_off]] , 'Drug light on (interval)']
+	        TTL1:             [['ON_OFF', both       , [ttl1_on,ttl1_off]] , 'TTL1 sending (interval)']
+	        #INTERVAL1_2       [['ON_OFF', both        , [event1,event2]] , '']
+	        
+	    custom:
+	    # complex events and intervals, please input them in a logical order (eg: if interval A is needed for timestamps T, A should be defined before T)
+	        #INTERVAL          ['INTERSECTION', [INTERVALS]]                          # intersection of two intervals   eg: ['INTERSECTION',[(10,20),(30,40)],[(0,15),(35,60)]] => [(10,15),(35,40)]
+	        #INTERVAL          ['UNION',        [INTERVALS]]                          # union of two intervals          eg: ['UNION',       [(10,20),(30,40)],[(0,15),(35,60)]] => [(0,20),(30,60)]
+	        #INTERVAL          ['NEAR_EVENT',   INTERVAL,       event,   nearness]    # intervals that are near (nearness in seconds) specified events 
+	        #INTERVAL          ['GENERATIVE', INTERVALS]                              # for every subinterval of an interval, generates an indexed interval eg: [(10,20),(30,40)] => {name}_1 = [(10,20)], {name}_2 = [(30,40)]
+	        #event             ['boundary',     start/end/both, INTERVAL]             # boundaries of intervals (either,start,end, or both as an array)
+	        #event             ['iselement',    parent_events,  INTERVAL]             # timestamps that are in specified intervals
+	        #event             ['indexed',      parent_events,  index]                # 
+	        #
+	        rec_start:         [['indexed'        ,  ttl1_on                        ,   1       ]  , 'Start of the recording'] #first ttl1_on command
+	        DARK:              [['INTERSECTION'   ,  [HLED_OFF,LED1_OFF,LED2_OFF]               ]  , 'No lights on']
+	        DNI:               [['NEAR_EVENT'     ,  DARK                           , inj1  , 5 ]  , 'No lights on, close to an injection']
+	        TO_DARK:           [['DURATION'       ,  DNI                            , '<'   , 45]  , 'No lights on, close to an injection, shorter than 45s']
+	        TIMEOUT:           [['UNION'          ,  [LED1_ON,TO_DARK]                          ]  , 'CS light on + subsequent dark period']
+	        NOTO_DARK:         [['INTERSECTION'   ,  [DARK,~TIMEOUT]                            ]  , 'No lights on, not a timeout']      #~is the logic non operator
+	        noto_dark_end:     [['boundary'       ,  end                            , NOTO_DARK ]  , "End of dark period (that isn't a timeout)"]
+	        switch_dark_d1:    [['iselement'      ,  noto_dark_end                  , LED2_ON   ]  , 'Switch from dark to D1']
+	        hled_on_start:     [['boundary'       ,  start                          , HLED_ON   ]  , 'Starts of each no drug periods']
+	        hled_on_end:       [['boundary'       ,  end                            , HLED_ON   ]  , 'Ends of each no drug periods']
+	        HLEDOFF_NODARK:    [['INTERSECTION'   , [HLED_OFF, ~NOTO_DARK]                      ]  , 'HLED off, excluding non-timeout-dark periods']
+	        DRP:               [['NEAR_EVENT'     ,  HLEDOFF_NODARK                 , led2_on, 1]  , 'Period with HLED off and near a led2 switch on']
+	        DRP_LONG:          [['DURATION'       ,  DRP                            , '>'  , 600]  , 'Drug periods longer than 600 seconds']
+	        DRP_INJ:           [['CONTAINS'       ,  DRP                            , inj1      ]  , 'Drug period that is close to an injection']
+	        DRUG:              [['UNION'          , [DRP_LONG, DRP_INJ]                         ]  , 'Drug periods']
+	        D_n:               [['GENERATIVE'     ,  DRUG                                       ]  , 'N-th drug period']
+	        DRUG_NOTO:         [['INTERSECTION'   ,  [DRUG, ~TIMEOUT]                           ]  , 'Drug period without timeouts']
+	        switch_d_nd:       [['iselement'      ,  hled_on_start                  , DRUG_NOTO ]  , 'Switch from drug to no drug (ie excluding timeout to drug)']
+	        switch_to_nd:      [['iselement'      ,  hled_on_start                  , TIMEOUT   ]  , 'Switch from timeout to no drug']
+	        switch_dto_nd:     [['combination'    ,  [switch_d_nd,switch_to_nd]                 ]  , 'Switch of either drug/timeout to no drug']
+	        switch_nd_d:       [['iselement'      ,  hled_on_end                    , LED2_ON   ]  , 'Switch from ND to D']
+	        switch_between:    [['timerestricted' ,  switch_dto_nd                  ,[100,3400] ]  , 'Switch between ND and D that are between t+100s and t+3400s']
+	        switch_1:          [['indexed'        ,  switch_between                 , 1         ]  , 'First of the switches between ND and D that are between t+100s and t+3400s']
+	        switch_between_D:  [['timerestricted' ,  switch_d_nd                    ,[100,3400] ]  , 'No to-d Switch between ND and D that are between t+100s and t+3400s']
+	        switch_1_D:        [['indexed'        ,  switch_between_D               , 1         ]  , 'No to-d First of the switches between ND and D that are between t+100s and t+3400s']
+	       #np1_HLED_OFF:      [['iselement'      ,  np1                            , DRUG      ]  , 'Active nosepokes during D']
+	        np_HF_NOTO:        [['iselement'      ,  np1                            , DRUG_NOTO ]  , 'Active nosepoke not during HLED ON and not during full timeout']
+	        np_effective:      [['iselement'      ,  np_HF_NOTO                     , LED2_ON   ]  , 'Active nosepoke that is part of the FR series']
+	        np1_n:             [['generative2'    ,  [D_n, np_effective]            ,         5 ]  , 'N-th effective nosepoke inside each drug period']
+	       #np1_n:             [['generative'     ,  np_effective                   ,         5 ]  , 'N-th effective nosepoke']
+	        ND_n:              [['GENERATIVE'     ,  HLED_ON                                    ]  , 'No drug period (HLED on)']
+	        ND_first:          [['NEAR_EVENT'     ,  HLED_ON                        ,switch_1, 1]  , 'First ND period (excluding the first one in case of NDpre paradigm']
+	        switch_nd1:        [['boundary'       ,  end                            , ND_first  ]  , 'First ND-D switch.']
+	        inj_first:         [['indexed'        ,  inj1                           ,   1       ]  , 'First injection']
+	        npt:               [['combination'    ,  [np1, np2]                                 ]  , 'All nosepokes (active and inactive)']
+	        np1_ND_first:      [['iselement'      ,  np1                            , ND_first  ]  , 'Active nosepokes during the first ND period']
+	        np2_ND_first:      [['iselement'      ,  np2                            , ND_first  ]  , 'Inactive nosepokes during the first ND period']
+	        npt_ND_first:      [['iselement'      ,  npt                            , ND_first  ]  , 'Nosepokes during the first ND period']
+	        np1_NDfirst_1:     [['indexed'        ,  np1_ND_first                   ,   1       ]  , 'First active nosepoke of first ND period']
+	        np2_NDfirst_1:     [['indexed'        ,  np2_ND_first                   ,   1       ]  , 'First inactive nosepoke of first ND period']
+	        npt_NDfirst_1:     [['indexed'        ,  npt_ND_first                   ,   1       ]  , 'First nosepoke of first ND period']
+	 
+	               
+	    elements:
+	        # Long name and plotting color for any event
+	        #event/interval - show (True/False) - long name  - color
+	        all:          [True, 'Session'                    ,                    b]
+	        HLED_OFF:     [True, 'Drug Period'                ,            '#069AF3']
+	        HLED_ON:      [True, 'No Drug Period'             ,                 gold]
+	        TTL1_ON:      [True, 'Fiber Photometry Recordings',                    g]
+	        np1:          [True, 'Active Nosepokes'           ,                    r]
+	        np2:          [True, 'Inactive Nosepokes'         ,                    b]
+	        inj1:         [True, 'Injections'                 ,                    k]
+	        LED1_ON:      [True, 'Conditioned Stimulus'       ,            goldenrod]
+	        LED1_OFF:     [False, LED1_OFF                    , [darkgray, darkgrey]]
+	        LED2_OFF:     [False, LED2_OFF                    ,            slategrey]
+	        LED2_ON:      [True,' Drug Light On'              ,            slategrey]
+	        DARK:         [False, DARK                        ,                    k]
+	        TO_DARK:      [False, TO_DARK                     ,            olivedrab]
+	        NOTO_DARK:    [False, NOTO_DARK                   ,                black]
+	        TIMEOUT:      [True,  'Time outs'                 ,                    k]
+	        switch_d_nd:  [False, 'Switch from D to ND'       ,                    r]
+	        switch_to_nd: [False, 'Switch from TO to ND'      ,                    r]
+	        switch_nd_d:  [False, 'Switch from ND to D'       ,                    b]
+
+Fiber
+~~~~~
+.. code:: yaml
+
+	FIBER:
+	    FIBER_FILE_TYPE: DORIC
+	    split_recordings:  True
+	    split_treshold:    10       #ie 10 times the mean intersample space
+	    min_sample_per_rec: 5       # used when splitting recordings groupped to the same datafile, ignores recording if less than specified samples
+	    trim_recording:    1.0      # seconds trimmed from recording start
+	    perievent_window:  [1.0,1.0]  # perievent window
+	    default_norm:      F      # normalization method
+	    peak_window:       10     # lenght of detection window in seconds
+	    peak_distance:     50ms   # minimun distance between peaks (used for peak detection)
+	    peak_zscore:       full   #'full' or 'bins' (choose if dF/F zscore is done for whole recordings or inside each bin when doing peak detection
+	    peak_baseline_MAD: 2
+	    peak_peak_MAD:     3 
+
+System
+~~~~~~~
+
+.. code:: yaml
+
+	SYSTEM:
+	    IMETRONIC:
+	        LIGHTS             : {HLED : [1,1],  LED1 : [1,2], LED2  : [1,3],  LED3 : [1,4], LED4 : [1,5], LED5 : [1,6], LED6 : [1,7], LED7 : [1,8]}
+	        LEVERS             : {L1   : [2,1],  L2   : [2,2], L3    : [2,3],  L4   : [2,4], L5   : [2,5], L6   : [2,6]}
+	        NOSEPOKE           : {NP1  : [3,1],  NP2  : [3,2], NP3   : [3,3],  NP4  : [3,4], NP5  : [3,5]}
+	        DISTRIBUTEUR       : {D1   : [4,1],  D2   : [4,2], D3    : [4,3],  D4   : [4,4], D5   : [4,5], D6   : [4,6], D7   : [4,7], D8   : [4,8], D9    : [4,9], D10 : [4,10], D11 : [4,11], D12 : [4,12]}
+	        LICKMETER          : {LK1  : [5,1],  LK2  : [5,2], LK3   : [5,3],  LK4  : [5,4], LK5  : [5,5]}
+	        DIVERS_CA          : {INJ1 : [6,1],  SND  : [6,2], WN    : [6,3],  SHK  : [6,4], PUSH : [6,5], TOP  : [6,6], INJ2 : [6,7], ADC  : [6,8], SNDpP : [6,9], FL  : [6,10], RD  : [6,11], OD  : [6,12], BUL : [6,13], WH : [6,14] }
+	        PORTE              : {G1   : [7,1],  G2   : [7,2], G3    : [7,3],  G4   : [7,4], G5   : [7,5], G6   : [7,6], G7   : [7,7], G8   : [7,8], G9    : [7,9], G10 : [7,10], G11 : [7,11], G12 : [7,12]}
+	        ZONE               : {Z1   : [9,1],  Z2   : [9,2], Z3    : [9,3],  Z4   : [9,4], Z5   : [9,5], Z6   : [9,6], Z7   : [9,7], Z8   : [9,8], Z9    : [9,9], Z10 : [9,10], Z11 : [9,11], Z12 : [9,12], Z13 : [9,13]}
+	        DIVERS             : {'ON' : [10,1], EVT  : [10,5]}
+	        RFID               : {I1   : [12,1], I2   : [12,2], I3   : [12,3], I4   : [12,4]}
+	        MESSAGE            : {STR1 : [13,1], STR2 : [13,2], STR3 : [13,3], STR4 : [13,4]}
+	        DIVERS_NON_STOCKES : {I    : [11,4]}
+	    
+	    # DORIC NOMENCLATURE
+	    DORIC:
+	        Time(s): time
+	        "AIn-1 - Demodulated(Lock-In)": signal
+	        "AIn-2 - Demodulated(Lock-In)": control
+	        DI/O-1: TTL1
+	        DI/O-2: TTL2
+	        DI/O-3: TTL3
+	        DI/O-4: TTL4
+
+	    EXAMPLE_NOMENCLATURE:
+	        time_column: time
+	        signal_column: signal
+	        control_column: control
+	        ttl1: TTL1
+ 
