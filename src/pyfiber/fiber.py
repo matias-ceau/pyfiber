@@ -119,15 +119,15 @@ def detect_peaks(arr=[],
     if zscore == 'bins':
         bins = [(b - b.mean())/b.std() for b in bins]
 
-    # find median for each bin and remove events >2MAD for baselines
+    # find median for each bin and remove events >(bMAD)*MAD for baselines
     baselines = [
         b[b < np.median(b) + bMAD*np.median(abs(b - np.median(b)))]
         for b in bins
                 ]
 
-    # calculate peak tresholds for each bin, by default >3MAD of previously created baseline
+    # calculate peak tresholds for each bin, by default >(pMAD)*MAD of previously created baseline
     tresholds = [
-        np.median(b)+pMAD*np.median(abs(b-np.median(b)))
+        np.median(b) + pMAD * np.median(abs(b - np.median(b)))
         for b in baselines
                 ]
 
@@ -164,17 +164,18 @@ def detect_peaks(arr=[],
             c = random.choice(list('bgrcmy'))
             plt.plot(i, alpha=0.6, color=c)
             plt.plot(baselines[n],
-                     color=c,
-                     label=n * '_'+'signal <2MAD + median') # keeps only the first label
+                     color='gray',
+                     alpha=0.5,
+                     label=n * '_'+f'signal <{bMAD}MAD + median') # keeps only the first label
             plt.plot(bin_medians[n],
                      color='k',
                      label=n*'_'+'signal median')
-            plt.plot(bin_medians[n]+bin_mad[n]*2,
+            plt.plot(bin_medians[n]+bin_mad[n]*bMAD,
                      color='darkgray',
-                     label=n*'_'+'>2MAD + median')
+                     label=n*'_'+f'>{bMAD}MAD + median')
             plt.plot(peak_tresholds[n],
                      color='r',
-                     label=n*'_'+'>3MAD + baseline')
+                     label=n*'_'+f'>{pMAD}MAD + baseline')
         for n, p in enumerate(peaks):
             plt.scatter(p.loc[:, 'time'],
                         p.loc[:, 'zscore'])
