@@ -36,7 +36,6 @@ def normalize_signal(signal : np.ndarray,
        Two normalization method can be used. ``'F'`` is the standard :math:`\\frac{\\Delta F}{F_0}`.
        ``'Z'`` is the z-score difference of signal and control.
     """
-
     if method == 'F':
         coeff = np.polynomial.polynomial.polyfit(control, signal, 1)
         fitted_control = coeff[0] + control*coeff[1]
@@ -48,8 +47,9 @@ def normalize_signal(signal : np.ndarray,
     return normalized
 
 
-def detect_peaks(time : np.ndarray,
-                 signal : np.ndarray, 
+def detect_peaks(arr=[],
+                 time=[],
+                 signal=[], 
                  window :  float = 10,
                  distance : str = '50ms',
                  plot : bool =True,
@@ -57,6 +57,8 @@ def detect_peaks(time : np.ndarray,
                  zscore : str ='full',
                  bMAD : float = 2.5,
                  pMAD : float = 3.5,
+                 xlim : Union[bool, tuple] = False,
+	         save : Union[bool, str] = False,
                  **kwargs):
     """Detect peaks in a normalized fiberphotometry signal.
 
@@ -78,6 +80,13 @@ def detect_peaks(time : np.ndarray,
        Additionnally, any keyword argument catched by **kwargs** is passed to ``find_peaks`` so more precise criteria
        can be used.
     """     
+    if (not len(arr)) and ((not len(signal)) or (not len(time))):
+        return
+    elif len(arr):
+        time = arr[:,0]
+        signal = arr[:,1]
+    else:
+        pass
     dF = signal.copy()
     # calculate zscores
     if zscore == 'full':
@@ -169,7 +178,13 @@ def detect_peaks(time : np.ndarray,
         for n, p in enumerate(peaks):
             plt.scatter(p.loc[:, 'time'],
                         p.loc[:, 'zscore'])
+        if xlim:
+            plt.xlim(xlim) 
         plt.legend()
+        if save:
+            plt.savefig(f"{save}.pdf")
+            plt.savefig(f"{save}.png", dpi=600)
+        plt.show()
     return pd.concat(peaks, ignore_index=True)
 
 
@@ -300,7 +315,7 @@ class Fiber(PyFiber):
             data = self.norm(rec=r, add_time=True)
             t = data[:, 0]
             s = data[:, 1]
-            self.peaks[r] = self._detect_peaks(t, s, plot=False)
+            self.peaks[r] = self._detect_peaks(time=t, signal=s, plot=False)
         
         self._print(
             f'Importing of {filepath} finished in {time.time() - start} seconds')
@@ -523,8 +538,10 @@ Aligned to behavior file : {self.alignment} s
             return normalized
 
     def _detect_peaks(self,
-                      t : np.ndarray,
-                      s : np.ndarray, 
+                      rec=False,
+                      arr=[],
+                      time=[],
+                      signal=[], 
                       window : Union[str,float] ='default',
                       distance : str ='default',
                       plot : bool =True,
@@ -536,6 +553,7 @@ Aligned to behavior file : {self.alignment} s
         """Detect peaks in a normalized fiberphotometry signal.
 
         API for ``fiber.detect_peaks``, with class default.
+        :param arr: numpy array with timestamps in first column and signal values in second column
         :param time: timestamps
         :param signal: fiber photometry signal
         :param window: size of each succesive bins were peaks are computed (default is 10s)
@@ -568,9 +586,11 @@ Aligned to behavior file : {self.alignment} s
             pMAD = int(self.peak_peak_MAD)
         else:
             pMAD = int(pMAD)
-
-        df = detect_peaks(signal=s,
-                          time=t,
+        if rec:
+            arr = self.norm(rec)
+        df = detect_peaks(arr=arr,
+                          signal=signal,
+                          time=time,
                           distance=distance,
                           window=window,
                           plot=plot,
