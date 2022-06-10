@@ -469,7 +469,6 @@ class MultiSession(PyFiber):
 #TODO CHANGE DEBUG
     def __init__(self, folder, debug=0.800, **kwargs):
         super().__init__(**kwargs)
-        print('folder', folder)
         self.folder = folder
         start = time.time()
         self._import_folder(folder)
