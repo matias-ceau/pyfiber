@@ -197,6 +197,7 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         res.sampling_rate = 1/np.diff(res.time).mean()
         res.postevent = res.data[end_idx-event_idx:][:, 1]
         res.pre_raw_sig = res.raw_signal[:end_idx-event_idx]
+        res.pre_raw_ctrl = res.raw_control[:end_idx-event_idx]
         res.post_raw_sig = res.raw_signal[end_idx-event_idx:]
         res.post_raw_ctrl = res.raw_control[end_idx-event_idx:]
         res.post_time = res.data[end_idx-event_idx:][:, 0]
