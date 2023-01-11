@@ -203,7 +203,7 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         res.post_time = res.data[end_idx-event_idx:][:, 0]
         res.preevent = res.data[:end_idx-event_idx][:, 1]
         res.pre_time = res.data[:end_idx-event_idx][:, 0]
-        res.zscores = (res.signal - res.preevent.mean()) / res.preevent.std()
+        res.zscores = (res.signal - res.preevent.me an()) / res.preevent.std()
         res.pre_zscores = res.zscores[:end_idx-event_idx]
         res.post_zscores = res.zscores[end_idx-event_idx:]
         res.rob_zscores = (res.signal - np.median(res.preevent)) / \
