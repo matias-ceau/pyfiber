@@ -203,7 +203,7 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         res.post_time = res.data[end_idx-event_idx:][:, 0]
         res.preevent = res.data[:end_idx-event_idx][:, 1]
         res.pre_time = res.data[:end_idx-event_idx][:, 0]
-        res.zscores = (res.signal - res.preevent.me an()) / res.preevent.std()
+        res.zscores = (res.signal - res.preevent.mean()) / res.preevent.std()
         res.pre_zscores = res.zscores[:end_idx-event_idx]
         res.post_zscores = res.zscores[end_idx-event_idx:]
         res.rob_zscores = (res.signal - np.median(res.preevent)) / \
@@ -637,6 +637,8 @@ class MultiSession(PyFiber):
                     result.event_name = str(events)
         else:
             result.event_name = 'custom events, see times.'
+        result.event_id = [f"{a}_{b}" for a,b in zip(result.key,
+                                              result._attribute_dict['event_time'])]
         return result
 
     def compare_behavior(self,
@@ -684,6 +686,7 @@ class MultiAnalysis(PyFiber):
     :ivar WINDOW: peri-event window
     :ivar dict: dictionnary containing a list of ``Analysis`` objects for each session
     :ivar key: corresponding session for each event in each session
+    :ivar event_id: unique event identifier (session name + event time)
     :ivar epoch: interpolated epochs for each event in each session
     :ivar EPOCH: reference epoch (based on ``nb_of_points`` and ``WINDOW``)
     :ivar interpolated_raw_control: interpolated raw control for each event in each session
@@ -768,11 +771,11 @@ class MultiAnalysis(PyFiber):
 
     @property
     def data(self):
-        return pd.DataFrame({k: v for k, v in self._attribute_dict.items() if type(v[0]) != np.ndarray}, index=self.key)
+        return pd.DataFrame({k: v for k, v in self._attribute_dict.items() if type(v[0]) != np.ndarray}, index=self.event_id)
 
     @property
     def full_data(self):
-        return pd.DataFrame(self._attribute_dict, index=self.key)
+        return pd.DataFrame(self._attribute_dict, index=self.event_id)
 
     def possible_data(self):
         """Return dictionnary of possible data to plot"""
