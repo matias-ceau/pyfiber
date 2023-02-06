@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import random
 import time
+import h5py
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import os
@@ -210,7 +211,7 @@ class Fiber(PyFiber):
     :ivar filepath: see **parameters**
     :ivar filetype: see **parameters**
     :ivar name: see **parameters**
-    :cvar FIBER_FILE_TYPE: (from ``_utils.PyFiber``) system file type (default: DORIC)
+    :cvar FIBER_FILE_TYPE: (from ``_utils.PyFiber``) system file type (default: DORIC_CSV)
     :cvar split_recordings: (from ``_utils.PyFiber``) see :ref:`note below <recs>`
     :cvar split_treshold: (from ``_utils.PyFiber``) treshold for splitting data into recording (*e.g*. 10 is 10 times the mean intersample distance)
     :cvar min_sample_per_rec: (from ``_utils.PyFiber``) minimun number of samples for a split to be considered a recordings (ignores one sample recordings that are bugs)
@@ -285,8 +286,12 @@ class Fiber(PyFiber):
             self.filetype = filetype
             self.ncl = self.SYSTEM[filetype.upper()]
         else:
-            self.filetype = 'DORIC'
-            self.ncl = self.SYSTEM['DORIC']
+            if filepath.split('.')[-1] == 'doric':
+                self.filetype = 'DORIC_HDF'
+                self.ncl = self.SYSTEM['DORIC_HDF']
+            else:
+                self.filetype = 'DORIC_CSV'
+                self.ncl = self.SYSTEM['DORIC_CSV']
 
         # EXTRACT FILE
         self.df = self._read_file(filepath, alignment=alignment)
@@ -352,9 +357,18 @@ Aligned to behavior file : {self.alignment} s
 
         :param filepath: the data file path
         :param alignment: offset in seconds to align fiber datafile to behavioral data"""
-        df = pd.read_csv(filepath, usecols=[k for k,v in self.ncl.items() if v in ['signal','control','time']], dtype=np.float64)  # ,engine='pyarrow')
-        time_nom = [k for k,v in self.ncl.items() if v == 'time'][0]
-        df[time_nom] = df[time_nom] + alignment
+        if self.filetype == 'DORIC_HDF':
+            f = h5py.File(self.filepath, 'r')
+            df = pd.DataFrame({v : pd.Series(f[k]) for k,v in self.ncl.items()})
+            inverse_hdf_nom = {v : k for k,v in self.ncl.items()}
+            df['time'] = df['time'] + alignment
+            df.columns = [inverse_hdf_nom[i] for i in df.columns]
+            print(df)
+            f.close()
+        else:
+            df = pd.read_csv(filepath, usecols=[k for k,v in self.ncl.items() if v in ['signal','control','time']], dtype=np.float64)  # ,engine='pyarrow')
+            time_nom = [k for k,v in self.ncl.items() if v == 'time'][0]
+            df[time_nom] = df[time_nom] + alignment
         return df
 
     def _extract_data(self) -> pd.DataFrame:

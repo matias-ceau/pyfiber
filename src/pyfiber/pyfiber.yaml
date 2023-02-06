@@ -160,7 +160,7 @@ SYSTEM:
         DIVERS_NON_STOCKES : {I    : [11,4]}
     
     # DORIC NOMENCLATURE
-    DORIC:
+    DORIC_CSV:
         Time(s): time
         "AIn-1 - Demodulated(Lock-In)": signal
         "AIn-2 - Demodulated(Lock-In)": control
@@ -168,6 +168,15 @@ SYSTEM:
         DI/O-2: TTL2
         DI/O-3: TTL3
         DI/O-4: TTL4
+
+    DORIC_HDF:
+        'DataAcquisition/FPConsole/Signals/Series0001/AIN01xAOUT01-LockIn/Time': time
+        'DataAcquisition/FPConsole/Signals/Series0001/AIN01xAOUT01-LockIn/Values': signal
+        'DataAcquisition/FPConsole/Signals/Series0001/AIN02xAOUT02-LockIn/Values': control
+        'DataAcquisition/FPConsole/Signals/Series0001/DigitalIO/DIO01': TTL1
+        'DataAcquisition/FPConsole/Signals/Series0001/DigitalIO/DIO02': TTL2
+        'DataAcquisition/FPConsole/Signals/Series0001/DigitalIO/DIO03': TTL3
+        'DataAcquisition/FPConsole/Signals/Series0001/DigitalIO/DIO04': TTL4
 
     EXAMPLE_NOMENCLATURE:
         time_column: time

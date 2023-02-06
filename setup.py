@@ -7,7 +7,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 setup(
     name='pyfiber',
     packages=find_packages(where='src'),
-    version='0.2.11',
+    version='0.2.12',
     description='Fiber photometry and behavioral data analysis tool',
     author='Matias Ceau',
     author_email="matias@ceau.net",
@@ -17,7 +17,7 @@ setup(
     package_data = {'pyfiber': ['pyfiber.yaml']},
     license='GPLv3',
     url="https://github.com/matias-ceau/pyfiber",
-    install_requires=['numpy','scipy','pandas','pyyaml','datetime','seaborn','matplotlib','portion'],
+    install_requires=['numpy','scipy','pandas','pyyaml','datetime','seaborn','matplotlib','portion', 'h5py'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
