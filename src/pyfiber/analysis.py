@@ -513,7 +513,7 @@ class MultiSession(PyFiber):
                 self._print(f"\nImporting folder {r}...")
                 for file in os.listdir(os.path.join(folder, r)):
                     path = os.path.join(folder, r, file)
-                    if '.csv' in path:
+                    if ('.csv' in path) or ('.doric' in path):
                         f = path
                     elif '.dat' in path:
                         b = path
