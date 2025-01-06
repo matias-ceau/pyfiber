@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import time
+
 """
 This modules defines both Session/MultiSession and Analysis/MultiAnalysis classes, which handle combined fiber photometry
 and behavioral data analysis.
@@ -12,20 +13,23 @@ from scipy import integrate, stats
 import seaborn as sns
 from typing import List, Tuple, Union, Any
 import matplotlib.style as st
+
 st.use('ggplot')
 
 from .behavior import Behavior, MultiBehavior
 from .fiber import Fiber
 from ._utils import PyFiber as PyFiber
+
 __all__ = ['Session', 'MultiSession', 'Analysis', 'MultiAnalysis']
 
-Intervals = List[Tuple[float,float]]
+Intervals = List[Tuple[float, float]]
 Events = np.ndarray
+
 
 class Session(PyFiber):
     """Create object containing both fiber recordings and behavioral files.
-    
-    :param behavior: 
+
+    :param behavior:
     """
 
     vars().update(PyFiber.FIBER)
@@ -33,9 +37,9 @@ class Session(PyFiber):
 
     @classmethod
     def from_folder(cls,
-                    folderpath : str,
-                    fiber_marker : str ='.csv',
-                    behavior_marker : str ='.dat',
+                    folderpath: str,
+                    fiber_marker: str = '.csv',
+                    behavior_marker: str = '.dat',
                     **kwargs):
         """Create session object from folder.
 
@@ -50,8 +54,8 @@ class Session(PyFiber):
         return cls(behavior=behavior, fiber=fiber, **kwargs)
 
     def __init__(self,
-                 behavior : Union[Behavior,str],
-                 fiber : Union[Behavior,str] ,
+                 behavior: Union[Behavior, str],
+                 fiber: Union[Behavior, str],
                  ID=None,
                  **kwargs):
         super().__init__(**kwargs)
@@ -59,7 +63,7 @@ class Session(PyFiber):
         if type(behavior) == Behavior:
             self.behavior = behavior
         else:
-            self.behavior = Behavior(behavior,verbosity=self._verbosity)
+            self.behavior = Behavior(behavior, verbosity=self._verbosity)
         if type(fiber) == Fiber:
             if fiber.alignment == self.behavior.rec_start:
                 self.fiber = fiber
@@ -70,18 +74,18 @@ class Session(PyFiber):
             self.fiber = Fiber(fiber, alignment=self.behavior.rec_start, verbosity=self._verbosity)
         self.analyses = {}
 
-    def __repr__(self): 
+    def __repr__(self):
         """Representation of Session object."""
         return f"""\
 <Session(fiber    = "{self.fiber.filepath}",
             behavior = "{self.behavior.filepath}")"""
 
     def _sample(self,
-                time_array : np.ndarray,
-                event_time : float,
-                window : tuple) -> tuple:
+                time_array: np.ndarray,
+                event_time: float,
+                window: tuple) -> tuple:
         """Get indices of a timeseries sample of the recording.
-        
+
         :param time_array: an array of timestamp
         :param event_time: event of interest
         :param window: time window left and right of the event of interest
@@ -98,8 +102,8 @@ class Session(PyFiber):
         return (start_idx, event_idx, end_idx)
 
     def _recorded_timestamps(self,
-                             events : Union[str,List[str]],
-                             window : tuple,
+                             events: Union[str, List[str]],
+                             window: tuple,
                              **kwargs) -> Events:
         """Return analyzable timestamps (*i.e.* both recorded and not overlapping the perievent window on the edges).
 
@@ -145,9 +149,9 @@ class Session(PyFiber):
         return self.behavior.intervals(**kwargs)
 
     def analyze(self,
-                event_time : float,
-                window : Union[str, tuple] ='default',
-                norm : str ='default') -> object:
+                event_time: float,
+                window: Union[str, tuple] = 'default',
+                norm: str = 'default') -> object:
         """Return Analysis object, related to defined perievent window.
 
         :param event_time: event of interest timestamp
@@ -189,29 +193,29 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         res.rawdata = self.fiber.norm(rec=res.rec_number, method='raw')
         start_idx, event_idx, end_idx = self._sample(
             res.recordingdata[:, 0], event_time, res.window)
-        res.data = res.recordingdata[start_idx:end_idx+1]
-        res.raw_signal = res.rawdata[start_idx:end_idx+1][:, 1]
-        res.raw_control = res.rawdata[start_idx:end_idx+1][:, 2]
+        res.data = res.recordingdata[start_idx:end_idx + 1]
+        res.raw_signal = res.rawdata[start_idx:end_idx + 1][:, 1]
+        res.raw_control = res.rawdata[start_idx:end_idx + 1][:, 2]
         res.signal = res.data[:, 1]
         res.time = res.data[:, 0]
-        res.sampling_rate = 1/np.diff(res.time).mean()
-        res.postevent = res.data[end_idx-event_idx:][:, 1]
-        res.pre_raw_sig = res.raw_signal[:end_idx-event_idx]
-        res.pre_raw_ctrl = res.raw_control[:end_idx-event_idx]
-        res.post_raw_sig = res.raw_signal[end_idx-event_idx:]
-        res.post_raw_ctrl = res.raw_control[end_idx-event_idx:]
-        res.post_time = res.data[end_idx-event_idx:][:, 0]
-        res.preevent = res.data[:end_idx-event_idx][:, 1]
-        res.pre_time = res.data[:end_idx-event_idx][:, 0]
+        res.sampling_rate = 1 / np.diff(res.time).mean()
+        res.postevent = res.data[event_idx - start_idx:][:, 1]
+        res.pre_raw_sig = res.raw_signal[:event_idx - start_idx - 1]
+        res.pre_raw_ctrl = res.raw_control[:event_idx - start_idx - 1]
+        res.post_raw_sig = res.raw_signal[event_idx - start_idx:]
+        res.post_raw_ctrl = res.raw_control[event_idx - start_idx:]
+        res.post_time = res.data[event_idx - start_idx:][:, 0]
+        res.preevent = res.data[:event_idx - start_idx - 1][:, 1]
+        res.pre_time = res.data[:event_idx - start_idx - 1][:, 0]
         res.zscores = (res.signal - res.preevent.mean()) / res.preevent.std()
-        res.pre_zscores = res.zscores[:end_idx-event_idx]
-        res.post_zscores = res.zscores[end_idx-event_idx:]
+        res.pre_zscores = res.zscores[:event_idx - start_idx - 1]
+        res.post_zscores = res.zscores[event_idx - start_idx:]
         res.rob_zscores = (res.signal - np.median(res.preevent)) / \
-            stats.median_abs_deviation(res.preevent)
-        res.preAVG_dF  = res.preevent.mean() 
+                          stats.median_abs_deviation(res.preevent)
+        res.preAVG_dF = res.preevent.mean()
         res.postAVG_dF = res.postevent.mean()
-        res.pre_Rzscores = res.rob_zscores[:end_idx-event_idx]
-        res.post_Rzscores = res.rob_zscores[end_idx-event_idx:]
+        res.pre_Rzscores = res.rob_zscores[:event_idx - start_idx - 1]
+        res.post_Rzscores = res.rob_zscores[event_idx - start_idx:]
         res.preAVG_Z = res.pre_zscores.mean()
         res.postAVG_Z = res.post_zscores.mean()
         res.preAVG_RZ = res.pre_Rzscores.mean()
@@ -227,17 +231,17 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
         pre_peak_analysis = self.fiber.peakFA(res.event_time - res.window[0],
                                               res.event_time)
         post_peak_analysis = self.fiber.peakFA(res.event_time,
-                                              res.event_time + res.window[-1])
+                                               res.event_time + res.window[-1])
         try:
-            res.__dict__.update({'pre_'+k:v for k,v in pre_peak_analysis.items() if isinstance(v,float)})
-            res.__dict__.update({'post_'+k:v for k,v in post_peak_analysis.items() if isinstance(v,float)})
+            res.__dict__.update({'pre_' + k: v for k, v in pre_peak_analysis.items() if isinstance(v, float)})
+            res.__dict__.update({'post_' + k: v for k, v in post_peak_analysis.items() if isinstance(v, float)})
         except AttributeError:
-            peak_attr_names = [a+b for a in ['pre_','post_'] for b in ['peak_frequency',
-                                                                       'peak_avg_Z',
-                                                                       'peak_avg_dFF',
-                                                                       'peak_max_Z',
-                                                                       'peak_max_dFF']]
-            res.__dict__.update({k:np.nan for k in peak_attr_names})
+            peak_attr_names = [a + b for a in ['pre_', 'post_'] for b in ['peak_frequency',
+                                                                          'peak_avg_Z',
+                                                                          'peak_avg_dFF',
+                                                                          'peak_max_Z',
+                                                                          'peak_max_dFF']]
+            res.__dict__.update({k: np.nan for k in peak_attr_names})
         self.analyses.update(
             {f'rec{res.rec_number}_{res.event_time}_{res.window}': res})
         return res
@@ -270,8 +274,8 @@ for {self.fiber.filepath},{self.behavior.filepath}""")
 class Analysis(PyFiber):
     """Instantiated by using ``Session`` method ``analyze``.
 
-    Contains all automatically retrieved and computed about a single peri-event analysis.  
-    
+    Contains all automatically retrieved and computed about a single peri-event analysis.
+
     :ivar event_time: timestamps of the analyzed event
     :ivar window: perievent window
     :ivar rec_number: recording number in the Fiber instance data
@@ -350,9 +354,9 @@ class Analysis(PyFiber):
              ylim=None,
              save=None,
              save_dpi=600,
-             save_format=['png','pdf'],):
+             save_format=['png', 'pdf'], ):
         """Visualize data.
-        
+
         :param save: default is ``False``, filepath (without file extension)
         :param save_dpi: dpi if figure is saved
         :param save_format: file extension for saving
@@ -414,9 +418,9 @@ class Analysis(PyFiber):
             data = self.__dict__[data]
         if type(window) == str:
             if window[-2:] == 'ms':
-                window = np.ceil(float(window[:-2])/1000 * self.sampling_rate)
+                window = np.ceil(float(window[:-2]) / 1000 * self.sampling_rate)
             if window == 'default':
-                window = np.ceil(self.sampling_rate/4)  # 250 ms
+                window = np.ceil(self.sampling_rate / 4)  # 250 ms
         if method == 'savgol':
             smoothed = self._savgol(data, window, polyorder)
             if add_time:
@@ -424,19 +428,19 @@ class Analysis(PyFiber):
                                   smoothed)).T
         if method == 'rolling':
             smoothed = pd.Series(data).rolling(
-                window=window).mean().iloc[window-1:].values
+                window=window).mean().iloc[window - 1:].values
             if add_time:
                 return np.vstack(
                     (pd.Series(self.time).rolling(
                         window=window
-                        ).mean().iloc[window-1:].values, smoothed)
-                    ).T
+                    ).mean().iloc[window - 1:].values, smoothed)
+                ).T
         return smoothed
 
 
 class MultiSession(PyFiber):
     """Group analyses or multiple events for single subject.
-    
+
     :param folder: path of the :ref:`main folder <mainfolder>` containing session folders
 
     :ivar folder: path of the folder
@@ -444,11 +448,11 @@ class MultiSession(PyFiber):
     :ivar removed: list of removed file (if debug is set and a problem was detected)
     :ivar names: subfolder nmaes, ideally reflecting session names
     :ivar details: extracted session details from folder names (if set in the configuration file)
-    
+
     .. _mainfolder:
     .. code-block:: bash
         :caption: **Input file structure**
-        
+
         # folder and filenames can vary
         main_folder/
         ├── session_1/
@@ -467,7 +471,8 @@ class MultiSession(PyFiber):
     """
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
-#TODO CHANGE DEBUG
+
+    # TODO CHANGE DEBUG
     def __init__(self, folder, debug=0.800, **kwargs):
         super().__init__(**kwargs)
         self.folder = folder
@@ -493,9 +498,9 @@ class MultiSession(PyFiber):
         self._getID()
         self._print(
             f"""Extraction finished, {int(len(self.names))} sessions
-                ({int(len(self.names)*2)} files)
+                ({int(len(self.names) * 2)} files)
                     in {time.time() - start} seconds"""
-                    )
+        )
 
     def __repr__(self):
         """Representation fo MultiSession object."""
@@ -551,18 +556,18 @@ class MultiSession(PyFiber):
                 sessions='all',
                 save=False,
                 save_dpi=600,
-                save_format=['png','pdf'],
+                save_format=['png', 'pdf'],
                 **kwargs):
         """Analyze specific events.
 
-        events            : ex: 'np1'      
+        events            : ex: 'np1'
         window='default'  : peri-event window
         (default is specified in config.yaml)
         norm='default'    : normalization method used
     """
         # Generate new MultiAnalysis instance
         result = MultiAnalysis()
-        
+
         # Parameters
         if sessions == 'all':
             sessions = self.sessions
@@ -572,7 +577,7 @@ class MultiSession(PyFiber):
 
         if window == 'default':
             window = self.perievent_window
- 
+
         result.WINDOW = window
         result.dict = {}
         result.key = []
@@ -585,49 +590,49 @@ class MultiSession(PyFiber):
         for k, v in sessions.items():
             timestamps = v._recorded_timestamps(
                 events=events, window=window, **kwargs
-                )
+            )
             result.dict[k] = [v.analyze(i, norm=norm, window=window)
                               for i in timestamps]
-            result.key.append(len(result.dict[k])*[k])
+            result.key.append(len(result.dict[k]) * [k])
 
         result.key = [j for k in [i for i in result.key if i] for j in k]
         result._objects = np.concatenate(list(result.dict.values())).tolist()
-     
+
         # remove empty lists of analysis (no recording at timestamp or
         # no events) and update key accordingly
         sess_df = pd.DataFrame({'key': result.key, 'objects': result._objects})
-        
+
         # drop and alert on empty analysis lists
         idx = sess_df[sess_df.objects.isnull()].index
-        rvd = ', '.join(sess_df.loc[idx,'key'].tolist())
-        self._print(f'Only some timestamp, or no timestamps for {rvd}') 
+        rvd = ', '.join(sess_df.loc[idx, 'key'].tolist())
+        self._print(f'Only some timestamp, or no timestamps for {rvd}')
 
         sess_df = sess_df.drop(index=idx)
         result.key = sess_df.key.tolist()
         result._objects = sess_df.objects.tolist()
-        
+
         # find all non private attribute of the Analysis instances
         result._attribute_names = [
             i for i in np.unique(
-                np.concatenate([list(vars(a).keys()) 
+                np.concatenate([list(vars(a).keys())
                                 for a in result._objects]))
             if i[0] != '_']
-        
-        # group subject attribute together in instance attribute 
+
+        # group subject attribute together in instance attribute
         result._attribute_dict = {
             k: [d[k] for d in [
                 vars(o) for o in result._objects]
                 ]
             for k in result._attribute_names
-            }
-        
+        }
+
         result.__dict__.update(result._attribute_dict)
-        
+
         # calculate epochs for all time series by subtracting the corresponding
         # event time
         result.epoch = [t - result.event_time[n]
                         for n, t in enumerate(result.time)]
-        
+
         result.update()
         if type(events) == str:
             result.event_name = events
@@ -637,15 +642,15 @@ class MultiSession(PyFiber):
                     result.event_name = str(events)
         else:
             result.event_name = 'custom events, see times.'
-        result.event_id = [f"{a}_{b}" for a,b in zip(result.key,
-                                              result._attribute_dict['event_time'])]
+        result.event_id = [f"{a}_{b}" for a, b in zip(result.key,
+                                                      result._attribute_dict['event_time'])]
         return result
 
     def compare_behavior(self,
                          attribute,
                          save=False,
                          save_dpi=600,
-                         save_format=['png','pdf']):
+                         save_format=['png', 'pdf']):
         """Compare behavior (input should be event name)
 
         :param save: default is ``False``, filepath (without file extension)
@@ -654,7 +659,7 @@ class MultiSession(PyFiber):
         """
         obj_behav = [self.sessions[k].behavior for k in self.sessions.keys()]
         end = max(rat[1].behavior.end for rat in self.sessions.items())
-        timebins = np.arange(0, round(end)+1, 1)
+        timebins = np.arange(0, round(end) + 1, 1)
         cumul = [np.zeros(timebins.shape) for i in range(len(obj_behav))]
         names = []
         endpoints = []
@@ -752,7 +757,7 @@ class MultiAnalysis(PyFiber):
     :ivar pre_peak_frequency: pre-event transient frequency
     :ivar pre_peak_max_Z: pre-event maximum Z-scores of transients
     :ivar pre_peak_max_dFF: pre-event maximum amplitude of transients
-    """ 
+    """
     vars().update(PyFiber.FIBER)
     vars().update(PyFiber.BEHAVIOR)
 
@@ -760,7 +765,8 @@ class MultiAnalysis(PyFiber):
         super().__init__()
         self.exclude_list = []
 
-    def __repr__(self): return f"""<MultiAnalysis object>
+    def __repr__(self):
+        return f"""<MultiAnalysis object>
     event:             {self.event_name}
     window:            {self.WINDOW}
     number of events:  {len(self.key)}
@@ -771,7 +777,8 @@ class MultiAnalysis(PyFiber):
 
     @property
     def data(self):
-        return pd.DataFrame({k: v for k, v in self._attribute_dict.items() if type(v[0]) != np.ndarray}, index=self.event_id)
+        return pd.DataFrame({k: v for k, v in self._attribute_dict.items() if type(v[0]) != np.ndarray},
+                            index=self.event_id)
 
     @property
     def full_data(self):
@@ -797,16 +804,16 @@ class MultiAnalysis(PyFiber):
         """Recalculate mean values for all relevant values (perievent data). "nb of points" is the desired number of points for the new aligned data. Default is mean number of points of the data."""
         if nb_of_points == 'default':
             self.nb_of_points = round(np.mean([i.shape for i in self.time]))
-        self.EPOCH = np.linspace(-1*self.WINDOW[0],
+        self.EPOCH = np.linspace(-1 * self.WINDOW[0],
                                  self.WINDOW[1],
                                  self.nb_of_points)
         for value in self.possible_data():
-            self.__dict__['interpolated_'+value] = []
+            self.__dict__['interpolated_' + value] = []
             for a, b in zip(self.epoch, self.__dict__[value]):
                 self.__dict__['interpolated_' +
                               value].append(np.interp(self.EPOCH, a, b))
             self.__dict__[value.upper()] = sum(
-                self.__dict__['interpolated_'+value])/len(self.__dict__['interpolated_'+value])
+                self.__dict__['interpolated_' + value]) / len(self.__dict__['interpolated_' + value])
 
     def plot(self,
              data='signal',
@@ -817,7 +824,7 @@ class MultiAnalysis(PyFiber):
              label=None,
              save=False,
              save_dpi=600,
-             save_format=['png','pdf'],**kwargs):
+             save_format=['png', 'pdf'], **kwargs):
         """Visualize specified data.
 
         :param save: default is ``False``, filepath (without file extension)
@@ -849,9 +856,9 @@ class MultiAnalysis(PyFiber):
         plt.plot(self.EPOCH, mean_data, c='k', label='mean')
         plt.axvline(0, alpha=1, linewidth=cfg['linewidth'], c=cfg['c'])
         if 'window' in kwargs.keys():
-            plt.xlim(-1*kwargs['window'][0], kwargs['window'][1])
+            plt.xlim(-1 * kwargs['window'][0], kwargs['window'][1])
         else:
-            plt.xlim(-1*self.WINDOW[0], self.WINDOW[1])
+            plt.xlim(-1 * self.WINDOW[0], self.WINDOW[1])
         if 'ylim' in kwargs.keys():
             plt.ylim(kwargs['ylim'])
         if save:
