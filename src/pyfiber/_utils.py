@@ -5,12 +5,12 @@ import datetime
 import inspect
 import os
 import shutil
-from typing import List, Tuple, Union, Any
+from typing import List, Tuple
 
-__all__ = ['PyFiber', 'Intervals', 'Events']
+__all__ = ["PyFiber", "Intervals", "Events"]
 
 
-Intervals = List[Tuple[float,float]]
+Intervals = List[Tuple[float, float]]
 Events = np.ndarray
 
 
@@ -20,26 +20,28 @@ class PyFiber:
     :cvar CFG: dictionnary containing the whole ``'pyfiber.yaml'`` file content
     :param verbose: if ``False``, activates silent mode (the log is still available in ``self.log``)
     :param kwargs: add additional attribute or modify config option at runtine"""
-    FOLDER = os.path.expanduser('~/.pyfiber')
-    _config_path = os.path.expanduser('~/.pyfiber/pyfiber.yaml')
-    _sample_config = os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),
-                                  'pyfiber.yaml')
+
+    FOLDER = os.path.expanduser("~/.pyfiber")
+    _config_path = os.path.expanduser("~/.pyfiber/pyfiber.yaml")
+    _sample_config = os.path.join(
+        os.path.dirname(inspect.getfile(inspect.currentframe())), "pyfiber.yaml"
+    )
     if not os.path.exists(_config_path):
         try:
             os.mkdir(FOLDER)
         except FileExistsError:
             pass
         shutil.copyfile(_sample_config, _config_path)
-    with open(_config_path, 'r') as f:
-        CFG = yaml.load(f, Loader=yaml.FullLoader) #: :meta hide-value:
+    with open(_config_path, "r") as f:
+        CFG = yaml.load(f, Loader=yaml.FullLoader)  #: :meta hide-value:
         print(f"Configuration file at: {_config_path}")
-    vars().update(CFG) 
-    vars().update(CFG['GENERAL'])
-    vars().update(CFG['SYSTEM'])
+    vars().update(CFG)
+    vars().update(CFG["GENERAL"])
+    vars().update(CFG["SYSTEM"])
 
     def __init__(self, **kwargs):
-        if 'verbosity' in kwargs.keys():
-            self._verbosity = kwargs['verbosity']
+        if "verbosity" in kwargs.keys():
+            self._verbosity = kwargs["verbosity"]
         else:
             self._verbosity = True
         self._log = []
@@ -62,7 +64,7 @@ class PyFiber:
             '15:29:37 --- did something else'
             '15:35:10 --- new entry'
         """
-        print('\n'.join([' '.join(i.split('\n')) for i in self._log])+'\n')
+        print("\n".join([" ".join(i.split("\n")) for i in self._log]) + "\n")
 
     @log.setter
     def log(self, value):
@@ -71,23 +73,34 @@ class PyFiber:
 
     @property
     def help(self):
-        function_doc = [(k, v.__doc__) for k, v in self.__class__.__dict__.items() if (
-            callable(v)) & (k[0] != '_')]
-        for (a, b) in function_doc:
+        function_doc = [
+            (k, v.__doc__)
+            for k, v in self.__class__.__dict__.items()
+            if (callable(v)) & (k[0] != "_")
+        ]
+        for a, b in function_doc:
             print(f"<obj>.\033[1m{a}\033[0m()\n {b}\n")
 
     @property
     def _help(self):
-        function_doc = [(k, v)
-                        for k, v in self.__class__.__dict__.items() if (callable(v))]
-        for (a, b) in function_doc:
+        function_doc = [
+            (k, v) for k, v in self.__class__.__dict__.items() if (callable(v))
+        ]
+        for a, b in function_doc:
             print(f"{a:<20} --> {b.__doc__}")
             print(f"{inspect.getfullargspec(b)}")
 
     @property
     def info(self):
-        print('\n'.join(
-            ['<obj>.'+f'\033[1m{i}\033[0m' for i in sorted(self.__dict__) if i[0] != '_']))
+        print(
+            "\n".join(
+                [
+                    "<obj>." + f"\033[1m{i}\033[0m"
+                    for i in sorted(self.__dict__)
+                    if i[0] != "_"
+                ]
+            )
+        )
 
     def _list(self, anything):
         """Convert user input into list if not already."""
@@ -95,9 +108,9 @@ class PyFiber:
             return []
         elif type(anything) in [str, int, float]:
             return [anything]
-        elif type(anything) == np.ndarray:
+        elif isinstance(anything, np.ndarray):
             return anything.tolist()
-        elif type(anything) == list:
+        elif isinstance(anything, list):
             return anything
         else:
             print(f"{type(anything)} not taken care of by _list")
