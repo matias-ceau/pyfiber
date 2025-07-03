@@ -8,10 +8,11 @@ import pandas as pd
 import portion
 import os
 import time
+import typing
 import matplotlib.pyplot as plt
 import numpy as np
 from ._utils import PyFiber, Intervals, Events
-from collections.abc import List, Tuple, Union, Any
+from typing import List, Tuple, Union, Any
 import matplotlib.style as st
 
 st.use("ggplot")
