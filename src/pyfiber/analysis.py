@@ -20,8 +20,8 @@ st.use("ggplot")
 
 __all__ = ["Session", "MultiSession", "Analysis", "MultiAnalysis"]
 
-type Intervals = List[Tuple[float, float]]
-type Events = np.ndarray
+Intervals = List[Tuple[float, float]]
+Events = np.ndarray
 
 
 class Session(PyFiber):
